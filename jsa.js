@@ -1,7 +1,4 @@
-
 /*!
- * @author 김승일
- * @email comahead@vi-nyl.com
  * @description jsa 프레임웍
  * @version 0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1
  */
