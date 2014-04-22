@@ -1,29 +1,211 @@
 /*!
- * @description jsa 프레임웍
- * @version 0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1
+ * @author 김승일
+ * @email comahead@nate.com
+ * @description 코어 라이브러리
+ *
+ *
+ * @Searching List
+ * @jQuery
+ *  $.fn
+ *      .showLayer() : div를 표시하고 layershown 이벤트 발생.
+ *      .hideLayer() : div를 숨기고 layerhidden 이벤트 발생.
+ *      .disabled() : disabled속성 변경과 disabled 클래스 토글.
+ *      .checked() : checked속성 변경과 changed이벤트 발생
+ *      .replaceClass() : 클래스 변환
+ *      .checkedValues() : 체크된 값을 반환
+ *      .activeItem() : 이전에 추가된 'on'를 지우고 현재 요소에 'on'클래스를 삽입
+ *      .trimVal() : 폼요소의 값에서 앞뒤 스페이스를 제거한 값을 반환
+ *      .buildUIControls() : 요소에 포함된 공통 UI모듈을 빌드
+ *
+ *
+ * @Core : 코어 함수
+ * jsa
+ *          .$win : $(window)
+ *          .$doc : $(document)
+ *          .$body : $(document.body)
+ *          .each() : 반복자
+ *          .extend() :  속성 복사
+ *          .namespace() : 네임스페이스 생성
+ *          .define() : jsa를 루트로 한 네임스페이스 생성
+ *          .hasOwn() : Object.prototype.hasOwnProperty 단축명
+ *          .is() : 타입 체크
+ *          .isEmpty() : 빈값 체크
+ *          .toArray() : 주어진 값을 배열로 변환
+ *          .getUniqId() : 고유값 생성(32자리)
+ *          .nextSeq() : 0에서 1씩 증가시킨 순번을 반환
+ *          .template() : 템플릿 생성
+ *          .Class() : OOP 클래스 정의함수
+ *          .Base : OOP 클래스의 Root
+ *
+ *
+ * @Browser : 브라우저 정보
+ * jsa.browser
+ *          .isMobile   : 모바일여부
+ *          .isRetina   : 레티나 여부
+ *          .isAndroid  : 안드로이드 여부
+ *          .isOpera    : 오페라
+ *          .isWebKit   : 웹킷
+ *          .isTouch    : 터치여부
+ *          .isIE       : IE
+ *          .isIE6      : IE 6버전
+ *          .isIE7      : IE 7버전
+ *          .isOldIE    : IE 6, 7, 8버전
+ *          .version    : IE버전
+ *          .isChrome   : 크롬
+ *          .isGecko    : 파폭
+ *          .isMac      : 맥 OS
+ *          .isAir      : Adobe Air
+ *          .isIDevice  : 모바일 디바이스
+ *          .isSafari   : 사파리
+ *          .isIETri4   : 쿼크
+ *
+ * @Util : Util함수 모음
+ * jsa.util
+ *          .png24(...)              : png 투명 처리
+ *          .openPopup(...)          : 팝업 띄우기
+ *          .resizePopup(...)        : 팝업 리사이즈
+ *          .popupCoords(...)        : 팝업을 화면 가운데에 위치시키기
+ *          .centeringImage(...)     : 이미지를 가운데 위치시키기
+ *          .lazyImages(...)         : 이미지로딩 대기
+ *          .getDocHeight(...)       : 도큐먼트 height
+ *          .getDocWidth(...)        : 도큐먼트 width
+ *          .getWinWidth(...)        : 윈도우 width
+ *          .getWinHeight(...)       : 윈도우 height
+ *
+ * @UI : UI 모듈
+ * jsa.ui
+ * 		    .AccordionList             : 아코디언 리스트
+ * 		    .Calendar                  : 달력
+ * 	        .Modal                     : 모달
+ *          .Paginate                  : 페이지네이션
+ *          .Placeholder               : 플레이스홀더
+ *          .ScrollView                : 커스텀스크롤
+ *          .Selectbox                 : 스킨형 셀렉트박스
+ *          .Slider                    : 슬라이더
+ *          .Tab                       : 탭컨트롤
+ *
  */
 (function (context, $, undefined) {
+
+
     "use strict";
     /* jshint expr: true, validthis: true */
-    /* global jsa, alert, escape, unescape, Base64 */
+    /* global jsa, alert, escape, unescape */
 
-    var $root = $(document.documentElement);
-
-    $root.addClass('js').one('touchstart MSGestureStart', function () {
-        $root.addClass('touch');
-    });
+    var LIB_NAME = window.LIB_NAME = 'jsa';
+    var $root = $(document.documentElement).addClass('js');
+    ('ontouchstart' in context) && $root.addClass('touch');
+    ('orientation' in context) && $root.addClass('mobile');
 
     /**
      * @namespace
      * @name jsa
-     * @description root namespace of jsa
+     * @description root namespace of hib site
      */
-    var jsa = context.jsa || (context.jsa = {});
+    var _core = context[LIB_NAME] || (context[LIB_NAME] = {});
 
-    var toString = Object.prototype.toString,
-        hasOwn = Object.prototype.hasOwnProperty,
+    var arrayProto = Array.prototype,
+        objectProto = Object.prototype,
+        toString = objectProto.toString,
+        hasOwn = objectProto.hasOwnProperty,
+        arraySlice = arrayProto.slice,
         doc = context.document,
-        emptyFn = function () {};
+        tmpInput = doc.createElement('input'),
+        tmpNode = doc.createElement('div'),
+        emptyFn = function () {},
+        /**
+         * 반복 함수
+         * @function
+         * @name jsa.each
+         * @param {Array|JSON} obj 배열 및 json객체
+         * @param {function(this:Array|Object, value, index)} cb
+         * @param {Object} ctx
+         * @returns {*}
+         */
+        each = function (obj, cb, ctx) {
+            if (!obj) {
+                return obj;
+            }
+            var i, len;
+            if (obj && obj.push) {
+                if (obj.forEach) {
+                    if (obj.forEach(cb, ctx) === false) {
+                        return;
+                    }
+                } else {
+                    for (i = 0, len = obj.length; i < obj.length; i++) {
+                        if (cb.call(ctx || obj, obj[i], i, obj) === false) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                for (i in obj) {
+                    if (hasOwn.call(obj, i)) {
+                        if (cb.call(obj, obj[i], i, obj) === false) {
+                            return;
+                        }
+                    }
+                }
+            }
+            return obj;
+        },
+        /**
+         * 확장 함수
+         * @function
+         * @name jsa.extend
+         * @param {JSON} obj...
+         * @returns {*}
+         */
+        extend = function (obj) {
+            each(arraySlice.call(arguments, 1), function (source) {
+                each(source, function (val, key) {
+                    obj[key] = source[key];
+                });
+            });
+            return obj;
+        },
+        /**
+         * 복제 함수
+         * @function
+         * @name jsa.clone
+         * @param {JSON} obj 배열 및 json객체
+         * @returns {*}
+         */
+        clone = function (obj) {
+            if (null == obj || "object" != typeof obj) return obj;
+
+            if (obj instanceof Date) {
+                var copy = new Date();
+                copy.setTime(obj.getTime());
+                return copy;
+            }
+
+            if (obj instanceof Array) {
+                var copy = [];
+                for (var i = 0, len = obj.length; i < len; i++) {
+                    copy[i] = clone(obj[i]);
+                }
+                return copy;
+            }
+
+            if (obj instanceof Object) {
+                var copy = {};
+                for (var attr in obj) {
+                    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+                }
+                return copy;
+            }
+            throw new Error('oops!! clone is fail');
+        };
+
+    _core.name = LIB_NAME;
+
+    extend(_core, {
+        each: each,
+        extend: extend,
+        clone: clone
+    });
 
     if (typeof Function.prototype.bind === 'undefined') {
         /**
@@ -31,20 +213,20 @@
          * @param {Object} context 컨텍스트
          * @param {Mixed} ... 두번째 인자부터는 실제로 싱행될 함수로 전달된다.
          * @example
-         * function Test(){
-         *                alert(this.name);
+         * function Test() {
+         *		alert(this.name);
          * }.bind({name: 'axl rose'});
          *
          * Test(); -> alert('axl rose');
          */
         Function.prototype.bind = function () {
             var __method = this,
-                args = Array.prototype.slice.call(arguments),
+                args = arraySlice.call(arguments),
                 object = args.shift();
 
-            return function () {
-                // bind로 넘어오는 인자와 원본함수의 인자를 병합하여 넘겨줌. 
-                var local_args = args.concat(Array.prototype.slice.call(arguments));
+            return function (context) {
+                // bind로 넘어오는 인자와 원본함수의 인자를 병합하여 넘겨줌.
+                var local_args = args.concat(arraySlice.call(arguments));
                 if (this !== window) {
                     local_args.push(this);
                 }
@@ -53,11 +235,25 @@
         };
     }
 
+    if (!window.console) {
+        window.console = {};
+        each(['log', 'info', 'warn', 'error', 'assert', 'dir', 'clear', 'profile', 'profileEnd'],
+            function (method) {
+                console[method] = function () {};
+            });
+    }
+
     /**
      * jQuery 객체
      * @class
      * @name $
      */
+
+    $.extend(jQuery.expr[':'], {
+        focusable: function (el, index, selector) {
+            return $(el).is('a, button, :input, [tabindex]');
+        }
+    });
 
     /**
      * value값을 URI인코딩하여 반환
@@ -80,7 +276,7 @@
      * @return {String} 문자열
      */
     $.fn.trimVal = (function () {
-        var supportPlaceholder = ('placeholder' in document.createElement('input'));
+        var supportPlaceholder = ('placeholder' in tmpInput);
 
         return supportPlaceholder ? function (value) {
             if (arguments.length === 0) {
@@ -106,15 +302,17 @@
      * @function
      * @name $#checked
      * @param {Boolean} checked 체크여부
+     * @param {Boolean} isBubble 버블링 여부
+     * @returns {jQuery}
      * @fires $#changed
      * @example
      * // 먼저 changed 이벤트 바인딩
-     * $('input:checkbox').on('changed', function(e, isChecked){ $(this).parent()[isChecked?'addClass':'removeClass']('on'); });
+     * $('input:checkbox').on('changed', function(e, isChecked) { $(this).parent()[isChecked?'addClass':'removeClass']('on'); });
      * ..
      * // checked 값을 변경
      * $('input:checkbox').checked(true); // 해당체크박스의 부모에 on클래스가 추가된다.
      */
-    $.fn.checked = function (checked) {
+    $.fn.checked = function (checked, isBubble) {
         return this.each(function () {
             if (this.type !== 'checkbox' && this.type !== 'radio') {
                 return;
@@ -124,7 +322,8 @@
              * @type {object}
              * @peoperty {boolean} checked - 체크 여부
              */
-            var $this = $(this).prop('checked', checked).trigger('changed', [checked]);
+            $(this).prop('checked', checked)[isBubble === false ? 'triggerHandler' : 'trigger']('checkedchanged', [checked])
+                .parent().toggleClass('on', checked);
         });
     };
 
@@ -134,6 +333,7 @@
      * @name $#replaceClass
      * @param {String} old 대상클래스
      * @param {String} newCls 치환클래스
+     * @returns {jQuery}
      */
     $.fn.replaceClass = function (old, newCls) {
         return this.each(function () {
@@ -150,14 +350,15 @@
      * @param {Element|jQuery} options.button (Optional) 버튼
      * @param {Function} options.onShow (Optional) 표시될 때 실행될 함수
      */
-    $.fn.showLayer = function (options) {
-        options = $.extend({
-            onShow: jsa.emptyFn,
+    $.fn.showLayer = function (options, isBubble) {
+        options = extend({
+            onShow: _core.emptyFn,
             opener: null
         }, options);
 
         return this.each(function () {
             var $this = $(this),
+                trigger = [isBubble === false ? 'triggerHandler' : 'trigger'],
                 evt;
             if (options.opener) {
                 $this.data('opener', options.opener);
@@ -167,13 +368,13 @@
                 });
             }
 
-            $this.trigger(evt = $.Event('beforeshow'));
+            $this[trigger](evt = $.Event('layerbeforeshow'));
             if (evt.isDefaultPrevented()) {
                 return;
             }
 
             // 표시될 때 d_open 클래스 추가
-            $this.addClass('d_open').show().trigger('show');
+            $this.addClass('d-open').show()[trigger]('layershown');
             options.onShow.call($this[0]);
         });
     };
@@ -186,15 +387,15 @@
      * @param {Boolean} options.focusOpener (Optional) 숨겨진 후에 버튼에 포커스를 줄것인지 여부
      * @param {Function} options.onHide (Optional) 숨겨진 후에 실행될 함수
      */
-    $.fn.hideLayer = function (options) {
-        options = $.extend({
-            onHide: jsa.emptyFn,
+    $.fn.hideLayer = function (options, isBubble) {
+        options = extend({
+            onHide: _core.emptyFn,
             focusOpener: false
         }, options);
 
         return this.each(function () {
             var $this = $(this);
-            $this.removeClass('d_open').hide().trigger('hide');
+            $this.removeClass('d-open').hide()[isBubble === false ? 'triggerHandler' : 'trigger']('layerhidden');
             options.onHide.call($this[0]);
 
             // 숨겨진 후에 열었던 원래버튼에 포커스를 강제로 준다.
@@ -232,7 +433,7 @@
         var results = [];
         this.each(function () {
             if ((this.type === 'checkbox' || this.type === 'radio') && this.checked === true) {
-                results[results.length] = this.value;
+                results.push(this.value);
             }
         });
         return results;
@@ -241,75 +442,88 @@
     /**
      * 같은 레벨에 있는 다른 row에서 on를 제거하고 현재 row에 on 추가
      * @function
-     * @name $#activeRow
+     * @name $#activeItem
      * @param {String} cls 활성 클래스명
      * @return {jQuery}
      */
-    $.fn.activeRow = function (cls) {
+    $.fn.activeItem = function (cls) {
         cls = cls || 'on';
         return this.addClass(cls).siblings().removeClass(cls).end();
     };
 
     /**
-     * timeStart("name")로 name값을 키로하는 타이머가 시작되며, timeEnd("name")로 해당 name값의 지난 시간을 로그에 출력해준다.
-     * @memberOf jsa
-     * @name timeStart
+     * disabled 및 flag에 따라 클래스 토글
      * @function
-     *
-     * @param {String} name 타이머의 키값
-     * @param {Boolean} reset 리셋(초기화) 여부
-     *
-     * @example
-     * jsa.timeStart('animate');
-     * ...
-     * jsa.timeEnd('animate'); -> animate: 10203ms
+     * @name $#disabled
+     * @param {String} (Optional) name
+     * @param {Boolean} flag
+     * @returns {*}
      */
-    jsa.timeStart = function (name, reset) {
-        if (!name) {
-            return;
+    $.fn.disabled = function (name, flag) {
+        if (typeof name !== 'string') {
+            flag = name;
+            name = 'disable';
         }
-        var time = new Date().getTime(),
-            key = "KEY" + name.toString();
-
-        this.timeCounters || (this.timeCounters = {});
-        if (!reset && this.timeCounters[key]) {
-            return;
-        }
-        this.timeCounters[key] = time;
+        return this.prop('disabled', flag).toggleClass(name, flag);
     };
 
-    /**
-     * timeStart("name")에서 지정한 해당 name값의 지난 시간을 로그에 출력해준다.
-     * @memberOf jsa
-     * @name timeEnd
-     * @function
-     *
-     * @param {String} name 타이머의 키값
-     * @return {Number} 걸린 시간
-     *
-     * @example
-     * jsa.timeStart('animate');
-     * ...
-     * jsa.timeEnd('animate'); -> animate: 10203ms
-     */
-    jsa.timeEnd = function (name) {
-        if (!this.timeCounters) {
-            return;
-        }
+    extend(_core, /** @lends jsa */ {
+        /**
+         * timeStart("name")로 name값을 키로하는 타이머가 시작되며, timeEnd("name")로 해당 name값의 지난 시간을 로그에 출력해준다.
+         *
+         * @param {String} name 타이머의 키값
+         * @param {Boolean} reset 리셋(초기화) 여부
+         *
+         * @example
+         * jsa.timeStart('animate');
+         * ...
+         * jsa.timeEnd('animate'); -> animate: 10203ms
+         */
+        timeStart: function (name, reset) {
+            if (!name) {
+                return;
+            }
+            var time = +new Date,
+                key = "KEY" + name.toString();
 
-        var time = new Date().getTime(),
-            key = "key_" + name.toString(),
-            timeCounter = this.timeCounters[key],
-            diff, label;
+            this.timeCounters || (this.timeCounters = {});
+            if (!reset && this.timeCounters[key]) {
+                return;
+            }
+            this.timeCounters[key] = time;
+        },
 
-        if (timeCounter) {
-            diff = time - timeCounter;
-            label = name + ": " + diff + "ms";
-            console.log(label);
-            delete this.timeCounters[key];
+        /**
+         * timeStart("name")에서 지정한 해당 name값의 지난 시간을 로그에 출력해준다.
+         *
+         * @param {String} name 타이머의 키값
+         * @return {Number} 걸린 시간
+         *
+         * @example
+         * jsa.timeStart('animate');
+         * ...
+         * jsa.timeEnd('animate'); -> animate: 10203ms
+         */
+        timeEnd: function (name) {
+            if (!this.timeCounters) {
+                return null;
+            }
+
+            var time = +new Date,
+                key = "KEY" + name.toString(),
+                timeCounter = this.timeCounters[key],
+                diff, label;
+
+            if (timeCounter) {
+                diff = time - timeCounter;
+                label = name + ": " + diff + "ms";
+                // 이 콘솔은 디버깅을 위한 것이므로 지우지 말것.
+                console.log('[' + name + '] ' + label + 'ms');
+                delete this.timeCounters[key];
+            }
+            return diff;
         }
-        return diff;
-    };
+    });
 
     /**
      * 네임스페이스 공간을 생성하고 객체를 설정<br>
@@ -317,37 +531,37 @@
      * 객체리터럴을 이용하여 여타 컴파일 언어의 네임스페이스처럼 쓸 수 있다.
      *
      * @function
-     * @memberOf jsa
-     * @name namespace
+     * @name jsa.namespace
      *
      * @param {String} name 네임스페이스명
-     * @param {Object} obj {Optional} 지정된 네임스페이스에 등록할 객체, 함수 등
+     * @param {Object} obj {Optional) 지정된 네임스페이스에 등록할 객체, 함수 등
      * @return {Object} 생성된 네임스페이스
      *
      * @example
      * jsa.namesapce('jsa.widget.Tabcontrol', TabControl)
      *
-     * ex) jsa.namespace('jsa.widget.Control', function(){}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
+     * ex) jsa.namespace('jsa.widget.Control', function() {}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
      *
      * var jsa = jsa || {};
      * jsa.ui = jsa.ui || {};
-     * jsa.widget.Control = jsa.widget.Control || function(){};
+     * jsa.widget.Control = jsa.widget.Control || function() {};
      */
-    jsa.namespace = function (name, obj) {
+    _core.namespace = function (name, obj) {
         if (typeof name !== 'string') {
             obj && (name = obj);
             return name;
         }
         var root = context,
             names = name.split('.'),
-            isSet = arguments.length === 2;
+            isSet = arguments.length === 2,
+            i, item;
 
         if (isSet) {
-            for (var i = -1, item; item = names[++i];) {
+            for (i = -1; item = names[++i];) {
                 root = root[item] || (root[item] = (i === names.length - 1 ? obj : {}));
             }
         } else { // isGet
-            for (var i = -1, item; item = names[++i];) {
+            for (i = -1; item = names[++i];) {
                 if (item in root) {
                     root = root[item]
                 } else {
@@ -360,32 +574,31 @@
     };
 
     /**
-     * codej를 루트로 하여 네임스페이스를 생성하여 새로운 속성을 추가하는 함수
+     * common를 루트로 하여 네임스페이스를 생성하여 새로운 속성을 추가하는 함수
      *
      * @function
-     * @memberOf jsa
-     * @name define
+     * @name jsa.define
      *
-     * @param {String} name .를 구분자로 해서 jk를 시작으로 하위 네임스페이스를 생성. 없으면 jk에 추가된다.
+     * @param {String} name .를 구분자로 해서 common를 시작으로 하위 네임스페이스를 생성. 없으면 common에 추가된다.
      * @param {Object|Function} object
-     * @param {Boolean} (Optional) isExecFn object값이 함수형일 때 실행을 시킨 후에 설정할 것인가 여부
+     * @param {Boolean} isExecFn (Optional) object값이 함수형일 때 실행한 값을 설정할 것인가 여부
      *
      * @example
-     * jsa.jsa.define('', [], {});
+     * jsa.define('', [], {});
      * jsa.
      */
-    jsa.define = function (name, object, isExecFn) {
+    _core.define = function (name, object, isExecFn) {
         if (typeof name !== 'string') {
             object = name;
             name = '';
         }
 
-        var root = jsa,
-            names = name ? name.replace(/^codej\.?/, '').split('.') : [],
+        var root = _core,
+            names = name ? name.replace(/^_core\.?/, '').split('.') : [],
             ln = names.length - 1,
             leaf = names[ln];
 
-        if (isExecFn !== false && typeof object === 'function' && !hasOwn.call(object, 'classType')) {
+        if (isExecFn !== false && typeof object === 'function' && !hasOwn.call(object, 'superclass')) {
             object = object.call(root);
         }
 
@@ -393,39 +606,12 @@
             root = root[names[i]] || (root[names[i]] = {});
         }
 
-        (leaf && (root[leaf] ? $.extend(root[leaf], object) : (root[leaf] = object))) || $.extend(root, object);
+        return (leaf && (root[leaf] ? extend(root[leaf], object) : (root[leaf] = object))) || extend(root, object), object;
     };
 
-    /**
-     * jsa.jsa.define 를 통해 정의된 모듈을 변수에 담아서 사용하고자 할 경우
-     *
-     * @function
-     * @memberOf jsa
-     * @name use
-     *
-     * @param {String} name 네임스페이스
-     * @return {Object} 함수를 실행한 결과값
-     *
-     * @example
-     * jsa.jsa.define('test', function(){
-     *         return {
-     *                init: function(){
-     *                         alert(0);
-     *                }
-     *        });
-     * var test = jsa.use('test');
-     * test.init()        => alert(0)
-     */
-    jsa._prefix = 'jsa.';
-    jsa.use = function (name) {
-        var obj = jsa.namespace(jsa._prefix + name);
-        if (jsa.isFunction(obj) && !hasOwn.call(obj, 'classType')) {
-            obj = obj();
-        }
-        return obj;
-    };
+    _core._prefix = LIB_NAME + '.';
 
-    jsa.define( /** @lends jsa */ {
+    _core.define( /** @lends jsa */ {
         /**
          * document jQuery wrapper
          */
@@ -434,6 +620,11 @@
          * window jQuery wrapper
          */
         $win: $(window),
+
+        /**
+         * body jQuery wrapper
+         */
+        $body: $("body"),
         /**
          * 빈 함수
          * @function
@@ -445,19 +636,39 @@
         /**
          * 임시 노드: css3스타일의 지원여부와 html을 인코딩/디코딩하거나 노드생성할 때  사용
          */
-        tmpNode: doc.createElement('div'),
+        tmpNode: tmpNode,
 
         /**
          * html5 속성의 지원여부를 체크할 때 사용
          * @example
          * is = 'placeholder' in jsa.tmpInput;  // placeholder를 지원하는가
          */
-        tmpInput: doc.createElement('input'),
+        tmpInput: tmpInput,
 
         /**
          * 터치기반 디바이스 여부
          */
         isTouch: !! ('ontouchstart' in window),
+
+        /**
+         * 키 코드
+         */
+        keyCode: {
+            BACKSPACE: 8,
+            DELETE: 46,
+            DOWN: 40,
+            END: 35,
+            ENTER: 13,
+            ESCAPE: 27,
+            HOME: 36,
+            LEFT: 37,
+            PAGE_DOWN: 34,
+            PAGE_UP: 33,
+            RIGHT: 39,
+            SPACE: 32,
+            TAB: 9,
+            UP: 38
+        },
 
         /**
          * 객체 자체에 주어진 이름의 속성이 있는지 조회
@@ -490,32 +701,60 @@
          * jsa.browser.isIETri4 // IE엔진
          */
         browser: (function () {
-            var t = {},
+            var detect = {},
                 win = context,
                 na = win.navigator,
                 ua = na.userAgent,
                 match;
 
-            t.isOpera = win.opera && win.opera.buildNumber;
-            t.isWebKit = /WebKit/.test(ua);
+            detect.isMobile = typeof orientation !== 'undefined';
+            detect.isRetina = 'devicePixelRatio' in window && window.devicePixelRatio > 1;
+            detect.isAndroid = ua.indexOf('android') !== -1;
+            detect.isOpera = win.opera && win.opera.buildNumber;
+            detect.isWebKit = /WebKit/.test(ua);
+            detect.isTouch = !! ('ontouchstart' in window);
 
             match = /(msie) ([\w.]+)/.exec(ua.toLowerCase()) || /(trident)(?:.*rv.?([\w.]+))?/.exec(ua.toLowerCase()) || ['', null, -1];
-            t.isIE = !t.isWebKit && !t.isOpera && match[1] !== null; //(/MSIE/gi).test(ua) && (/Explorer/gi).test(na.appName);
-            t.isIE6 = t.isIE && /MSIE [56]/i.test(ua);
-            t.isIE7 = t.isIE && /MSIE [567]/i.test(ua);
-            t.isOldIE = t.isIE && /MSIE [5678]/i.test(ua);
-            t.version = parseInt(match[2], 10); // 사용법: if(jsa.browser.isIE && jsa.browser.version > 8) { // 9이상인 ie브라우저
+            detect.isIE = !detect.isWebKit && !detect.isOpera && match[1] !== null; //(/MSIE/gi).test(ua) && (/Explorer/gi).test(na.appName);
+            detect.isIE6 = detect.isIE && /MSIE [56]/i.test(ua);
+            detect.isIE7 = detect.isIE && /MSIE [567]/i.test(ua);
+            detect.isOldIE = detect.isIE && /MSIE [5678]/i.test(ua);
+            detect.version = parseInt(match[2], 10); // 사용법: if (browser.isIE && browser.version > 8) { // 9이상인 ie브라우저
 
-            t.isChrome = (ua.indexOf('Chrome') !== -1);
-            t.isGecko = (ua.indexOf('Firefox') !== -1);
-            t.isMac = (ua.indexOf('Mac') !== -1);
-            t.isAir = ((/adobeair/i).test(ua));
-            t.isIDevice = /(iPad|iPhone)/.test(ua);
-            t.isSafari = (/Safari/).test(ua);
-            t.isIETri4 = (t.isIE && ua.indexOf('Trident/4.0') !== -1);
+            detect.isChrome = (ua.indexOf('Chrome') !== -1);
+            detect.isGecko = (ua.indexOf('Firefox') !== -1);
+            detect.isMac = (ua.indexOf('Mac') !== -1);
+            detect.isAir = ((/adobeair/i).test(ua));
+            detect.isIDevice = /(iPad|iPhone)/.test(ua);
+            detect.isSafari = !detect.isChrome && (/Safari/).test(ua);
+            detect.isIETri4 = (detect.isIE && ua.indexOf('Trident/4.0') !== -1);
 
-            return t;
+            return detect;
         }()),
+
+        is: function (o, typeName) {
+            if (o === null) {
+                return typeName === 'null';
+            }
+
+            if (o && (o.nodeType === 1 || o.nodeType === 9)) {
+                return typeName === 'element';
+            }
+
+            var s = toString.call(o),
+                type = s.match(/\[object (.*?)\]/)[1].toLowerCase();
+
+            if (type === 'number') {
+                if (isNaN(o)) {
+                    return typeName === 'nan';
+                }
+                if (!isFinite(o)) {
+                    return typeName === 'infinity';
+                }
+            }
+
+            return type === typeName;
+        },
 
         /**
          * 주어진 인자가 빈값인지 체크
@@ -525,7 +764,7 @@
          * @return {Boolean}
          */
         isEmpty: function (value, allowEmptyString) {
-            return (value === null) || (value === undefined) || (!allowEmptyString ? value === '' : false) || (this.isArray(value) && value.length === 0);
+            return (value === null) || (value === undefined) || (!allowEmptyString ? value === '' : false) || (this.is(value, 'array') && value.length === 0);
         },
 
         /**
@@ -552,6 +791,7 @@
          * JSON 객체인지 체크
          *
          * @function
+         * @name jsa.isObject
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -565,6 +805,7 @@
          * 함수형인지 체크
          *
          * @function
+         * @name jsa.isFunction
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -576,6 +817,7 @@
 
         /**
          * 숫자 타입인지 체크.
+         *
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -630,18 +872,9 @@
         },
 
         /**
-         * 정의된 값인지 체크
-         * @param {Object} 체크할 값
-         * @return {Boolean}
-         */
-        isDefined: function (value) {
-            return typeof value !== 'undefined';
-        },
-
-        /**
          * 주어진 값을 배열로 변환
          *
-         * @param {Mixed} 배열로 변환하고자 하는 값
+         * @param {Mixed} value 배열로 변환하고자 하는 값
          * @return {Array}
          *
          * @example
@@ -649,7 +882,17 @@
          * jsa.toArray(arguments);  => arguments를 객체를 array로 변환하여 Array에서 지원하는 유틸함수(slice, reverse ...)를 쓸수 있다.
          */
         toArray: function (value) {
-            return Array.prototype.slice.apply(value, Array.prototype.slice.call(arguments, 1));
+            try {
+                return arraySlice.apply(value, arraySlice.call(arguments, 1));
+            } catch (e) {}
+
+            var ret = [];
+            try {
+                for (var i = 0, len = value.length; i < len; i++) {
+                    ret.push(value[i]);
+                }
+            } catch (e) {}
+            return ret;
         },
 
         /**
@@ -657,8 +900,11 @@
          *
          * @return {String}
          */
-        getUniqId: function () {
-            return Number(String(Math.random() * 10).replace(/\D/g, ''));
+        getUniqId: function (len) {
+            len = len || 32;
+            var rdmString = "";
+            for (; rdmString.length < len; rdmString += Math.random().toString(36).substr(2));
+            return rdmString.substr(0, len);
         },
 
         /**
@@ -666,12 +912,52 @@
          * @function
          * @return {Number}
          */
-        getUniqKey: (function () {
-            var uniqKey = 1;
-            return function () {
-                return (uniqKey += 1);
+        nextSeq: (function () {
+            var seq = 0;
+            return function (prefix) {
+                return (prefix || '') + (seq += 1);
             };
-        }())
+        }()),
+
+        /**
+         * 템플릿 생성
+         *
+         * @param {String} text 템플릿 문자열
+         * @param {Object} data 템플릿 문자열에서 변환될 데이타
+         * @param {Object} settings 옵션
+         * @return {Function} tempalte 함수
+         *
+         * @example
+         * var tmpl = jsa.template('&lt;span>&lt;%=name%>&lt;/span>');
+         * var html = tmpl({name: 'Axl rose'}); => &lt;span>Axl rose&lt;/span>
+         * $('div').html(html);
+         */
+        template: function (str, data) {
+            var m,
+                src = 'var __src = [], escapeHTML=' + LIB_NAME + '.string.escapeHTML; with(value||{}) { __src.push("';
+            str = $.trim(str);
+            src += str.replace(/\r|\n|\t/g, " ")
+                .replace(/<%(.*?)%>/g, function (a, b) {
+                    return '<%' + b.replace(/"/g, '\t') + '%>';
+                })
+                .replace(/"/g, '\\"')
+                .replace(/<%(.*?)%>/g, function (a, b) {
+                    return '<%' + b.replace(/\t/g, '"') + '%>';
+                })
+                .replace(/<%=(.+?)%>/g, '", $1, "')
+                .replace(/<%-(.+?)%>/g, '", escapeHTML($1), "')
+                .replace(/(<%|%>)/g, function (a, b) {
+                    return b === '<%' ? '");' : '__src.push("'
+                });
+
+            src += '"); }; return __src.join("")';
+
+            var f = new Function('value', 'data', src);
+            if (data) {
+                return f(data);
+            }
+            return f;
+        }
 
     });
 
@@ -682,7 +968,7 @@
      * @name jsa.string
      * @description
      */
-    jsa.define('string', function () {
+    _core.define('string', function () {
         var escapeChars = {
             '&': '&amp;',
             '>': '&gt;',
@@ -692,7 +978,7 @@
         },
             unescapeChars = (function (escapeChars) {
                 var results = {};
-                $.each(escapeChars, function (k, v) {
+                each(escapeChars, function (v, k) {
                     results[v] = k;
                 });
                 return results;
@@ -703,12 +989,15 @@
             scriptRegexp = /<script[^>]*>([\\S\\s]*?)<\/script>/img;
 
         return /** @lends jsa.string */ {
+            trim: function (value) {
+                return value ? value.replace(/^\s+|\s+$/g, "") : value;
+            },
             /**
              * 정규식이나 검색문자열을 사용하여 문자열에서 텍스트를 교체
              *
              * @param {String} value 교체를 수행할 문자열
-             * @param {RegExp|String} 검색할 문자열이나 정규식 패턴
-             * @param {String} 대체할 문자열
+             * @param {RegExp|String} find 검색할 문자열이나 정규식 패턴
+             * @param {String} rep 대체할 문자열
              * @return {String} 대체된 결과 문자열
              *
              * @example
@@ -823,6 +1112,17 @@
             },
 
             /**
+             * 첫글자를 소문자로 변환
+             * @param {String} value
+             * @returns {string}
+             */
+            toFirstLower: function (value) {
+                return value ? value.replace(/^[A-Z]/, function (s) {
+                    return s.toLowerCase();
+                }) : value;
+            },
+
+            /**
              * 주어진 문자열을 지정한 수만큼 반복하여 조합
              *
              * @param {String} value 문자열
@@ -868,12 +1168,11 @@
              */
             unescapeHTML: function (value) {
                 return value ? (value + "").replace(unescapeRegexp, function (m) {
-                    console.log(unescapeChars, m);
                     return unescapeChars[m];
                 }) : value;
             },
 
-            /** 
+            /**
              * string === value이면 other를,  string !== value 이면 value를 반환
              *
              * @param {String} value
@@ -900,7 +1199,7 @@
              * jsa.string.format("{0}:{1}:{2} {0}", "a", "b", "c");  => "a:b:c a"
              */
             format: function (format) {
-                var args = jsa.toArray(arguments).slice(1);
+                var args = _core.toArray(arguments).slice(1);
 
                 return format.replace(/{([0-9]+)}/g, function (m, i) {
                     return args[i];
@@ -936,7 +1235,7 @@
      * @name jsa.uri
      * @description
      */
-    jsa.define('uri', /** @lends jsa.uri */ {
+    _core.define('uri', /** @lends jsa.uri */ {
 
         /**
          * 주어진 url에 쿼리스츠링을 조합
@@ -949,11 +1248,11 @@
          * jsa.uri.urlAppend("board.do", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?a=1&b=2&c[d]=4"
          * jsa.uri.urlAppend("board.do?id=123", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?id=123&a=1&b=2&c[d]=4"
          */
-        addToQueryString: function (url, string) {
-            if (jsa.isObject(string)) {
-                string = jsa.object.toQueryString(string);
+        urlAppend: function (url, string) {
+            if (_core.is(string, 'object')) {
+                string = _core.object.toQueryString(string);
             }
-            if (!jsa.isEmpty(string)) {
+            if (!_core.isEmpty(string)) {
                 return url + (url.indexOf('?') === -1 ? '?' : '&') + string;
             }
 
@@ -977,15 +1276,15 @@
                 query = query.substr(1);
             }
 
-            var params = (query + '').split('&');
-            var obj = {};
-            var params_length = 0,
+            var params = (query + '').split('&'),
+                obj = {},
+                params_length = params.length,
                 tmp = '',
-                x = 0;
-            params_length = params.length;
-            for (x = 0; x < params_length; x++) {
-                tmp = params[x].split('=');
-                obj[unescape(tmp[0])] = unescape(tmp[1]).replace(/[+]/g, ' ');
+                i;
+
+            for (i = 0; i < params_length; i++) {
+                tmp = params[i].split('=');
+                obj[decodeURIComponent(tmp[0])] = decodeURIComponent(tmp[1]).replace(/[+]/g, ' ');
             }
             return obj;
         },
@@ -1024,32 +1323,7 @@
                 while (i--) {
                     uri[o.key[i]] = m[i] || "";
                 }
-                var retArr = {};
-                if (uri.protocol !== '') {
-                    retArr.scheme = uri.protocol;
-                }
-                if (uri.host !== '') {
-                    retArr.host = uri.host;
-                }
-                if (uri.port !== '') {
-                    retArr.port = uri.port;
-                }
-                if (uri.user !== '') {
-                    retArr.user = uri.user;
-                }
-                if (uri.password !== '') {
-                    retArr.pass = uri.password;
-                }
-                if (uri.path !== '') {
-                    retArr.path = uri.path;
-                }
-                if (uri.query !== '') {
-                    retArr.query = uri.query;
-                }
-                if (uri.anchor !== '') {
-                    retArr.fragment = uri.anchor;
-                }
-                return retArr;
+                return uri;
             };
         })(),
 
@@ -1074,7 +1348,7 @@
      * @name jsa.number
      * @description
      */
-    jsa.define('number', /** @lends jsa.number */ {
+    _core.define('number', /** @lends jsa.number */ {
         /**
          * 주어진 수를 자릿수만큼 앞자리에 0을 채워서 반환
          *
@@ -1152,36 +1426,90 @@
         }
     });
 
-
+    function nativeCall(f) {
+        return f ? function (obj) {
+            return f.apply(obj, arraySlice.call(arguments, 1));
+        } : false;
+    }
     /**
      * 배열관련 유틸함수
      * @namespace
      * @name jsa.array
      */
-    jsa.define('array', /** @lends jsa.array */ {
+    _core.define('array', /** @lends jsa.array */ {
+        /**
+         * 배열 병합
+         * @param {Array, Array, ...} arr
+         * @returns {*}
+         */
+        append: function (arr) {
+            var args = arraySlice.call(arguments);
+            arrayProto.push.apply.apply(args);
+            return args[0];
+        },
         /**
          * 콜백함수로 하여금 요소를 가공하는 함수
          *
+         * @function
+         * @name jsa.array.map
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
+         * @param {Object} (optional) 컨텍스트
          * @return {Array}
          *
          * @example
-         * jsa.array.map([1, 2, 3], function(item, index){
-         *                return item * 10;
+         * jsa.array.map([1, 2, 3], function(item, index) {
+         *		return item * 10;
          * });
          * => [10, 20, 30]
          */
-        map: function (obj, cb) {
+        map: nativeCall(arrayProto.map) || function (obj, cb, ctx) {
             var results = [];
-            if (!jsa.isArray(obj) || !jsa.isFunction(cb)) {
+            if (!_core.is(obj, 'array') || !_core.is(cb, 'function')) {
                 return results;
             }
-
+            // vanilla js~
             for (var i = 0, len = obj.length; i < len; i++) {
-                results[results.length] = cb(obj[i], i, obj);
+                results[results.length] = cb.call(ctx || obj, obj[i], i, obj);
             }
             return results;
+        },
+
+        /**
+         * 반복자함수의 반환값이 true가 아닐 때까지 반복
+         * @function
+         * @name jsa.array.every
+         * @return {Boolean} 최종 결과
+         */
+        every: nativeCall(arrayProto.every) || function (arr, cb, ctx) {
+            var isTrue = true;
+            if (!_core.is(arr, 'array') || !_core.is(cb, 'function')) {
+                return isTrue;
+            }
+            each(arr, function (v, k) {
+                if (cb.call(ctx || this, v, k) !== true) {
+                    return isTrue = false, false;
+                }
+            });
+            return isTrue;
+        },
+
+        /**
+         * 반복자함수의 반환값이 true일 때까지 반복
+         * @function
+         * @name jsa.array.any
+         */
+        any: nativeCall(arrayProto.any) || function (arr, cb, ctx) {
+            var isTrue = false;
+            if (!_core.is(arr, 'array') || !_core.is(cb, 'function')) {
+                return isTrue;
+            }
+            each(arr, function (v, k) {
+                if (cb.call(ctx || this, v, k) === true) {
+                    return isTrue = true, false;
+                }
+            });
+            return isTrue;
         },
 
         /**
@@ -1194,9 +1522,9 @@
             var rand,
                 index = 0,
                 shuffled = [],
-                number = jsa.number;
+                number = _core.number;
 
-            $.each(obj, function (k, value) {
+            each(obj, function (value, k) {
                 rand = number.random(index++);
                 shuffled[index - 1] = shuffled[rand], shuffled[rand] = value;
             });
@@ -1205,24 +1533,26 @@
 
         /**
          * 콜백함수로 하여금 요소를 걸려내는 함수
-         *
+         * @function
+         * @name jsa.array.filter
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
-         * @return {Array}
+         * @param {Object} (optional) 컨텍스트
+         * @returns {Array}
          *
          * @example
-         * jsa.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index){
-         *                return typeof item === 'string';
+         * jsa.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index) {
+         *		return typeof item === 'string';
          * });
          * => ['일','이','삼']
          */
-        filter: function (obj, cb) {
+        filter: nativeCall(arrayProto.filter) || function (obj, cb, ctx) {
             var results = [];
-            if (!jsa.isArray(obj) || !jsa.isFunction(cb)) {
+            if (!_core.is(obj, 'array') || !_core.is(cb, 'function')) {
                 return results;
             }
             for (var i = 0, len = obj.length; i < len; i++) {
-                cb(obj[i], i, obj) && (results[results.length] = obj[i]);
+                cb.call(ctx || obj, obj[i], i, obj) && (results[results.length] = obj[i]);
             }
             return results;
         },
@@ -1238,12 +1568,13 @@
          * jsa.array.include([1, '일', 2, '이', 3, '삼'], '삼');  => true
          */
         include: function (arr, value, b) {
-            return jsa.array.indexOf(arr, value, b) > -1;
+            return _core.array.indexOf(arr, value, b) > -1;
         },
 
         /**
          * 주어진 인덱스의 요소를 반환
-         *
+         * @function
+         * @name jsa.array.indexOf
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @return {Array}
@@ -1251,7 +1582,7 @@
          * @example
          * jsa.array.indexOf([1, '일', 2, '이', 3, '삼'], '일');  => 1
          */
-        indexOf: function (arr, value, b) {
+        indexOf: nativeCall(arrayProto.indexOf) || function (arr, value, b) {
             for (var i = 0, len = arr.length; i < len; i++) {
                 if ((b !== false && arr[i] === value) || (b === false && arr[i] == value)) {
                     return i;
@@ -1268,7 +1599,7 @@
          * @return {Array} 지정한 요소가 삭제된 배열
          */
         remove: function (value, index) {
-            if (!jsa.isArray(value)) {
+            if (!_core.is(value, 'array')) {
                 return value;
             }
             return value.slice(index, 1);
@@ -1300,38 +1631,40 @@
      * @namespace
      * @name jsa.object
      */
-    jsa.define('object', /** @lends jsa.object */ {
+    _core.define('object', /** @lends jsa.object */ {
 
         /**
          * 개체의 열거가능한 속성 및 메서드 이름을 배열로 반환
-         *
+         * @function
+         * @name jsa.object.keys
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 이름이 포함된 배열
          *
          * @example
          * jsa.object.keys({"name": "Axl rose", "age": 50}); => ["name", "age"]
          */
-        keys: function (obj) {
+        keys: Object.keys || function (obj) {
             var results = [];
-            $.each(obj, function (k) {
-                results[results.length] = k;
+            each(obj, function (v, k) {
+                results.push(k);
             });
             return results;
         },
 
         /**
          * 개체의 열거가능한 속성의 값을 배열로 반환
-         *
+         * @function
+         * @name jsa.object.values
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 값들이 포함된 배열
          *
          * @example
          * jsa.object.values({"name": "Axl rose", "age": 50}); => ["Axl rose", 50]
          */
-        values: function (obj) {
+        values: Object.values || function (obj) {
             var results = [];
-            $.each(obj, function (k, v) {
-                results[results.length] = v;
+            each(obj, function (v) {
+                results.push(v);
             });
             return results;
         },
@@ -1344,21 +1677,19 @@
          * @return {JSON}
          *
          * @example
-         * jsa.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key){
-         *                return item + '__';
+         * jsa.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key) {
+         *		return item + '__';
          * });
          * => {1: 'one__', 2: 'two__', 3: 'three__'}
          */
         map: function (obj, cb) {
-            if (!jsa.isObject(obj) || !jsa.isFunction(cb)) {
+            if (!_core.is(obj, 'object') || !_core.is(cb, 'function')) {
                 return obj;
             }
             var results = {};
-            for (var k in obj) {
-                if (obj.hasOwnProperty(k)) {
-                    results[k] = cb(obj[k], k, obj);
-                }
-            }
+            each(obj, function (v, k) {
+                results[k] = cb(obj[k], k, obj);
+            });
             return results;
         },
 
@@ -1366,20 +1697,19 @@
          * 요소가 있는 json객체인지 체크
          *
          *
-         * @param {Object} value json객체
+         * @param {Object} obj json객체
          * @return {Boolean} 요소가 하나라도 있는지 여부
          */
-        hasItems: function (value) {
-            if (!jsa.isObject(value)) {
+        hasItems: function (obj) {
+            if (!_core.is(obj, 'object')) {
                 return false;
             }
 
-            for (var key in value) {
-                if (value.hasOwnProperty(key)) {
-                    return true;
-                }
-            }
-            return false;
+            var has = false;
+            each(obj, function (v) {
+                return has = true, false;
+            });
+            return has;
         },
 
 
@@ -1387,7 +1717,7 @@
          * 객체를 쿼리스크링으로 변환
          *
          * @param {Object} obj 문자열
-         * @param {Boolean} isEncode {Optional} URL 인코딩할지 여부
+         * @param {Boolean} isEncode (Optional) URL 인코딩할지 여부
          * @return {String} 결과 문자열
          *
          * @example
@@ -1402,9 +1732,9 @@
                     return v;
                 } : encodeURIComponent;
 
-            $.each(params, function (key, value) {
+            each(params, function (value, key) {
                 if (typeof (value) === 'object') {
-                    $.each(value, function (innerKey, innerValue) {
+                    each(value, function (innerValue, innerKey) {
                         if (queryString !== '') {
                             queryString += '&';
                         }
@@ -1432,21 +1762,21 @@
          */
         traverse: function (obj) {
             var result = {};
-            $.each(obj, function (index, item) {
+            each(obj, function (item, index) {
                 result[item] = index;
             });
             return result;
         },
 
         /**
-         * 주어진 리터럴에서 index에 해당하는 요소를 삭제
+         * 주어진 리터럴에서 key에 해당하는 요소를 삭제
          *
-         * @param {Array} value 리터럴
+         * @param {Object} value 리터럴
          * @param {Number} key 삭제할 키
          * @return 지정한 요소가 삭제된 리터럴
          */
         remove: function (value, key) {
-            if (!jsa.isObject(value)) {
+            if (!_core.is(value, 'object')) {
                 return value;
             }
             value[key] = null;
@@ -1461,7 +1791,7 @@
      * @namespace
      * @name jsa.date
      */
-    jsa.define('date', function () {
+    _core.define('date', function () {
         var months = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(","),
             fullMonths = "January,Febrary,March,April,May,June,July,Augst,September,October,November,December".split(",");
 
@@ -1471,6 +1801,9 @@
         }
 
         return /** @lends jsa.date */ {
+            MONTHS_NAME: months,
+            MONTHS_FULLNAME: fullMonths,
+
             /**
              * 날짜형식을 지정한 포맷의 문자열로 변환
              *
@@ -1489,8 +1822,8 @@
                         yy = yyyy.toString().substring(2),
                         M = formatDate.getMonth() + 1,
                         MM = M < 10 ? "0" + M : M,
-                        MMM = months[M - 1],
-                        MMMM = fullMonths[M - 1],
+                        MMM = this.MONTHS_NAME[M - 1],
+                        MMMM = this.MONTHS_FULLNAME[M - 1],
                         d = formatDate.getDate(),
                         dd = d < 10 ? "0" + d : d,
                         h = formatDate.getHours(),
@@ -1527,6 +1860,7 @@
              * 날짜 비교
              *
              * @function
+             * @name jsa.date.compare
              * @param {Date} date1 날짜1
              * @param {Date} date2 날짜2
              * @return {Number} -1: date1가 이후, 0: 동일, 1:date2가 이후
@@ -1545,7 +1879,7 @@
                 if (!a || !a.getDate || !b || !b.getDate) {
                     return false;
                 }
-                $.each(['getFullYear', 'getMonth', 'getDate'], function (i, fn) {
+                each(['getFullYear', 'getMonth', 'getDate'], function (fn) {
                     ret = ret && (a[fn]() === b[fn]());
                     if (!ret) {
                         return false;
@@ -1580,6 +1914,7 @@
              * 주어진 날짜 형식의 문자열을 Date객체로 변환
              *
              * @function
+             * @name jsa.date.parseDate
              * @param {String} dateStringInRange 날짜 형식의 문자열
              * @return {Date}
              */
@@ -1631,6 +1966,7 @@
              * 주어진 시간이 현재부터 몇시간 이전인지 표현(예: -54000 -> 54초 이전)
              *
              * @function
+             * @name jsa.date.prettyTimeDiff
              * @param {Date|Interval} time 시간
              * @return {String}
              *
@@ -1679,7 +2015,7 @@
              * jsa.date.timeDiff(new Date() - 51811); -> "00:00:52"
              */
             timeDiff: function (t1, t2) {
-                var zeroPad = jsa.number.zeroPad;
+                var zeroPad = _core.number.zeroPad;
                 var amount = (t1.getTime() - t2.getTime()) / 1000,
                     days = 0,
                     hours = 0,
@@ -1701,150 +2037,123 @@
 
 
     /**
-         * prototype 을 이용한 클래스 생성
-         * @namespace
-         * @name jsa.Class
-         * @example
-         * var Person = Class({
-        *        $extend: Object, // 상속받을 부모클래스
-        *        $singleton: true, // 싱글톤 여부
-        *        $statics: { // 클래스 속성 및 함수 
-        *                live: function() {} // Person.live(); 으로 호출
-        *        }, 
-        *        $mixins: [Animal, Robot], // 특정 클래스에서 메소드들을 빌려오고자 할 때 해당 클래스를 지정(다중으로도 가능),
-        *        initialize: function(name) {
-        *                this.name = name;
-        *        },
-        *        say: function(job){
-        *                alert("I'm Person: " + job);
-        *        },
-        *        run: function(){
-        *                alert("i'm running...");
-        *        }
-        *`});
-        *
-        * var Man = Class({
-        *        $extend: Person,
-        *        initialize: function(name, age) {
-        *                this.supr(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.suprMethod('initialize', name);
-        *                this.age = age;
-        *        },
-        *        // say를 오버라이딩함
-        *        say: function(job) {
-        *                this.suprMethod('say', 'programer'); // 부모클래스의 say 메소드 호출 - 첫번째인자는 메소드명, 두번째부터는 해당 메소드로 전달될 인자
+     * prototype 을 이용한 클래스 생성
+     * @namespace
+     * @name jsa.Base
+     * @example
+     * var Person = Base.extend({
+	*	$singleton: true, // 싱글톤 여부
+	*	$statics: { // 클래스 속성 및 함수
+	*		live: function() {} // Person.live(); 으로 호출
+	*	},
+	*	$mixins: [Animal, Robot], // 특정 클래스에서 메소드들을 빌려오고자 할 때 해당 클래스를 지정(다중으로도 가능),
+	*	initialize: function(name) {
+	*		this.name = name;
+	*	},
+	*	say: function(job) {
+	*		alert("I'm Person: " + job);
+	*	},
+	*	run: function() {
+	*		alert("i'm running...");
+	*	}
+	*`});
+     *
+     * var Man = Person.extend({
+	*	initialize: function(name, age) {
+	*		this.supr(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.suprMethod('initialize', name);
+	*		this.age = age;
+	*	},
+	*	// say를 오버라이딩함
+	*	say: function(job) {
+	*		this.suprMethod('say', 'programer'); // 부모클래스의 say 메소드 호출 - 첫번째인자는 메소드명, 두번째부터는 해당 메소드로 전달될 인자
 
-        *                alert("I'm Man: "+ job);
-        *        }
-        * });
-        * var man = new Man('kim', 20);
-        * man.say('freeman');  // 결과: alert("I'm Person: programer"); alert("I'm Man: freeman");
-        * man.run(); // 결과: alert("i'm running...");
-        */
-
-
-    jsa.define('Class', function () {
-        var isFn = jsa.isFunction,
-            emptyFn = jsa.emptyFn,
-            include = jsa.array.include,
+	*		alert("I'm Man: "+ job);
+	*	}
+	* });
+     * var man = new Man('kim', 20);
+     * man.say('freeman');  // 결과: alert("I'm Person: programer"); alert("I'm Man: freeman");
+     * man.run(); // 결과: alert("i'm running...");
+     */
+    var Base = (function () {
+        var isFn = _core.isFunction,
+            emptyFn = _core.emptyFn,
+            include = _core.array.include,
+            F = function () {},
             ignoreNames = ['superclass', 'members', 'statics'];
 
 
         // 부모클래스의 함수에 접근할 수 있도록 .supr 속성에 부모함수를 래핑하여 설정
         function wrap(k, fn, supr) {
             return function () {
-                var tmp = this.supr,
-                    undef, ret;
+                var tmp = this.callParent,
+                    ret;
 
-                this.supr = supr.prototype[k];
+                this.callParent = supr.prototype[k];
                 ret = undefined;
                 try {
                     ret = fn.apply(this, arguments);
                 } finally {
-                    this.supr = tmp;
+                    this.callParent = tmp;
                 }
                 return ret;
             };
         }
 
         // 속성 중에 부모클래스에 똑같은 이름의 함수가 있을 경우 래핑처리
-        function process(what, o, supr) {
-            for (var k in o) {
-                if (o.hasOwnProperty(k)) {
-                    what[k] = isFn(o[k]) && isFn(supr.prototype[k]) ? wrap(k, o[k], supr) : o[k];
-                }
-            }
+        function inherits(what, o, supr) {
+            each(o, function (v, k) {
+                what[k] = isFn(v) && isFn(supr.prototype[k]) ? wrap(k, v, supr) : v;
+            });
         }
 
-        /**
-         * 클래스 정의
-         *
-         * @memberOf jsa.Class
-         *
-         * @param {String} ns (Optional) 네임스페이스
-         * @param {Object} attr 속성
-         * @return {Class}
-         */
-        return function (attr) {
-            var supr, statics, mixins, singleton, Parent, instance;
+        function classExtend(attr, c) {
+            var supr = c ? (attr.$extend || Object) : this,
+                statics, mixins, singleton, instance;
 
             if (isFn(attr)) {
                 attr = attr();
             }
 
-            // 생성자 몸체
-            function constructor() {
-                if (singleton) {
-                    if (instance) {
-                        return instance;
-                    } else {
-                        instance = this;
-                    }
-                }
-                // ***** 해당클래스가 호출되기 전 초기화해야 할 글로벌 작업이 있을 경우, 
-                // 메모리를 아끼기 위해 미리 실행하지 않고 클래스가 한번이라도 호출될 때 실행하도록
-                // 콜백함수를 제공
-                // ex) var Test = Class({...}); Test.onClassCreate = function(){ window.onresize = ...; };
-                if (this.constructor.onClassCreate) {
-                    this.constructor.onClassCreate();
-                    delete this.constructor.onClassCreate;
-                }
-
-                if (this.initialize) {
-                    this.initialize.apply(this, arguments);
-                } else {
-                    supr.prototype.initialize && supr.prototype.initialize.apply(this, arguments);
-                }
-            }
-
-            function Class() {
-                constructor.apply(this, arguments);
-            }
-
-            supr = attr.$extend || emptyFn;
             singleton = attr.$singleton || false;
             statics = attr.$statics || false;
             mixins = attr.$mixins || false;
 
-            Parent = emptyFn;
-            Parent.prototype = supr.prototype;
 
-            Class.prototype = new Parent;
+            function ctor() {
+                if (singleton && instance) {
+                    return instance;
+                } else {
+                    instance = this;
+                }
+
+                var args = arraySlice.call(arguments),
+                    me = this;
+                each(me.constructor.hooks.init, function (fn, i) {
+                    fn.call(me);
+                });
+
+                if (me.initialize) {
+                    me.initialize.apply(this, args);
+                } else {
+                    supr.prototype.initialize && supr.prototype.initialize.apply(me, args);
+                }
+            }
+
+            function Class() {
+                ctor.apply(this, arguments);
+            }
+
+            F.prototype = supr.prototype;
+            Class.prototype = new F;
             Class.prototype.constructor = Class;
-
-            /** 
-             * 메소드 내에서 부모클래스에 접근할 때 사용
-             * @memberOf jsa.Class
-             * @property
-             */
             Class.superclass = supr.prototype;
-            Class.classType = Class;
+            Class.extend = classExtend;
+            Class.hooks = extend({
+                init: []
+            }, supr.hooks);
+
 
             if (singleton) {
-                /** 
-                 * 싱글톤 클래스일 경우 싱글톤 인스턴스를 반환
-                 * @memberOf jsa.Class
-                 * @property
-                 */
                 Class.getInstance = function () {
                     if (!instance) {
                         instance = new Class();
@@ -1853,128 +2162,38 @@
                 };
             }
 
-            /** 
-             * 부모클래스의 메소드를 호출할 수 있는 래핑함수
-             * @memberOf jsa.Class
-             * @name suprMethod
-             * @function
-             * @param {String} name 호출하고자 하는 부모함수명
-             * @return {Mix} 부모함수의 반환값
-             * @example
-             * this.suprMethod('show', true);  -> 부모클래스의 show(true) 메소드 호출
-             */
             Class.prototype.suprMethod = function (name) {
-                var args = [].slice.call(arguments, 1);
+                var args = arraySlice.call(arguments, 1);
                 return supr.prototype[name].apply(this, args);
             };
 
-            /** 
-             * func의 컨텍스트를 this로 지정
-             * @memberOf jsa.Class
-             * @name proxy
-             * @function
-             * @param {function} function 함수
-             * @return {Function}
-             * @example
-             * function test(){
-             *                alert(this.name);
-             * }
-             * var Person = Class({
-             *                initialize: function() {
-             *                        this.name = 'axl rose',
-             *                        this.proxy(test)();  // = test.bind(this)와 동일, test함수의 컨텍스틑 this로 지정 -> 결과: alert('axl rose');
-             *                }
-             * });
-             */
-            Class.prototype.proxy = function (func) {
-                var _this = this;
-                return function () {
-                    func.apply(_this, [].slice.call(arguments));
-                };
-            };
-
-
-            /** 
-             * 여러 클래스를 mixins방식으로 merge
-             * @memberOf jsa.Class
-             * @name mixins
-             * @function
-             * @param {function} o 객체
-             * @example
-             * var A = Class({
-             *                funcA: function(){ ... }
-             * });
-             * var B = Class({
-             *                funcB: function(){ ... }
-             * });
-             * var Person = Class({
-             *                initialize: function() {
-             *                        ...
-             *                }
-             * });
-             * Person.mixins([A, B]);
-             * var person = new Person();
-             * person.funcA();
-             * person.funcB();
-             */
             Class.mixins = function (o) {
                 if (!o.push) {
                     o = [o];
                 }
-                $.each(o, function (index, value) {
-                    $.each(value, function (key, item) {
-                        Class.prototype[key] = item;
+                var proto = this.prototype;
+                each(o, function (mixObj, i) {
+                    each(mixObj, function (fn, key) {
+                        if (key === 'init' && Class.hooks) {
+                            Class.hooks.init.push(fn)
+                        } else {
+                            proto[key] = fn;
+                        }
                     });
                 });
             };
             mixins && Class.mixins.call(Class, mixins);
 
-
-            /** 
-             * 클래스에 메소드  추가
-             * @memberOf jsa.Class
-             * @name members
-             * @function
-             * @param {function} o 객체
-             * @example
-             * var Person = Class({
-             *                initialize: function() {
-             *                        ...
-             *                }
-             * });
-             * Person.members({
-             *                newFunc: function() { ... }
-             * });
-             * var person = new Person();
-             * person.newFunc();
-             */
             Class.members = function (o) {
-                process(Class.prototype, o, supr);
+                inherits(this.prototype, o, supr);
             };
             attr && Class.members.call(Class, attr);
 
-            /*
-             * 클래스함수 추가함수
-             * @memberOf jsa.Class
-             * @name statics
-             * @function
-             * @param {function} o 객체
-             * @example
-             * var Person = Class({
-             *                initialize: function() {
-             *                        ...
-             *                }
-             * });
-             * Person.statics({
-             *                staticFunc: function() { ... }
-             * });
-             * Person.staticFunc();
-             */
             Class.statics = function (o) {
                 o = o || {};
                 for (var k in o) {
-                    if (!include(ignoreNames, k)) {
-                        Class[k] = o[k];
+                    if (!_core.array.include(ignoreNames, k)) {
+                        this[k] = o[k];
                     }
                 }
                 return Class;
@@ -1983,10 +2202,22 @@
             statics && Class.statics.call(Class, statics);
 
             return Class;
-        };
-    });
+        }
 
-    jsa.define( /** @lends jsa */ {
+        var Base = function () {
+            throw new Error('Base는 객체로 생성할 수 없습니다.');
+        };
+        Base.prototype.initialize = function () {};
+        Base.prototype.release = function () {};
+        Base.extend = classExtend;
+
+        _core.Class = function (attr) {
+            return classExtend.apply(this, [attr, true]);
+        };
+        return _core.Base = Base;
+    })();
+
+    _core.define('Env', /** @lends jsa */ {
         /**
          * 설정 값들이 들어갈 리터럴
          *
@@ -1999,11 +2230,11 @@
          * 설정값을 꺼내오는 함수
          *
          * @param {String} name 설정명. `.`를 구분값으로 단계별로 값을 가져올 수 있다.
-         * @param {Object} def {Optional} 설정된 값이 없을 경우 사용할 기본값
+         * @param {Object} def (Optional) 설정된 값이 없을 경우 사용할 기본값
          * @return {Object} 설정값
          */
-        getConfig: function (name, def) {
-            var root = jsa.configs,
+        get: function (name, def) {
+            var root = this.configs,
                 names = name.split('.'),
                 pair = root;
 
@@ -2022,8 +2253,8 @@
          * @param {Object} value 설정값
          * @return {Object} 설정값
          */
-        setConfig: function (name, value) {
-            var root = jsa.configs,
+        set: function (name, value) {
+            var root = this.configs,
                 names = name.split('.'),
                 len = names.length,
                 last = len - 1,
@@ -2036,117 +2267,20 @@
         }
     });
 
-    /**
-     * @namespace
-     * @name jsa.Cookie
-     */
-    jsa.define('Cookie', /** @lends jsa.Cookie */ {
-        /**
-         * 쿠키를 설정
-         *
-         * @param {String} name 쿠키명
-         * @param {String} value 쿠키값
-         * @param {Date} (Optional) options.expires 만료시간
-         * @param {String} (Optional) options.path 쿠키의 유효경로
-         * @param {String} (Optional) options.domain 쿠키의 유효 도메인
-         * @param {Boolean} (Optional) options.secure https에서만 쿠키 설정이 가능하도록 하는 속성
-         */
-        set: function (name, value, options) {
-            options || (options = {});
-            var curCookie = name + "=" + escape(value) +
-                ((options.expires) ? "; expires=" + options.expires.toGMTString() : "") +
-                ((options.path) ? "; path=" + options.path : "") +
-                ((options.domain) ? "; domain=" + options.domain : "") +
-                ((options.secure) ? "; secure" : "");
-            document.cookie = curCookie;
-        },
-
-        /**
-         * 쿠키를 설정
-         *
-         * @param {String} name 쿠키명
-         * @return  {String} 쿠키값
-         */
-        get: function (name) {
-            var j, g, h, f;
-            j = ";" + document.cookie.replace(/ /g, "") + ";";
-            g = ";" + name + "=";
-            h = j.indexOf(g);
-
-            if (h !== -1) {
-                h += g.length;
-                f = j.indexOf(";", h);
-                return unescape(j.substr(h, f - h));
-            }
-            return "";
-        },
-
-        /**
-         * 쿠키 삭제
-         *
-         * @param {String} name 쿠키명
-         */
-        remove: function (name) {
-            document.cookie = name + "=;expires=Fri, 31 Dec 1987 23:59:59 GMT;";
-        }
-    });
-
-    jsa.define( /** @lends jsa */ {
-        /**
-         * 템플릿 생성
-         *
-         * @param {String} text 템플릿 문자열
-         * @param {Object} data 템플릿 문자열에서 변환될 데이타
-         * @param {Object} settings 옵션
-         * @return tempalte 함수
-         *
-         * @example
-         * var tmpl = jsa.template('&lt;span>&lt;%=name%>&lt;/span>');
-         * var html = tmpl({name: 'Axl rose'}); => &lt;span>Axl rose&lt;/span>
-         * $('div').html(html);
-         */
-        template: function (str, data) {
-            var m,
-                src = 'var __src = [], escapeHTML=jsa.string.escapeHTML; with(value||{}){ __src.push("';
-
-            src += str.replace(/\r|\n|\t/g, " ")
-                .replace(/<%(.*?)%>/g, function (a, b) {
-                    return '<%' + b.replace(/"/g, '\t') + '%>';
-                })
-                .replace(/"/g, '\\"')
-                .replace(/<%(.*?)%>/g, function (a, b) {
-                    return '<%' + b.replace(/\t/g, '"') + '%>';
-                })
-                .replace(/<%=(.+?)%>/g, '", $1, "')
-                .replace(/<%-(.+?)%>/g, '", escapeHTML($1), "')
-                .replace(/(<%|%>)/g, function (a, b) {
-                    return b === '<%' ? '");' : '__src.push("'
-                });
-
-            src += '"); }; return __src.join("")';
-
-            var f = new Function('value', 'data', src);
-            if (data) {
-                return f(data);
-            }
-            return f;
-        }
-    });
-
 
     /**
      * @namespace
      * @name jsa.valid
      * @description 밸리데이션 함수 모음
      */
-    jsa.define('valid', function () {
+    _core.define('valid', function () {
         var trim = $.trim,
-            isString = jsa.isString,
-            isNumber = jsa.isNumber,
-            isElement = jsa.isElement;
+            isString = _core.isString,
+            isNumber = _core.isNumber,
+            isElement = _core.isElement;
 
         return /** @lends jsa.valid */ {
-            empty: jsa.isEmpty,
+            empty: _core.isEmpty,
             /**
              * 필수입력 체크
              *
@@ -2296,7 +2430,7 @@
                 }
                 num = RegExp.$1 + RegExp.$2;
 
-                buf = jsa.toArray(num);
+                buf = _core.toArray(num);
                 odd = buf[7] * 10 + buf[8];
 
                 if (odd % 2 !== 0) {
@@ -2326,6 +2460,15 @@
                 }
 
                 return true;
+            },
+
+
+            run: function (frm, validators) {
+                var isValid = true;
+                each(validators, function (v, k) {
+
+                });
+                return isValid;
             }
         };
     });
@@ -2335,11 +2478,12 @@
      * @name jsa.css
      * @description 벤더별 css명칭 생성
      */
-    jsa.define('css', function () {
+    _core.define('css', function () {
 
-        var _tmpDiv = jsa.tmpNode,
+        var _tmpDiv = _core.tmpNode,
             _prefixes = ['Webkit', 'Moz', 'O', 'ms', 'Khtml'],
             _style = _tmpDiv.style,
+            _noReg = /^([0-9]+)[px]+$/,
             _vendor = (function () {
                 var vendors = ['t', 'webkitT', 'MozT', 'msT', 'OT'],
                     transform,
@@ -2353,10 +2497,10 @@
 
                 return false;
             })(),
-            string = jsa.string;
+            string = _core.string;
 
-        function prefixStyle(name) {
-            if (_vendor === false) return false;
+        function prefixStyle(name, def) {
+            if (_vendor === false) return def || false;
             if (_vendor === '') return name;
             return _vendor + string.capitalize(name);
         }
@@ -2398,17 +2542,93 @@
              * @example
              * jsa.css.prefixStyle('transition'); // => webkitTransition
              */
-            prefixStyle: prefixStyle
+            prefixStyle: prefixStyle,
+            get: function (el, style) {
+                if (!el || !_core.is(el, 'element')) {
+                    return null;
+                }
+                var value;
+                if (el.currentStyle) {
+                    value = el.currentStyle[string.camelize(style)];
+                } else {
+                    value = window.getComputedStyle(el, null)[string.camelize(style)];
+                }
+                if (_noReg.test(value)) {
+                    return parseInt(RegExp.$1, 10);
+                }
+                return value;
+            }
         };
+    });
+
+    _core.define('class', {
+        has: function (el, c) {
+            if (!el || !_core.is(el, 'element')) {
+                return false;
+            }
+            var classes = el.className;
+            if (!classes) {
+                return false;
+            }
+            if (classes == c) {
+                return true;
+            }
+            return classes.search("\\b" + c + "\\b") !== -1;
+        },
+        add: function (el, c) {
+            if (!el || !_core.is(el, 'element')) {
+                return;
+            }
+            if (this.has(el, c)) {
+                return;
+            }
+            if (el.className) {
+                c = " " + c;
+            }
+            return el.className += c, this;
+        },
+        remove: function (el, c) {
+            if (!el || !_core.is(el, 'element')) {
+                return;
+            }
+            return el.className = el.className.replace(new RegExp("\\b" + c + "\\b\\s*", "g"), ""), this;
+        },
+        replace: function (el, c, n) {
+            if (!el || !_core.is(el, 'element')) {
+                return null;
+            }
+            return this.remove(el, c), this.add(el, n), this;
+        }
     });
 
     /**
      * @namespace
      * @name jsa.util
      */
-    jsa.define('util', function () {
+    _core.define('util', function () {
 
         return /** @lends jsa.util */ {
+
+
+            /**
+             * png
+             */
+            png24: function (selector) {
+                var $target;
+                if (typeof (selector) == 'string') {
+                    $target = $(selector + ' img');
+                } else {
+                    $target = selector.find(' img');
+                }
+                var c = new Array();
+                $target.each(function (j) {
+                    c[j] = new Image();
+                    c[j].src = this.src;
+                    if (navigator.userAgent.match(/msie/i))
+                        this.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled='true',sizingMethod='scale',src='" + this.src + "')";
+                });
+            },
+
             /**
              * png Fix
              */
@@ -2416,7 +2636,7 @@
                 var s, bg;
                 $('img[@src*=".png"]', document.body).each(function () {
                     this.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'' + this.src + '\', sizingMethod=\'\')');
-                    this.src = jsa.getSite() + jsa.Urls.getBlankImage() || '/resource/images/common/blank.gif';
+                    this.src = '/resource/images/_core/blank.gif';
                 });
                 $('.pngfix', document.body).each(function () {
                     var $this = $(this);
@@ -2470,7 +2690,7 @@
              * @param {opts=} 팝업 창 모양 제어 옵션.
              */
             openPopup: function (url, width, height, opts) {
-                opts = $.extend({
+                opts = extend({
 
                 }, opts);
                 width = width || 600;
@@ -2484,7 +2704,7 @@
                 for (var key in opts) {
                     tmp.push(key + '=' + opts[key]);
                 }
-                jsa.browser.isSafari && tmp.push('location=yes');
+                _core.browser.isSafari && tmp.push('location=yes');
                 tmp.push('height=' + height);
                 tmp.push('width=' + width);
                 /* + ', top=' + winCoords.top + ', left=' + winCoords.left;*/
@@ -2533,7 +2753,7 @@
              * @param {Function} [onError] (optional) 이미지를 불어오지 못했을 경우 실행할 콜백함수
              * @return {Boolean} true 불러들인 이미지가 있었는지 여부
              */
-            lazyLoadImage: function ($imgs, wrapWidth, wrapHeight, onError) {
+            centeringImage: function ($imgs, wrapWidth, wrapHeight, onError) {
                 var hasLazyImage = false;
                 var dataSrcAttr = 'data-src';
 
@@ -2563,6 +2783,55 @@
                     }).attr('src', $img.attr('data-src')).removeAttr('data-src');
                 });
                 return hasLazyImage;
+            },
+
+            /**
+             * 이미지 로드 체크
+             * @param { jquery/string } target 이미지 요소
+             * @param { jquery/string } loadingClip
+             * @return { jquery } deferred
+             */
+            lazyImages: function (target, loadingClip) {
+                var $img = $(target),
+                    $loading = $(loadingClip),
+                    len = $img.length,
+                    def = $.Deferred();
+
+                function loaded(e) {
+                    if (e.type === 'error') {
+                        def.reject(e.target);
+                        return;
+                    }
+
+                    len--;
+                    if (!len) {
+                        if ($loading) {
+                            $loading.addClass("none");
+                            def.resolve();
+                            $img.off("load");
+                        }
+                    }
+                }
+
+                if ($loading) {
+                    $loading.removeClass("none");
+                }
+
+                $img.each(function (value, index) {
+                    var $t = $(this);
+                    var src = $t.attr("data-src");
+
+                    if (src) {
+                        $t.attr("src", src);
+                    } else if (this.complete) {
+                        $t.trigger("load");
+                    }
+
+                    $t.on("error", loaded);
+
+                }).on("load", loaded);
+
+                return def;
             },
 
             /**
@@ -2629,61 +2898,90 @@
             }
         };
     });
+    _core.openPopup = _core.util.openPopup;
 
-    jsa.openPopup = jsa.util.openPopup;
+    _core.define('Cookie', {
+        /**
+         * 쿠키를 설정
+         *
+         * @param {String} name 쿠키명
+         * @param {String} value 쿠키값
+         * @param {Date} (Optional) options.expires 만료시간
+         * @param {String} (Optional) options.path 쿠키의 유효경로
+         * @param {String} (Optional) options.domain 쿠키의 유효 도메인
+         * @param {Boolean} (Optional) options.secure https에서만 쿠키 설정이 가능하도록 하는 속성
+         */
+        set: function (name, value, options) {
+            options || (options = {});
+            var curCookie = name + "=" + encodeURIComponent(value) +
+                ((options.expires instanceof Date) ? "; expires=" + options.expires.toGMTString() : "") +
+                ((options.path) ? "; path=" + options.path : ";path=/") +
+                ((options.domain) ? "; domain=" + options.domain : "") +
+                ((options.secure) ? "; secure" : "");
+            document.cookie = curCookie;
+        },
 
-})(window, jQuery);
+        /**
+         * 쿠키를 설정
+         *
+         * @param {String} name 쿠키명
+         * @return  {String} 쿠키값
+         */
+        get: function (name) {
+            var j, g, h, f;
+            j = ";" + document.cookie.replace(/ /g, "") + ";";
+            g = ";" + name + "=";
+            h = j.indexOf(g);
 
+            if (h !== -1) {
+                h += g.length;
+                f = j.indexOf(";", h);
+                return decodeURIComponent(j.substr(h, f - h));
+            }
+            return "";
+        },
 
-(function (context, $, jsa) {
-    "use strict";
-    /* jshint expr: true, validthis: true */
-
-    var $win = jsa.$win,
-        $doc = jsa.$doc,
-        Class = jsa.Class,
-        dateUtil = jsa.date,
-        stringUtil = jsa.string,
-        numberUtil = jsa.number,
-        View; // ui.View
-
-    /*
-     * @namespace
-     * @name jsa.EVENTS
-     */
-    jsa.define('EVENTS', {
-        ON_BEFORE_SHOW: 'beforeshow',
-        ON_SHOW: 'show',
-        ON_BEFORE_HIDE: 'beforehide',
-        ON_HIDE: 'hide'
+        /**
+         * 쿠키 삭제
+         *
+         * @param {String} name 쿠키명
+         */
+        remove: function (name) {
+            document.cookie = name + "=;expires=Fri, 31 Dec 1987 23:59:59 GMT;";
+        }
     });
 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    var $win = _core.$win,
+        $doc = _core.$doc,
+        View; // jsa.ui.View
 
-    jsa.define( /** @lends jsa */ {
+    _core.define( /** @lends jsa */ {
         /**
          * 작성된 클래스를 jQuery의 플러그인으로 사용할 수 있도록 바인딩시켜 주는 함수
          *
-         * @param {Class} klass 클래스
+         * @param {Class} Klass 클래스
          * @param {String} name 플러그인명
          *
          * @example
          * // 클래스 정의
-         * var Slider = jsa.Class({
-         *   initialize: function(el, options) { // 생성자의 형식을 반드시 지킬 것..(첫번째 인수: 대상 엘리먼트, 두번째 인수: 옵션값들)
+         * var Slider = jsa.ui.View({
+         *   initialize: function(el, options) { // 생성자의 형식을 반드시 지킬 것..(첫번째 인수: 대상 엘리먼트, 두번째
+         *   인수: 옵션값들)
          *   ...
          *   },
          *   ...
          * });
-         * jsa.bindjQuery(Slider, 'jkSlider');
+         * jsa.bindjQuery(Slider, 'hibSlider');
          * // 실제 사용시
-         * $('#slider').jkSlider({count: 10});
+         * $('#slider').hibSlider({count: 10});
          */
         bindjQuery: function (Klass, name) {
             var old = $.fn[name];
 
             $.fn[name] = function (options) {
                 var a = arguments,
-                    args = [].slice.call(a, 1),
+                    args = arraySlice.call(a, 1),
                     me = this,
                     returnValue = this;
 
@@ -2693,16 +2991,22 @@
                         instance;
 
                     if (!(instance = $this.data(name)) || (a.length === 1 && typeof options !== 'string')) {
-                        instance && (instance.destroy(), instance = null);
-                        $this.data(name, (instance = new Klass(this, $.extend({}, $this.data(), options), me)));
+                        instance && (instance.release(), instance = null);
+                        $this.data(name, (instance = new Klass(this, extend({}, $this.data(), options), me)));
                     }
 
-                    if (typeof options === 'string' && jsa.isFunction(instance[options])) {
+                    if (typeof options === 'string' && _core.is(instance[options], 'function')) {
+                        if (options[0] === '_') {
+                            throw new Error('[bindjQuery] private 메소드는 호출할 수 없습니다.');
+                        }
+
                         try {
                             methodValue = instance[options].apply(instance, args);
-                        } catch (e) {}
+                        } catch (e) {
+                            console.error('[jQuery bind error] ' + e);
+                        }
 
-                        if (typeof methodValue !== 'undefined') {
+                        if ( /*methodValue !== instance && */ methodValue !== undefined) {
                             returnValue = methodValue;
                             return false;
                         }
@@ -2720,18 +3024,18 @@
     });
 
 
-    jsa.define('Listener', function () {
+    _core.define('Listener', function () {
         /**
          * 이벤트 리스너
          * @class
          * @name jsa.Listener
          */
-        var Listener = Class( /** @lends jsa.Listener# */ {
+        var Listener = /** @lends jsa.Listener# */ {
             /**
              * 생성자
              */
-            initialize: function () {
-                this._listeners = $({});
+            init: function () {
+                this._listeners = $(this);
             },
 
             /**
@@ -2759,7 +3063,7 @@
             /**
              * 이벤트 핸들러 삭제
              * @param {Object} name 삭제할 이벤트명
-             * @param {Object} cb {Optional} 삭제할 핸들러. 이 인자가 없을 경우 name에 등록된 모든 핸들러를 삭제.
+             * @param {Object} cb (Optional) 삭제할 핸들러. 이 인자가 없을 경우 name에 등록된 모든 핸들러를 삭제.
              */
             off: function () {
                 var lsn = this._listeners;
@@ -2776,11 +3080,10 @@
                 lsn.trigger.apply(lsn, arguments);
                 return this;
             }
-        });
+        };
 
         return Listener;
     });
-
 
     /**
      * @namespace
@@ -2789,29 +3092,51 @@
      * 하도록 하는 객체이다.
      * @example
      * // 옵저버 등록
-     * jsa.PubSub.on('customevent', function(){
-     *         alert('안녕하세요');
+     * jsa.PubSub.on('customevent', function() {
+     *	 alert('안녕하세요');
      * });
      *
      * // 등록된 옵저버 실행
      * jsa.PubSub.trigger('customevent');
      */
-    jsa.define('PubSub', function () {
+    _core.define('PubSub', function () {
 
-        var PubSub = new jsa.Listener();
+        var PubSub = $(window);
         PubSub.attach = PubSub.on;
         PubSub.unattach = PubSub.off;
 
         return PubSub;
     });
 
-
     /**
-     * @namespace
      * @name jsa.ui
+     * @param name
+     * @param attr
+     * @returns {*}
      */
-    View = jsa.define('ui.View', function () {
-        var isFn = jsa.isFunction,
+    _core.ui = function ( /*String*/ name, supr, /*Object*/ attr) {
+        if (!attr) {
+            attr = supr;
+            supr = null;
+        }
+        var bindName = attr.bindjQuery,
+            Klass;
+
+        delete attr.bindjQuery;
+        if (_core.isFunction(attr)) {
+            Klass = attr(_core.ui.View);
+        } else {
+            attr.name = name, Klass = (_core.ui[supr] || _core.ui.View).extend(attr);
+        }
+        _core.define('ui.' + name, Klass);
+        if (bindName) {
+            _core.bindjQuery(Klass, bindName);
+        }
+        return Klass;
+    };
+
+    View = _core.define('ui.View', function () {
+        var isFn = _core.isFunction,
             execObject = function (obj, ctx) {
                 return isFn(obj) ? obj.call(ctx) : obj;
             };
@@ -2824,33 +3149,33 @@
          * @example
          *
          * var Slider = Class({
-         *                $extend: jsa.ui.View,
-         *                // 기능1) events 속성을 통해 이벤트핸들러를 일괄 등록할 수 있다. ('이벤트명 selector': '핸들러함수명')
-         *        events: {
-         *                click ul>li.item': 'onItemClick',                // this.$el.on('click', 'ul>li.item', this.onItemClick.bind(this)); 를 자동 수행
-         *                'mouseenter ul>li.item>a': 'onMouseEnter'        // this.$el.on('mouseenter', 'ul>li.item>a', this.onMouseEnter.bind(this)); 를 자동 수행
-         *        },
-         *        // 기능2) selectors 속성을 통해 지정한 selector에 해당하는 노드를 주어진 이름의 멤버변수에 자동으로 설정해 준다.
-         *        selectors: {
-         *                box: 'ul',                        // this.$box = this.$el.find('ul') 를 자동수행
-         *                items: 'ul>li.item',        // this.$items = this.$el.find('ul>li.item') 를 자동수행
-         *                prevBtn: 'button.prev', // this.$prevBtn = this.$el.find('button.prev') 를 자동 수행
-         *                nextBtn: 'button..next' // this.$nextBtn = this.$el.find('button.next') 를 자동 수행
-         *        },
-         *        initialize: function(el, options) {
-         *        this.supr(el, options);        // 기능4) this.$el, this.options가 자동으로 설정된다.
-         *        },
-         *        onItemClick: function(e) {
-         *                ...
-         *        },
-         *        onMouseEnter: function(e) {
-         *                ...
-         *        }
+         *		$extend: jsa.ui.View,
+         *		// 기능1) events 속성을 통해 이벤트핸들러를 일괄 등록할 수 있다. ('이벤트명 selector': '핸들러함수명')
+         *	events: {
+         *		click ul>li.item': 'onItemClick',		// this.$el.on('click', 'ul>li.item', this.onItemClick.bind(this)); 를 자동 수행
+         *		'mouseenter ul>li.item>a': 'onMouseEnter'	// this.$el.on('mouseenter', 'ul>li.item>a', this.onMouseEnter.bind(this)); 를 자동 수행
+         *	},
+         *	// 기능2) selectors 속성을 통해 지정한 selector에 해당하는 노드를 주어진 이름의 멤버변수에 자동으로 설정해 준다.
+         *	selectors: {
+         *		box: 'ul',			// this.$box = this.$el.find('ul') 를 자동수행
+         *		items: 'ul>li.item',	// this.$items = this.$el.find('ul>li.item') 를 자동수행
+         *		prevBtn: 'button.prev', // this.$prevBtn = this.$el.find('button.prev') 를 자동 수행
+         *		nextBtn: 'button..next' // this.$nextBtn = this.$el.find('button.next') 를 자동 수행
+         *	},
+         *	initialize: function(el, options) {
+         *	this.supr(el, options);	// 기능4) this.$el, this.options가 자동으로 설정된다.
+         *	},
+         *	onItemClick: function(e) {
+         *		...
+         *	},
+         *	onMouseEnter: function(e) {
+         *		...
+         *	}
          * });
          *
          * new jsa.ui.Slider('#slider', {count: 10});
          */
-        var View = Class( /** @lends jsa.ui.View# */ {
+        var View = _core.Base.extend( /** @lends jsa.ui.View# */ {
             $statics: {
                 _instances: [] // 모든 인스턴스를 갖고 있는다..
             },
@@ -2865,64 +3190,54 @@
 
                 var me = this,
                     eventPattern = /^([a-z]+) ?([^$]*)$/i,
-                    moduleName;
+                    moduleName, superClass;
 
                 if (!me.name) {
                     throw new Error('클래스의 이름이 없습니다');
                 }
 
-                moduleName = me.moduleName = me.name.replace(/^[A-Z]/, function (s) {
-                    return s.toLowerCase();
-                });
+                moduleName = me.moduleName = _core.string.toFirstLower(me.name);
                 me.$el = el instanceof jQuery ? el : $(el);
-                // 강제로 리빌드 시킬 것인가
+
+                // 강제로 리빌드 시킬 것인가 ///////////////////////////////////////////////////////////////
                 if (options.rebuild === true) {
                     try {
-                        me.$el.data(moduleName).destroy();
+                        me.$el.data(moduleName).release();
                     } catch (e) {}
                     me.$el.removeData(moduleName);
                 } else {
-                    // 이미 빌드된거면 false 반환
+                    // 이미 빌드된거면 false 반환 - 중복 빌드 방지
                     if (me.$el.data(moduleName)) {
                         return false;
                     }
+                    me.$el.data(moduleName, this);
                 }
+
 
                 // disabled상태면 false 반환
                 if (me.$el.hasClass('disabled') || me.$el.attr('data-readony') === 'true' || me.$el.attr('data-disabled') === 'true') {
                     return false;
                 }
 
-                View._instances.push(me);
-
+                superClass = me.constructor.superclass;
+                // TODO
+                // View._instances.push(me);
                 me.el = me.$el[0]; // 원래 엘리먼트도 변수에 설정
-                me.options = $.extend({}, me.defaults, options); // 옵션 병합
-                me._uid = jsa.getUniqKey(); // 객체 고유 키
-                me._eventNamespace = '.' + me.name + '_' + me._uid; // 객체 고유 이벤트 네임스페이스명
-                me.subviews = {}; // 하위 컨트롤를 관리하기 위함
+                me.options = $.extend(true, {}, superClass.defaults, me.defaults, me.$el.data(), options); // 옵션 병합
+                me.cid = moduleName + '_' + _core.nextSeq(); // 객체 고유 키
+                me.subViews = {}; // 하위 컨트롤를 관리하기 위함
+                me._eventNamespace = '.' + me.cid; // 객체 고유 이벤트 네임스페이스명
 
-                // selectors 속성 처리
-                // selectors: {
-                //  box: 'ul',                        // => this.$box = this.$el.find('ul');
-                //  items: 'ul>li.item'  // => this.$items = this.$el.find('ul>li.item');  
-                // }
-                me.options.selectors = $.extend({}, execObject(me.selectors, me), execObject(me.options.selectors, me));
-                $.each(me.options.selectors, function (key, value) {
-                    if (typeof value === 'string') {
-                        me['$' + key] = me.$el.find(value);
-                    } else if (value instanceof jQuery) {
-                        me['$' + key] = value;
-                    } else {
-                        me['$' + key] = $(value);
-                    }
-                });
+                me.updateSelectors();
 
                 // events 속성 처리
                 // events: {
-                //        'click ul>li.item': 'onItemClick', //=> this.$el.on('click', 'ul>li.item', this.onItemClick); 으로 변환   
+                //	'click ul>li.item': 'onItemClick', //=> this.$el.on('click', 'ul>li.item', this.onItemClick); 으로 변환
                 // }
-                me.options.events = $.extend({}, execObject(me.events, me), execObject(me.options.events, me));
-                $.each(me.options.events, function (key, value) {
+                me.options.events = _core.extend({},
+                    execObject(me.events, me),
+                    execObject(me.options.events, me));
+                _core.each(me.options.events, function (value, key) {
                     if (!eventPattern.test(key)) {
                         return false;
                     }
@@ -2930,7 +3245,7 @@
                     var name = RegExp.$1,
                         selector = RegExp.$2,
                         args = [name],
-                        func = isFn(value) ? value : (isFn(me[value]) ? me[value] : jsa.emptyFn);
+                        func = isFn(value) ? value : (isFn(me[value]) ? me[value] : _core.emptyFn);
 
                     if (selector) {
                         args[args.length] = $.trim(selector);
@@ -2939,40 +3254,69 @@
                     args[args.length] = function () {
                         func.apply(me, arguments);
                     };
-
                     me.on.apply(me, args);
                 });
 
                 // options.on에 지정한 이벤트들을 클래스에 바인딩
-                $.each(me.options.on || {}, function (key, value) {
+                me.options.on && _core.each(me.options.on, function (value, key) {
                     me.on(key, value);
-                });
-
-                // on으로 시작하는 속성명을 클래스에 이벤트로 바인딩. : onClick => me.on('click', onClick);
-                $.each(me.options, function (key, value) {
-                    if (!isFn(value)) {
-                        return;
-                    }
-
-                    var m = key.match(/^on([a-z]+)$/i);
-                    if (m) {
-                        me.on((m[1] + "").toLowerCase(), value);
-                    }
                 });
 
             },
 
             /**
+             * this.selectors를 기반으로 엘리먼트를 조회해서 멤버변수에 겍팅
+             * @returns {jsa.ui.View}
+             */
+            updateSelectors: function () {
+                var me = this;
+                // selectors 속성 처리
+                // selectors: {
+                //  box: 'ul',			// => this.$box = this.$el.find('ul');
+                //  items: 'ul>li.item'  // => this.$items = this.$el.find('ul>li.item');
+                // }
+                me.selectors = _core.extend({},
+                    execObject(me.constructor.superclass.selectors, me),
+                    execObject(me.selectors, me),
+                    execObject(me.options.selectors, me));
+                _core.each(me.selectors, function (value, key) {
+                    if (typeof value === 'string') {
+                        me['$' + key] = me.$el.find(value);
+                    } else if (value instanceof jQuery) {
+                        me['$' + key] = value;
+                    } else {
+                        me['$' + key] = $(value);
+                    }
+                    me.subViews['$' + key] = me['$' + key];
+                });
+
+                return me;
+            },
+
+            /**
+             * this.$el하위에 있는 엘리먼트를 조회
+             * @param {String} selector 셀렉터
+             * @returns {jQuery}
+             */
+            $: function (selector) {
+                return this.$el.find(selector);
+            },
+
+            /**
              * 파괴자
              */
-            destroy: function () {
+            release: function () {
                 var me = this;
 
-                me.$el.removeData(me.moduleName);
-                me.$el.off();
+                me.$el.off(me._eventNamespace);
+
                 // me.subviews에 등록된 자식들의 파괴자 호출
-                $.each(me.subviews, function (key, item) {
-                    item.destroy && item.destroy();
+                _core.each(me.subViews, function (item, key) {
+                    if (key.substr(0, 1) === '$') {
+                        item.off(me._eventNamespace);
+                    } else {
+                        item.release && item.release();
+                    }
                 });
             },
 
@@ -3001,7 +3345,7 @@
              * 인자수에 따라 옵션값을 설정하거나 반환해주는 함수
              *
              * @param {String} name 옵션명
-             * @param {Mixed} value {Optional} 옵션값: 없을 경우 name에 해당하는 값을 반환
+             * @param {Mixed} value (Optional) 옵션값: 없을 경우 name에 해당하는 값을 반환
              * @return {Mixed}
              * @example
              * $('...').tabs('option', 'startIndex', 2);
@@ -3011,7 +3355,7 @@
                     return this.getOption(name);
                 } else {
                     this.setOption(name, value);
-                    this.on('optionchange', [name, value]);
+                    this.triggerHandler('optionchange', [name, value]);
                 }
             },
 
@@ -3021,27 +3365,24 @@
              * @param {String} eventNames 네임스페이스가 없는 이벤트명
              * @return {String} 네임스페이스가 붙어진 이벤트명
              */
-            _generateEventNamespace: function (eventNames) {
+            _normalizeEventNamespace: function (eventNames) {
                 if (eventNames instanceof $.Event) {
                     return eventNames;
                 }
 
                 var me = this,
-                    m = (eventNames || "").match(/^(\w+)\s*$/);
-                if (!m) {
+                    m = (eventNames || "").split(/\s/);
+                if (!m || !m.length) {
                     return eventNames;
                 }
 
-                var name, tmp = [];
-                for (var i = 1, len = m.length; i < len; i++) {
-                    name = m[i];
-                    if (!name) {
-                        continue;
-                    }
+                var name, tmp = [],
+                    i;
+                for (i = -1; name = m[++i];) {
                     if (name.indexOf('.') === -1) {
-                        tmp[tmp.length] = name + me._eventNamespace;
+                        tmp.push(name + me._eventNamespace);
                     } else {
-                        tmp[tmp.length] = name;
+                        tmp.push(name);
                     }
                 }
                 return tmp.join(' ');
@@ -3055,16 +3396,20 @@
                 return this._eventNamespace;
             },
 
-            offEvents: function () {
-                this.$el.off(this.getEventNamespace());
+            proxy: function (fn) {
+                var me = this;
+                return function () {
+                    return fn.apply(me, arguments);
+                };
             },
+
 
             /**
              * me.$el에 이벤트를 바인딩
              */
             on: function () {
-                var args = [].slice.call(arguments);
-                args[0] = this._generateEventNamespace(args[0]);
+                var args = arraySlice.call(arguments);
+                args[0] = this._normalizeEventNamespace(args[0]);
 
                 this.$el.on.apply(this.$el, args);
                 return this;
@@ -3074,7 +3419,7 @@
              * me.$el에 등록된 이벤트를 언바인딩
              */
             off: function () {
-                var args = [].slice.call(arguments);
+                var args = arraySlice.call(arguments);
                 this.$el.off.apply(this.$el, args);
                 return this;
             },
@@ -3083,8 +3428,8 @@
              * me.$el에 일회용 이벤트를 바인딩
              */
             one: function () {
-                var args = [].slice.call(arguments);
-                args[0] = this._generateEventNamespace(args[0]);
+                var args = arraySlice.call(arguments);
+                args[0] = this._normalizeEventNamespace(args[0]);
 
                 this.$el.one.apply(this.$el, args);
                 return this;
@@ -3094,7 +3439,7 @@
              * me.$el에 등록된 이벤트를 실행
              */
             trigger: function () {
-                var args = [].slice.call(arguments);
+                var args = arraySlice.call(arguments);
                 this.$el.trigger.apply(this.$el, args);
                 return this;
             },
@@ -3103,7 +3448,7 @@
              * me.$el에 등록된 이벤트 핸들러를 실행
              */
             triggerHandler: function () {
-                var args = [].slice.call(arguments);
+                var args = arraySlice.call(arguments);
                 this.$el.triggerHandler.apply(this.$el, args);
                 return this;
             },
@@ -3124,5992 +3469,2530 @@
              */
             getElement: function () {
                 return this.$el;
-            }
+            },
+
+            show: function () {},
+            hide: function () {},
+            setDisabled: function () {}
         });
 
         return View;
     });
 
-    jsa.define('ui.Layout', function () {
-        /**
-         *
-         * @class
-         * @name jsa.ui.Layout
-         * @extends jsa.ui.View
-         */
-        var Layout = Class({
-            name: 'CodeJLayout',
-            $extend: jsa.ui.View,
-            $statics: /** @lends jsa.ui.Layout*/ {
-                /**
-                                 * 해상도 타입별 사이즈 정의<br>
-                                 * {<br>
-                                        small: [0, 1280],<br>
-                                        medium: [1281, 1360],<br>
-                                        large: [1361, 1000000]<br>
-                                 * }<br>
-                                 * @static
-                                 */
-                SIZES: {
-                    small: [0, 1280],
-                    medium: [1281, 1360],
-                    large: [1361, 1000000]
-                },
-                /**
-                 * resizeEnd 이벤트명 : 리사이징이 끝났을 때 발생,<br>
-                 * resize이벤트는 발생주기가 짧아, UI 재배치와 같은 로직이 있을 경우 상당한 reflow가 발생하는데,
-                 * 리사이징 액션이 끝나는 시점을 체크하여 이때 비로소 UI적인 변화를 처리하게 하여
-                 * reflow 발생을 최소화시키기 위해 만든 이벤트다.
-                 * @static
-                 */
-                ON_RESIZE_END: 'resizeend',
-                /**
-                 * scrollEnd 이벤트명 : 스크롤링 도중 일정시간 동안 멈췄을 때 발생
-                 * @static
-                 */
-                ON_SCROLL_END: 'scrollend',
-                /**
-                 * mediaQueryChange 이벤트명 : 미디어쿼리가 바뀌었을 때 발생
-                 * @static
-                 */
-                ON_MEDIAQUERY_CHANGE: 'mediaquerychange'
-            },
+
+})(window, jQuery);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $doc = core.$doc,
+        $win = core.$win;
+
+
+    /**
+     * 모달 클래스<br />
+     * // 옵션 <br />
+     * options.overlay:true 오버레이를 깔것인가<br />
+     * options.clone: true  복제해서 띄울 것인가<br />
+     * options.closeByEscape: true  // esc키를 눌렀을 때 닫히게 할 것인가<br />
+     * options.removeOnClose: false // 닫을 때 dom를 삭제할것인가<br />
+     * options.draggable: true              // 드래그를 적용할 것인가<br />
+     * options.dragHandle: 'h1.title'       // 드래그대상 요소<br />
+     * options.show: true                   // 호출할 때 바로 표시할 것인가...
+     *
+     * @class
+     * @name jsa.ui.Modal
+     * @extends jsa.ui.View
+     * @example
+     */
+    var Modal = core.ui('Modal', /** @lends jsa.ui.Modal# */ {
+        bindjQuery: 'modal',
+        $statics: /** @lends jsa.ui.Modal */ {
             /**
-             * 싱글톤
+             * 모달 생성시 발생되는 이벤트
+             * @static
              */
-            $singleton: true,
+            ON_MODAL_CREATED: 'modalcreated',
             /**
-             * 기본 옵션값
-             * @property
+             * 모달 표시 전에 발생되는 이벤트
+             * @static
              */
-            defaults: {
-                interval: 300
-            },
+            ON_MODAL_SHOW: 'modalshow',
             /**
-             * 생성자
-             * @param {String|Element|jQuery} el
-             * @param {Object} options
+             * 모달 표시 후에 발생되는 이벤트
+             * @static
              */
-            initialize: function (el, options) {
-                var me = this;
-
-                // 부모 크래스 호출(필수)
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me._initLayout();
-
-                $(function () {
-                    me.trigger('resize');
-                    me.trigger(Layout.ON_RESIZE_END);
-                });
-            },
-
-
+            ON_MODAL_SHOWN: 'modalshown', // 표시 후
             /**
-             * 이벤트 바인딩 등 초기화 작업 수행
-             *
-             * @private
+             * 모달이 숨기기 전에 발생되는 이벤트
+             * @static
              */
-            _initLayout: function () {
+            ON_MODAL_HIDE: 'modalhide', // 숨기기 전
+            /**
+             * 모달이 숨겨진 후에 발생되는 이벤트
+             * @static
+             */
+            ON_MODAL_HIDDEN: 'modalhidden' // 숨긴 후
+        },
+        defaults: {
+            overlay: true,
+            clone: true,
+            closeByEscape: true,
+            removeOnClose: false,
+            draggable: true,
+            dragHandle: 'h1.title',
+            show: true
+        },
+
+        events: {
+            'click button[data-role]': function (e) {
                 var me = this,
-                    resizeTimer, scrollTimer,
-                    prevMediaType = me.getWidthType();
-
-                me.$el.off('.jkLayout').on('resize.jkLayout', function (e) {
-
-                    //me.trigger('resize');
-                    var w = $win.innerWidth();
-
-                    if (resizeTimer) {
-                        clearTimeout(resizeTimer);
-                    }
-
-                    // trigger resizeEnd : 리사이징 도중에 잠시 interval동안 멈췄을 때 발생
-                    resizeTimer = setTimeout(function () {
-                        me.trigger(me.constructor.ON_RESIZE_END);
-                    }, me.options.interval);
-
-                    // trigger mediaQueryChange
-                    $.each(Layout.SIZES, function (key, size) {
-                        var type = me.getWidthType(w);
-                        if (prevMediaType != type) {
-                            me.trigger(me.constructor.ON_MEDIAQUERY_CHANGE, [type, prevMediaType]);
-
-                            prevMediaType = type;
-                            return false;
-                        }
-                    });
-
-                }).on('scroll.jkLayout', function (e) {
-
-                    if (scrollTimer) {
-                        clearTimeout(scrollTimer);
-                    }
-
-                    scrollTimer = setTimeout(function () {
-                        // trigger scrollEnd : 스크롤링 도중에 잠시 interval동안 멈췄을 때 발생
-                        me.trigger(me.constructor.ON_SCROLL_END);
-                    }, me.options.interval);
-
-                });
-            },
-
-            /**
-             * 현재 브라우저의 해상도가 지정된 type인지 체크
-             * @param {String} type small, medium, large, xlarge
-             * @return {Boolean}
-             */
-            is: function (type) {
-                return this.getWidthType() === type;
-            },
-
-            /**
-             * 현재 브라우저 해상도의 type를 반환(small, medium, large)
-             * @param {Number} w {Optional} width값, 없으면 현재 window의 width로 계산
-             * @return {String} (small, medium, large, xlarge)
-             */
-            getWidthType: function (w) {
-                var me = this,
-                    size = !! w ? false : me.getWinSize(),
-                    w = w || size.width,
-                    hasOwn = jsa.hasOwn,
-                    SIZES = Layout.SIZES;
-
-                for (var name in SIZES) {
-                    if (hasOwn(SIZES, name) && w > SIZES[name][0] && w <= SIZES[name][1]) {
-                        return name;
-                    }
-                }
-                return 'unknown';
-            },
-
-            /**
-             * scrollTop값 반환
-             * @return {Number}
-             */
-            getScrollTop: function () {
-                return $win.scrollTop();
-            },
-
-            /**
-             *  도큐먼트의 사이즈 반환
-             * @return {Object} {width, height}
-             */
-            getDocSize: function () {
-                return {
-                    width: $doc.innerWidth(),
-                    height: $doc.innerHeight()
-                };
-            },
-
-            /**
-             * 브라우저의 사이즈 반환
-             * @return {Object} {width, height}
-             */
-            getWinSize: function () {
-                return {
-                    width: $win.innerWidth(),
-                    height: $win.innerHeight()
-                };
-            }
-        });
-
-        return Layout;
-    });
-
-
-    jsa.define('ui.Modal', function () {
-        var $doc = jsa.$doc;
-        /**
-         * 모달 클래스<br />
-         * // 옵션 <br />
-         * options.overlay:true 오버레이를 깔것인가<br />
-         * options.clone: true        복제해서 띄울 것인가<br />
-         * options.closeByEscape: true        // esc키를 눌렀을 때 닫히게 할 것인가<br />
-         * options.removeOnClose: false        // 닫을 때 dom를 삭제할것인가<br />
-         * options.draggable: true                                // 드래그를 적용할 것인가<br />
-         * options.dragHandle: 'h1.title'                // 드래그대상 요소<br />
-         * options.show: true                                        // 호출할 때 바로 표시할 것인가...
-         *
-         * @class
-         * @name jsa.ui.Modal
-         * @extends jsa.ui.View
-         * @example
-         */
-        var Modal = Class( /** @lends jsa.ui.Modal# */ {
-            $extend: jsa.ui.View,
-            name: 'Modal',
-            $statics: /** @lends jsa.ui.Modal */ {
-                /**
-                 * 모달 생성시 발생되는 이벤트
-                 * @static
-                 */
-                ON_MODAL_CREATED: 'created',
-                /**
-                 * 모달 표시 전에 발생되는 이벤트
-                 * @static
-                 */
-                ON_MODAL_SHOW: 'modalshow',
-                /**
-                 * 모달 표시 후에 발생되는 이벤트
-                 * @static
-                 */
-                ON_MODAL_SHOWN: 'modalshown', // 표시 후
-                /**
-                 * 모달이 숨기기 전에 발생되는 이벤트
-                 * @static
-                 */
-                ON_MODAL_HIDE: 'modalhide', // 숨기기 전
-                /**
-                 * 모달이 숨겨진 후에 발생되는 이벤트
-                 * @static
-                 */
-                ON_MODAL_HIDDEN: 'modalhidden' // 숨긴 후
-            },
-            defaults: {
-                overlay: true,
-                clone: true,
-                closeByEscape: true,
-                removeOnClose: false,
-                draggable: true,
-                dragHandle: 'h1.title',
-                show: true
-            },
-
-            events: {
-                'click button[data-role]': function (e) {
-                    var me = this,
-                        $btn = $(e.currentTarget),
-                        role = ($btn.attr('data-role') || ''),
-                        e;
-
-                    if (role) {
-                        me.trigger(e = $.Event(role), [me]);
-                        if (e.isDefaultPrevented()) {
-                            return;
-                        }
-                    }
-
-                    this.hide();
-                },
-                'click .d_close': function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    this.hide();
-                }
-            },
-            /**
-             * 생성자
-             * @constructors
-             * @param {String|Element|jQuery} el
-             * @param {Object} options
-             * @param {Boolean}  options.overlay:true 오버레이를 깔것인가
-             * @param {Boolean}  options.clone: true        복제해서 띄울 것인가
-             * @param {Boolean}  options.closeByEscape: true        // esc키를 눌렀을 때 닫히게 할 것인가
-             * @param {Boolean}  options.removeOnClose: false        // 닫을 때 dom를 삭제할것인가
-             * @param {Boolean}  options.draggable: true                                // 드래그를 적용할 것인가
-             * @param {Boolean}  options.dragHandle: 'h1.title'                // 드래그대상 요소
-             * @param {Boolean}  options.show: true                                        // 호출할 때 바로 표시할 것인가...
-             */
-            initialize: function (el, options) {
-                var me = this;
-                options = options || {};
-
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                // 열릴때 body로 옮겼다가, 닫힐 때 다시 원복하기 위해 임시요소를 넣어놓는다.
-                me._createHolder();
-
-                me.isShown = false;
-                me._originalDisplay = me.$el.css('display');
-
-                if (me.options.remote) {
-                    me.$el.load(me.options.remote).done(function () {
-                        me.options.show && me.show();
-                    });
-                } else {
-                    me.options.show && me.show();
-                }
-
-                me.$el.on('mousewheel.modal', function (e) {
-                    e.stopPropagation();
-                });
-
-                me.trigger('created');
-            },
-
-            /**
-             * zindex때문에 모달을 body바로 위로 옮긴 후에 띄우는데, 닫을 때 원래 위치로 복구시켜야 하므로,
-             * 원래 위치에 임시 홀더를 만들어 놓는다.
-             * @private
-             */
-            _createHolder: function () {
-                var me = this;
-
-                if (me.$el.parent().is('body')) {
-                    return;
-                }
-
-                me.$holder = $('<span class="d_modal_area" style="display:none;"></span>').insertAfter(me.$el);
-                me.$el.appendTo('body');
-            },
-            /**
-             * 원래 위치로 복구시키고 홀더는 제거
-             * @private
-             */
-            _replaceHolder: function () {
-                var me = this;
-
-                if (me.$holder) {
-                    me.$el.insertBefore(me.$holder);
-                    me.$holder.remove();
-                }
-            },
-
-            /**
-             * 토글
-             */
-            toggle: function () {
-                var me = this;
-
-                me[me.isShown ? 'hide' : 'show']();
-            },
-
-            /**
-             * 표시
-             */
-            show: function () {
-                if (this.isShown && Modal.active === this) {
-                    return;
-                }
-
-                Modal.close();
-                Modal.active = this;
-
-                var me = this,
-                    e = $.Event('modalshow');
-
-                me.$el.trigger(e);
-                if (me.isShown || e.isDefaultPrevented()) {
-                    return;
-                }
-
-                me.isShown = true;
-
-                me.layout();
-                me._escape();
-                me._overlay();
-                me._draggabled();
-                me._enforceFocus();
-
-                if (me.options.title) {
-                    me.$el.find('h1.d_title').html(me.options.title || '알림');
-                }
-
-                me.$el.stop().addClass('d_modal_container')
-                    .css({
-                        position: 'fixed',
-                        left: '50%',
-                        top: '50%',
-                        zIndex: 9900,
-                        backgroundColor: '#ffffff',
-                        outline: 'none',
-                        backgroundClip: 'padding-box'
-                    }).fadeIn('fast', function () {
-                        me.$el.trigger('modalshown').focus();
-                        me.layout();
-                    });
-
-
-                jsa.PubSub.trigger('hide:modal');
-
-            },
-
-            /**
-             * 숨김
-             */
-            hide: function (e) {
-                if (e) {
-                    e.preventDefault();
-                }
-
-                var me = this;
-                e = $.Event('modalhide');
-                me.$el.trigger(e);
-                if (!me.isShown || e.isDefaultPrevented()) {
-                    return;
-                }
-
-                $doc.off('focusin.modal');
-                me.$el.off('click.modal keyup.modal');
-
-                me.isShown = false;
-                me._escape();
-                me.hideModal();
-
-                me.$el.trigger('modalhidden');
-
-                Modal.active = null;
-            },
-
-            /**
-             * 뒷처리 담당
-             */
-            hideModal: function () {
-                var me = this;
-                me.$el.hide().removeData(me.moduleName).removeClass('d_modal_container');
-                me.offEvents();
-                me._replaceHolder();
-
-                if (me.options.removeOnClose) {
-                    me.$el.remove();
-                }
-
-                if (me.$overlay) {
-                    me.$overlay.hide().remove(), me.$overlay = null;
-                }
-            },
-
-            /**
-             * 도큐먼트의 가운데에 위치하도록 지정
-             */
-            layout: function () {
-                var me = this,
-                    width = 0,
-                    height = 0;
-
-                me.$el.css({
-                    'display': 'inline',
-                    'position': 'fixed'
-                });
-                width = me.$el.width();
-                height = me.$el.height();
-                me.$el.css({
-                    'display': ''
-                });
-
-                me.$el.css({
-                    'width': width,
-                    'marginTop': Math.ceil(height / 2) * -1,
-                    'marginLeft': Math.ceil(width / 2) * -1
-                });
-            },
-
-            /**
-             * 타이틀 영역을 드래그기능 빌드
-             * @private
-             */
-            _draggabled: function () {
-                var me = this,
-                    options = me.options;
-
-                if (!options.draggable || me.bindedDraggable) {
-                    return;
-                }
-                me.bindedDraggable = true;
-
-                if (options.dragHandle) {
-                    me.$el.find(options.dragHandle).css('cursor', 'move');
-                    me.$el.draggable({
-                        handle: options.dragHandle
-                    });
-                } else {
-                    me.$el.draggable('cancel');
-                }
-            },
-
-            /**
-             * 모달이 띄워진 상태에서 탭키를 누를 때, 모달안에서만 포커스가 움직이게
-             * @private
-             */
-            _enforceFocus: function () {
-                var me = this;
-
-                $doc
-                    .off('focusin.modal')
-                    .on('focusin.modal', me.proxy(function (e) {
-                        if (me.$el[0] !== e.target && !$.contains(me.$el[0], e.target)) {
-                            me.$el.find(':focusable').first().focus();
-                            e.stopPropagation();
-                        }
-                    }));
-            },
-
-            /**
-             * esc키를 누를 때 닫히도록
-             * @private
-             */
-            _escape: function () {
-                var me = this;
-
-                if (me.isShown && me.options.closeByEscape) {
-                    me.$el.off('keyup.modal').on('keyup.modal', me.proxy(function (e) {
-                        e.which === 27 && me.hide();
-                    }));
-                } else {
-                    me.$el.off('keyup.modal');
-                }
-            },
-
-            /**
-             * 오버레이 생성
-             * @private
-             */
-            _overlay: function () {
-                var me = this;
-
-                me.$overlay = $('<div class="d_modal_overlay" />');
-                me.$overlay.css({
-                    'backgroundColor': '#ffffff',
-                    'opacity': 0.6,
-                    'position': 'fixed',
-                    'top': 0,
-                    'left': 0,
-                    'right': 0,
-                    'bottom': 0,
-                    'zIndex': 9000
-                }).appendTo('body');
-
-                me.$overlay.off('click.modal').on('click.modal', function (e) {
-                    if (e.target != e.currentTarget) {
-                        return;
-                    }
-                    me.$overlay.off('click.modal');
-                    me.hide();
-                });
-            },
-
-            /**
-             * 모달의 사이즈가 변경되었을 때 가운데위치를 재조절
-             * @example
-             * $('...').modal(); // 모달을 띄운다.
-             * $('...').find('.content').html( '...');        // 모달내부의 컨텐츠를 변경
-             * $('...').modal('center');        // 컨텐츠의 변경으로 인해 사이즈가 변경되었으로, 사이즈에 따라 화면가운데로 강제 이동
-             */
-            center: function () {
-                this.layout();
-            },
-
-            /**
-             * 닫기
-             */
-            close: function () {
-                this.hide();
-            },
-
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                me.$el.off('.modal').removeClass('d_modal_container');
-                me.$overlay.add(me.$el).off('.modal').remove();
-                $doc.off('.modal');
-                $win.off('.jkModal');
-            }
-        });
-
-        /**
-         */
-        Modal.close = function (e) {
-            if (!Modal.active) return;
-            if (e) e.preventDefault();
-            Modal.active.hide();
-            Modal.active = null;
-        };
-
-        // 모달모듈이 한번이라도 호출되면, 이 부분이 실행됨, 모달모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        Modal.onClassCreate = function () {
-
-            jsa.PubSub.on('hide:modal', function (e, force) {
-                if (force === false) {
-                    if (Modal.active) {
-                        Modal.close();
-                    }
-                }
-            });
-
-        };
-
-        jsa.bindjQuery(Modal, 'modal');
-
-        jsa.modal = function (el, options) {
-            $(el).modal(options);
-        };
-
-        return Modal;
-
-    });
-
-
-    jsa.define('alert', function () {
-        var Modal = jsa.ui.Modal;
-
-        var tmpl = ['<div class="layer_popup small" style="display:none">',
-            '<h1 class="title d_title">알림창</h1>',
-            '<div class="cntt">',
-            '<div class="d_content">',
-            '</div>',
-            '<div class="wrap_btn_c">',
-            '<button type="button" class="btn_emphs_small" data-role="ok"><span><span>확인</span></span></button>',
-            '</div>',
-            '</div>',
-            '<button type="button" class="btn_close d_close"><span>닫기</span></button>',
-            '<span class="shadow"></span>',
-            '</div>'
-        ].join('');
-        /**
-         * 얼럿레이어
-         * @memberOf jsa
-         * @name alert
-         * @function
-         * @param {String} msg 얼럿 메세지
-         * @param {JSON} options 모달 옵션
-         * @example
-         * jsa.alert('안녕하세요');
-         */
-        return function (msg, options) {
-            if (typeof msg !== 'string' && arguments.length === 0) {
-                options = msg;
-                msg = '';
-            };
-            var el = $(tmpl).appendTo('body').find('div.d_content').html(msg).end();
-            var modal = new Modal(el, options);
-            return modal.on('modalhidden', function () {
-                el.remove();
-            });
-        };
-    });
-
-    // ajaxModal
-    jsa.define('ajaxModal', function () {
-        /**
-         * ajax 레이어
-         * @memberOf jsa
-         * @name ajaxModal
-         * @function
-         * @param {String} url url
-         * @param {JSON} options ajax options
-         * @example
-         * jsa.ajaxModal('MP1.1.1.6T.2L_ajax.html');
-         */
-        return function (url, options) {
-            var defer = $.Deferred();
-            $.ajax($.extend({
-                url: url
-            }, options)).done(function (html) {
-                defer.resolve();
-                var $div = $(html.replace(/\n|\r/g, "")).appendTo('body');
-                $div.modal().on('modalhidden', function () {
-                    $div.remove();
-                });
-            }).fail(function () {
-                defer.reject();
-                jsa.alert('죄송합니다.<br>알수 없는 이유로 작업이 중단되었습니다.', {
-                    title: '에러'
-                });
-            });
-            return defer.promise();
-        };
-    });
-
-    // confirm
-    jsa.define('confirm', function () {
-        var Modal = jsa.ui.Modal,
-            Confirm = Class({
-                name: 'Confirm',
-                $extend: Modal,
-                defaults: $.extend({}, Modal.prototype.defaults, {
-                    modal: true,
-                    containerCss: {
-                        backgroundColor: '#fffff'
-                    }
-                })
-            });
-
-        var tmpl = ['<div class="layer_popup small" style="display:none">',
-            '<h1 class="title d_title">확인창</h1>',
-            '<div class="cntt">',
-            '<div class="d_content">',
-            '</div>',
-            '<div class="wrap_btn_c">',
-            '<button type="button" class="btn_emphs_small" data-role="ok"><span><span>확인</span></span></button>&nbsp;',
-            '<button type="button" class="btn_emphs02_small d_close" data-role="cancel"><span><span>취소</span></span></button>',
-            '</div>',
-            '</div>',
-            '<button type="button" class="btn_close d_close"><span>닫기</span></button>',
-            '<span class="shadow"></span>',
-            '</div>'
-        ].join('');
-        /**
-         * 컨펌레이어
-         * @memberOf jsa
-         * @name confirm
-         * @param {String} msg 컨펌 메세지
-         * @param {JSON} options 모달 옵션
-         * @example
-         * jsa.confirm('안녕하세요', {
-         *                onOk: function() {},
-         *                onCancel: function() {}
-         *        });
-         */
-        return function (msg, options) {
-            if (typeof msg !== 'string' && arguments.length === 0) {
-                options = msg;
-                msg = '';
-            };
-            var el = $(tmpl).appendTo('body').find('div.d_content').html(msg).end();
-            var modal = new Modal(el, options);
-            return modal.on('modalhidden', function () {
-                el.remove();
-            });
-        };
-    });
-
-
-    jsa.define('ui.Selectbox', function () {
-        var $dropdown = $(),
-            isIE7 = jsa.browser.isIE && jsa.browser.version <= 7;
-
-        /**
-         * 커스텀 셀렉트박스<br />
-         * wrapClasses: ''<br />
-         * disabledClass: 'disabled'<br />
-         * bottomClass: 'bottomHover'<br />
-         *
-         * @class
-         * @name jsa.ui.Selectbox
-         * @extends jsa.ui.View
-         */
-        var Selectbox = Class( /** @lends jsa.ui.Selectbox# */ {
-            name: 'Selectbox',
-            $extend: jsa.ui.View,
-            $statics: {
-                /**
-                 * @static
-                 */
-                ON_CHANGED: 'changed'
-            },
-            /**
-             * 옵션
-             * @property {JSON}
-             */
-            defaults: {
-                wrapClasses: '',
-                disabledClass: 'disabled',
-                bottomClass: 'bottomHover'
-            },
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                var me = this;
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me._create();
-            },
-
-            _create: function () {
-                var me = this,
-                    cls = me.$el.attr('data-class') || 'select_type01',
-                    timer = null;
-
-                // 리스트 표시
-                function openList() {
-                    $dropdown = me.$list.show();
-                    me.$selectbox.triggerHandler('openlist');
-                }
-
-                // 리스트 숨김
-                function closeList() {
-                    $dropdown.hide(), me.$selectbox.triggerHandler('closelist');
-                }
-
-                me.width = parseInt(me.$el.css('width'), 10);
-                // 셀렉트박스
-                me.$selectbox = $('<div class="' + cls + '"></div>').addClass(me.options.wrapClasses);
-                // 레이블
-                me.$label = $('<span class="select_box" tabindex="0" title="' + (me.$el.attr('title') || '셀렉트박스') + '"><span class="sel_r" style="width:190px;">&nbsp;</span></span>');
-
-                /////// Label //////////////////////////////////////////////////////////////////////////////////////////
-                me.$label.on('click', '.sel_r', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (me.$list != $dropdown) {
-                        // 이미 열려있는 다른 셀렉트박스의 리스트가 있으면 닫는다.
-                        closeList();
-                    }
-
-                    if (!me.$label.hasClass(me.options.disabledClass)) {
-                        // 현재 셀렉트박스가 열려있으면 닫고, 닫혀있으면 열어준다.
-                        if (me.$label.hasClass('open')) {
-                            closeList();
-                        } else {
-                            openList()
-                        }
-                    }
-                });
-                // 키보드에 의해서도 작동되도록 바인딩
-                !jsa.isTouch && me.$label.on('keydown', function (e) {
-                    if (e.keyCode === 13) {
-                        $(this).find('.sel_r').trigger('click');
-                    } else if (e.keyCode === $.ui.keyCode.DOWN) {
-                        openList();
-                        me.$list.find(':focusable:first').focus();
-                    }
-                });
-                me.$label.find('.sel_r').css('width', me.width);
-                /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-                /////// List /////////////////////////////////////////////////////////////////////////////////////////
-                me.$list = $('<div class="select_open" style="position:absolute;" tabindex="0"></div>');
-                me.$list.hide().on('click', function (e) {
-                    me.$list.focus();
-                }).on('click', 'li>a', function (e) {
-                    // 아이템을 클릭했을 때
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    me.selectedIndex($(this).parent().index());
-                    closeList();
-                    me.$label.focus();
-                });
-                !jsa.isTouch && me.$list.on('keydown', 'li a', function (e) {
-                    // 키보드의 위/아래 키로 이동
-                    var index = $(this).parent().index(),
-                        items = me.$list.find('li'),
-                        count = items.length;
-
-                    switch (e.keyCode) {
-                    case $.ui.keyCode.UP:
-                        e.stopPropagation();
-                        e.preventDefault();
-                        items.eq(Math.max(0, index - 1)).children().focus();
-                        break;
-                    case $.ui.keyCode.DOWN:
-                        e.stopPropagation();
-                        e.preventDefault();
-                        items.eq(Math.min(count - 1, index + 1)).children().focus();
-                        break;
-                    }
-                });
-                //////////////////////////////////////////////////////////////////////////////////////////////////////
-                me.$selectbox.insertAfter(me.$el.hide());
-                me.$selectbox.append(me.$label);
-                me.$selectbox.append(me.$list);
-
-                me.$selectbox.on('openlist closelist', function (e) {
-                    // 리스트가 열리거나 닫힐 때 zindex 처리
-                    var zindexSelector = me.$el.attr('data-zindex-target'),
-                        $zIndexTargets = zindexSelector ? me.$el.parents(zindexSelector) : false;
-
-                    if (e.type === 'openlist') {
-                        me.$label.addClass('open');
-                        me.$el.closest('div.select_wrap').addClass('on');
-                        $zIndexTargets && $zIndexTargets.addClass('on');
-
-                        jsa.isTouch && $('body').on('touchend.selectbox', function () {
-                            closeList();
-                        });
-                    } else {
-                        me.$label.removeClass('open');
-                        me.$el.closest('div.select_wrap').removeClass('on');
-                        $zIndexTargets && $zIndexTargets.removeClass('on');
-                        clearTimeout(timer), timer = null;
-
-                        jsa.isTouch && $('body').off('touchend.selectbox');
-                    }
-                });
-
-                // 비터치 기반일 때에 대한 이벤트 처리
-                if (!jsa.isTouch) {
-                    // 셀렉트박스에서 포커스가 벗어날 경우 자동으로 닫히게
-                    me.$selectbox.on('focusin focusout', function (e) {
-                        if (e.type === 'focusout' && me.$label.hasClass('open')) {
-                            timer = setTimeout(function () {
-                                closeList();
-                            }, 600);
-                        } else {
-                            clearTimeout(timer);
-                            timer = null;
-                        }
-                    }).on('keydown', function (e) {
-                        if (e.keyCode === $.ui.keyCode.ESCAPE) {
-                            closeList();
-                            me.$label.focus();
-                        }
-                    });
-                } else {
-                    me.$selectbox.on('touchend', function (e) {
-                        e.stopPropagation();
-                    });
-                }
-
-                me.$el.on('change.selectbox', function (e) {
-                    me.selectedIndex(this.selectedIndex, false);
-                });
-
-                me.$el.closest('form').on('reset', function () {
-                    me.update();
-                });
-
-                me.update();
-            },
-
-            /** 
-             * index에 해당하는 option항목을 선택
-             *
-             * @param {Number} index 선택하고자 하는 option의 인덱스
-             * @param {Boolean} trigger change이벤트를 발생시킬 것인지 여부
-             */
-            selectedIndex: function (index, trigger) {
-                if (arguments.length === 0) {
-                    return this.$el[0].selectedIndex;
-                }
-
-                var me = this,
-                    item = me.$el.find('option')
-                        .prop('selected', false).removeAttr('selected')
-                        .eq(index).prop('selected', true).attr('selected', 'selected');
-
-                if (trigger !== false) {
-                    me.$el.trigger('change', [index]);
-                }
-
-                me.$list.find('li').removeClass('on').eq(index).addClass('on');
-                me.$label.children().text(item.text());
-            },
-
-            /** 
-             * value 에 해당하는 option항목을 선택, 인자가 없을땐 현재 선택되어진 value를 반환
-             *
-             * @param {String} index 선택하고자 하는 option의 인덱스
-             * @param {Boolean} trigger change이벤트를 발생시킬 것인지 여부
-             * @return {String}
-             * @example
-             * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
-             *
-             * $('#sel').selectbox('value', 2);
-             * value = $('#sel').selectbox('value'); // = $('#sel')[0].value 와 동일
-             */
-            value: function (_value) {
-                var me = this;
-
-                if (arguments.length === 0) {
-                    return me.$el[0].options[me.$el[0].selectedIndex].value;
-                } else {
-                    $.each(me.$el[0].options, function (i, item) {
-                        if (item.value == _value) {
-                            me.selectedIndex(i);
-                            return false;
-                        }
-                    });
-                }
-            },
-            /** 
-             * 동적으로 select의 항목들이 변경되었을 때, UI에 반영
-             *
-             * @example
-             * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
-             *
-             * $('#sel')[0].options[2] = new Option(3, 3);
-             * $('#sel')[0].options[3] = new Option(4, 4);
-             * $('#sel').selectbox('update');
-             */
-            update: function () {
-                var me = this,
-                    html = '',
-                    index = -1,
-                    text = '';
-
-                $.each(me.$el[0].options, function (i, item) {
-                    if ($(item).prop('selected')) {
-                        index = i;
-                        text = item.text;
-                    }
-                    html += '<li><a href="#" data-value="' + item.value + '" data-text="' + item.text + '">' + item.text + '</a></li>';
-                });
-                me.$list.empty().html('<ul>' + html + '</ul>').find('li:eq(' + index + ')').addClass('on');
-                me.$label.children().text(text);
-
-                if (me.$el.prop(me.options.disabledClass)) {
-                    me.$label.addClass(me.options.disabledClass).removeAttr('tabIndex');
-                } else {
-                    me.$label.removeClass(me.options.disabledClass).attr('tabIndex', 0);
-                }
-            },
-
-            /**
-             * 소멸자
-             */
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                me.$label.off().remove();
-                me.$list.off().remove();
-                me.$el.unwrap('<div></div>');
-                me.$el.off('change.selectbox').show();
-            }
-        });
-
-        // 셀렉트박스 모듈이 한번이라도 호출되면, 이 부분이 실행됨, 셀렉트박스 모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        Selectbox.onClassCreate = function () {
-            jsa.$doc.on('click.selectbox', function (e) {
-                $dropdown.hide().trigger('closelist');
-            });
-        };
-
-        jsa.bindjQuery(Selectbox, 'selectbox');
-        return Selectbox;
-    });
-
-    jsa.define('ui.Dropdown', function () {
-
-        var $dropdown = $();
-
-        /**
-         * 드롭다운 레이어
-         * @class
-         * @name jsa.ui.Dropdown
-         * @extends jsa.ui.View
-         * @example
-         * // dropdown 옵션들
-         * &lt;button data-control="dropdown">드롭다운 보이기&lt;/button>
-         * &lt;div class="d_notpos" data-zindex-target="div.wrap">...&lt;/div>
-         * //1. d_notpos 클래스 : 강제 위치 재조절에서 제외시키는 옵션
-         * //2. data-zindex-target 속성: ie7이하에서는 position:absolute인 노드가 overflow:hidden영역을 못벗어나는 문제가 있는데,
-         * // 이때 특정부모 노드의 zindex값도 같이 올려주어야 하므로 이 속성에다 부모 노드의 selector를 지정해 주면 된다.(,를 구분자로 여러개 지정 가능)
-         */
-        var Dropdown = Class( /** @lends jsa.ui.Dropdown# */ {
-            name: 'Dropdown',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_BEFORE_SHOW: 'beforeshow', // $.fn.showLayer에서 발생
-                ON_SHOW: 'show', // $.fn.showLayer에서 발생
-                ON_HIDE: 'hide' // $.fn.hideLayer에서 발생
-            },
-            defaults: {
-                dropdownTarget: ''
-            },
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me.$dropdown = me.$el.attr('data-dropdown-target') ? $(me.$el.attr('data-dropdown-target')) : me.$el.next('div');
-                me.$dropdown.addClass('d_layer').addClass('d_dropdown');
-
-                me.$el.attr('aria-haspopup', 'true');
-                me.on('mousedown keydown', me.toggle.bind(me));
-                me.$el.add(me.$dropdown)
-                    .on('keydown.dropdown', function (e) {
-                        if (e.keyCode === $.ui.keyCode.ESCAPE) {
-                            me.$dropdown.hideLayer({
-                                focusOpener: true
-                            });
-                            return;
-                        }
-                    });
-
-                me.$dropdown.on('click', '.d_close, .btn_close', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    me.$dropdown.hideLayer();
-                }).on('click.dropdown', 'a', function (e) {
+                    $btn = $(e.currentTarget),
+                    role = ($btn.attr('data-role') || ''),
+                    e;
+
+                if (role) {
+                    me.triggerHandler(e = $.Event(role), [me]);
                     if (e.isDefaultPrevented()) {
                         return;
                     }
+                }
 
-                    me.$dropdown.hideLayer();
-                });
+                this.hide();
             },
-
-            /**
-             * 드롭다운 레이어를 띄울 때, $dropdown이 $el를 기준으로 가시영역 내에서 보이도록 위치를 재조절
-             * @private
-             * @param {jQuery} $el 드롭다운 버튼
-             * @param {jQuery} $dropdown 드롭다운 레이어
-             */
-            _posInArea: function () {
-                var $el = this.$el,
-                    $dropdown = this.$dropdown,
-                    $bullet = $dropdown.find('span[class^=bullet]'),
-                    bulletClass = $dropdown.attr('data-ori-bullet') || $bullet.attr('class'),
-                    hasBullet = $bullet.length > 0,
-                    isNotPos = $dropdown.hasClass('d_notpos');
-
-                if (isNotPos || !hasBullet) {
-                    return;
-                }
-
-                var $con = (function ($c) {
-                    return ($c.length === 0) ? jsa.$win : $c;
-                })($el.closest('div.d_scrolldiv')),
-                    isIE7 = jsa.browser.isIE7,
-                    isWindow = !$con.hasClass('d_scrolldiv'),
-                    isRelative = !isWindow && ($con.css('position') === 'relative'),
-                    calcBullet = Number($bullet.css('display') !== 'none'),
-                    css = {},
-                    pos = $el.position(),
-                    offset = $el.offset(),
-                    conOffset = !isWindow ? $con.offset() : {
-                        left: 0,
-                        top: 0
-                    },
-                    scrollPos = {
-                        top: $con.scrollTop(),
-                        left: $con.scrollLeft()
-                    },
-                    conSize = {
-                        width: $con.width(),
-                        height: $con.height()
-                    },
-                    dropSize = {
-                        width: $dropdown.outerWidth(),
-                        height: $dropdown.outerHeight()
-                    },
-                    dropMargin = {
-                        left: parseInt($dropdown.css('marginLeft'), 10),
-                        top: parseInt($dropdown.css('marginTop'), 10)
-                    },
-                    btnSize = {
-                        width: $el.outerWidth(),
-                        height: $el.outerHeight()
-                    },
-                    bulletSize = hasBullet ? {
-                        width: $bullet.width(),
-                        height: $bullet.height()
-                    } : {
-                        width: 0,
-                        height: 0
-                    },
-                    btnPaddingTop = parseInt($el.css('paddingTop'), 10),
-                    btnBorder = isIE7 ? {
-                        left: 0,
-                        top: 0
-                    } : {
-                        left: parseInt($el.css('borderLeftWidth'), 10) | 0,
-                        top: parseInt($el.css('borderTopWidth'), 10) | 0
-                    },
-                    btnMargin = isIE7 ? {
-                        left: 0,
-                        top: 0
-                    } : {
-                        left: parseInt($el.css('marginLeft'), 10),
-                        top: parseInt($el.css('marginTop'), 10)
-                    },
-                    bulletTop = hasBullet ? 9 + Math.floor(bulletSize.height / 2) : 0;
-
-                offset.top -= conOffset.top;
-                offset.left -= conOffset.left;
-
-                if (!isWindow && !isRelative) {
-                    $con.css('position', 'relative');
-                }
-                $dropdown.css('marginTop', 0);
-
-                $bullet[0].className = bulletClass;
-                if (conSize.height + (scrollPos.top * Number(isWindow)) - 5 < offset.top + dropSize.height) {
-                    if (bulletClass === 'bullet_vertical') {
-                        if (isWindow) {
-                            css.top = scrollPos.top + conSize.height - dropSize.height - offset.top - 5;
-                            hasBullet && $bullet.css('top', pos.top - css.top + btnPaddingTop);
-                            //console.log('isWindow', css.top);
-                        } else {
-                            css.top = conSize.height - dropSize.height - 5 - btnPaddingTop + dropMargin.top;
-                            if (offset.top - css.top + bulletSize.height > dropSize.height) {
-                                css.top += bulletSize.height;
-                            }
-                            hasBullet && $bullet.css('top', offset.top - css.top);
-                            //console.log('not isWindow', css.top);
-                        }
-                    } else if (bulletClass === 'bullet_top') {
-                        if (Math.abs(pos.top - dropSize.height - (9 * calcBullet)) < offset.top - scrollPos.top) {
-                            hasBullet && $bullet.attr('class', 'bullet_bottom').css({
-                                'top': '',
-                                'bottom': -7
-                            });
-                            css.top = pos.top - dropSize.height - (9 * calcBullet);
-                        }
-                    } else if (bulletClass === 'bullet') {
-                        hasBullet && $bullet.attr('class', 'bullet_bottom').css({
-                            'top': '',
-                            'bottom': -7,
-                            'left': (dropSize.width / 2) - 6
-                        });
-                        css.top = pos.top - dropSize.height - (9 * calcBullet);
-                    }
-                } else {
-                    if (bulletClass === 'bullet_vertical') {
-                        hasBullet && $bullet.css('top', 9);
-                        css.top = pos.top + Math.floor(btnSize.height / 2) - bulletTop;
-                    } else if (bulletClass === 'bullet_top') {
-                        hasBullet && $bullet.css({
-                            'bottom': '',
-                            'top': -7
-                        });
-                        css.top = pos.top + btnSize.height + (7 * calcBullet);
-                    } else if (bulletClass === 'bullet') {
-                        hasBullet && $bullet.css({
-                            'bottom': '',
-                            'top': -7,
-                            'left': '50%'
-                        });
-                        css.top = pos.top + btnSize.height + (7 * calcBullet);
-                    }
-                }
-
-                if (conSize.width + scrollPos.left < offset.left + btnSize.width + dropSize.width) {
-                    if (bulletClass === 'bullet_vertical') { //174
-                        css.left = pos.left - dropSize.width - (9 * calcBullet);
-                        hasBullet && ($bullet[0].className = 'bullet_right');
-                    } else if (bulletClass === 'bullet_top') {} else if (bulletClass === 'bullet') {
-                        css.left = pos.left - Math.ceil((dropSize.width - btnSize.width) / 2);
-                    }
-                } else {
-                    if (bulletClass === 'bullet_vertical') {
-                        css.left = pos.left + btnSize.width + (9 * calcBullet);
-                    } else if (bulletClass === 'bullet_top') {} else if (bulletClass === 'bullet') {
-                        css.left = pos.left - Math.ceil((dropSize.width - btnSize.width) / 2);
-                    }
-                }
-
-                if (!isWindow) {
-                    css.top += btnPaddingTop;
-                    css.top += scrollPos.top;
-                }
-                css.left -= dropMargin.left;
-                css.top += btnBorder.top;
-
-                $dropdown.attr('data-ori-bullet', bulletClass).css(css);
-            },
-
-            /** 
-             * 토글(open &lt; - > close)
-             * @param {$.Event} e 이벤트
-             */
-            toggle: function (e) {
-                var me = this;
-                if (e.type === 'keydown' && e.keyCode !== 13) {
-                    return;
-                }
+            'click .d-close': function (e) {
+                e.preventDefault();
                 e.stopPropagation();
-                if (me.$dropdown.hasClass('d_open')) {
-                    me.close();
-                } else {
-                    me.open();
+
+                this.hide();
+            }
+        },
+        /**
+         * 생성자
+         * @constructors
+         * @param {String|Element|jQuery} el
+         * @param {Object} options
+         * @param {Boolean}  options.overlay:true 오버레이를 깔것인가
+         * @param {Boolean}  options.clone: true    복제해서 띄울 것인가
+         * @param {Boolean}  options.closeByEscape: true    // esc키를 눌렀을 때 닫히게 할 것인가
+         * @param {Boolean}  options.removeOnClose: false   // 닫을 때 dom를 삭제할것인가
+         * @param {Boolean}  options.draggable: true                // 드래그를 적용할 것인가
+         * @param {Boolean}  options.dragHandle: 'h1.title'     // 드래그대상 요소
+         * @param {Boolean}  options.show: true                 // 호출할 때 바로 표시할 것인가...
+         */
+        initialize: function (el, options) {
+            var me = this;
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
+
+            // 열릴때 body로 옮겼다가, 닫힐 때 다시 원복하기 위해 임시요소를 넣어놓는다.
+            me._createHolder();
+
+            me.isShown = false;
+            me._originalDisplay = me.$el.css('display');
+
+            if (me.options.remote) {
+                me.$el.load(me.options.remote).done(function () {
+                    me.options.show && me.show();
+                });
+            } else {
+                me.options.show && me.show();
+            }
+
+            me.on('mousewheel.modal', function (e) {
+                e.stopPropagation();
+            });
+        },
+
+        /**
+         * zindex때문에 모달을 body바로 위로 옮긴 후에 띄우는데, 닫을 때 원래 위치로 복구시켜야 하므로,
+         * 원래 위치에 임시 홀더를 만들어 놓는다.
+         * @private
+         */
+        _createHolder: function () {
+            var me = this;
+
+            if (me.$el.parent().is('body')) {
+                return;
+            }
+
+            me.$holder = $('<span class="d-modal-area" style="display:none;"></span>').insertAfter(me.$el);
+            me.$el.appendTo('body');
+        },
+        /**
+         * 원래 위치로 복구시키고 홀더는 제거
+         * @private
+         */
+        _replaceHolder: function () {
+            var me = this;
+
+            if (me.$holder) {
+                me.$el.insertBefore(me.$holder);
+                me.$holder.remove();
+            }
+        },
+
+        /**
+         * 토글
+         */
+        toggle: function () {
+            var me = this;
+
+            me[me.isShown ? 'hide' : 'show']();
+        },
+
+        /**
+         * 표시
+         */
+        show: function () {
+            if (this.isShown && Modal.active === this) {
+                return;
+            }
+
+            Modal.active = this;
+
+            var me = this,
+                e = $.Event('modalshow');
+
+            me.trigger(e);
+            if (me.isShown || e.isDefaultPrevented()) {
+                return;
+            }
+
+            me.isShown = true;
+
+            me.layout();
+            me._draggabled();
+            if (me.options.overlay !== false) {
+                me._overlay();
+            }
+            if (!core.browser.isTouch) {
+                me._escape();
+                me._enforceFocus();
+            }
+
+            if (me.options.title) {
+                me.$el.find('h1.d-modal-title').html(me.options.title || '알림');
+            }
+
+            me.$el.stop().addClass('d-modal-container')
+                .css({
+                    position: 'fixed',
+                    left: '50%',
+                    top: '50%',
+                    zIndex: 9900,
+                    backgroundColor: '#ffffff',
+                    outline: 'none',
+                    backgroundClip: 'padding-box'
+                }).fadeIn('fast', function () {
+                    me.trigger('modalshown', {
+                        module: this
+                    });
+                    me.layout();
+                    me.$el.focus();
+                });
+
+
+            core.PubSub.trigger('hide:modal');
+        },
+
+        /**
+         * 숨김
+         */
+        hide: function (e) {
+            if (e) {
+                e.preventDefault();
+            }
+
+            var me = this;
+            e = $.Event('modalhide');
+            me.trigger(e);
+            if (!me.isShown || e.isDefaultPrevented()) {
+                return;
+            }
+
+            $doc.off('focusin.modal');
+            me.off('click.modal keyup.modal');
+
+            me.isShown = false;
+            if (!core.browser.isTouch) {
+                me._escape();
+            }
+            me.hideModal();
+
+            me.trigger('modalhidden');
+            Modal.active = null;
+        },
+
+        /**
+         * 뒷처리 담당
+         */
+        hideModal: function () {
+            var me = this;
+            me.$el.hide().removeData(me.moduleName).removeClass('d-modal-container');
+            me.off(me.getEventNamespace());
+            me._replaceHolder();
+
+            if (me.options.removeOnClose) {
+                me.$el.remove();
+            }
+            //140113추가
+            if (me.options.opener) {
+                me.options.opener.focus();
+            }
+            //140113추가 end
+
+            if (me.$overlay) {
+                me.$overlay.hide().remove(), me.$overlay = null;
+            }
+        },
+
+        /**
+         * 도큐먼트의 가운데에 위치하도록 지정
+         */
+        layout: function () {
+            var me = this,
+                width = 0,
+                height = 0;
+
+            me.$el.css({
+                'display': 'inline',
+                'position': 'fixed'
+            });
+            width = me.$el.width();
+            height = me.$el.height();
+            me.$el.css({
+                'display': ''
+            });
+
+            me.$el.css({
+                'width': width,
+                'marginTop': Math.ceil(height / 2) * -1,
+                'marginLeft': Math.ceil(width / 2) * -1
+            });
+        },
+
+        /**
+         * 타이틀 영역을 드래그기능 빌드
+         * @private
+         */
+        _draggabled: function () {
+            var me = this,
+                options = me.options;
+
+            if (!options.draggable || me.bindedDraggable) {
+                return;
+            }
+            me.bindedDraggable = true;
+
+            if (options.dragHandle) {
+                me.$el.css('position', 'absolute');
+                core.css.prefixStyle('user-select') && me.$(options.dragHandle).css(core.css.prefixStyle('user-select'), 'none');
+                me.$el.on('mousedown.modaldrag touchstart.modaldrag', options.dragHandle, function (e) {
+                    e.preventDefault();
+
+                    var isMouseDown = true,
+                        pos = me.$el.position(),
+                        size = {
+                            width: me.$el.width(),
+                            height: me.$el.height()
+                        },
+                        docSize = {
+                            width: core.util.getDocWidth(),
+                            height: core.util.getDocHeight()
+                        },
+                        oriPos = {
+                            left: e.pageX - pos.left,
+                            top: e.pageY - pos.top
+                        };
+
+                    $doc.on('mousemove.modaldrag mouseup.modaldrag touchmove.modaldrag touchend.modaldrag touchcancel.modaldrag', function (e) {
+                        switch (e.type) {
+                        case 'mousemove':
+                        case 'touchmove':
+                            if (!isMouseDown) {
+                                return;
+                            }
+                            if (e.pageX + size.width > docSize.width || e.pageY + size.height > docSize.height || e.pageX - oriPos.left < 0 || e.pageY - oriPos.top < 0) {
+                                return;
+                            }
+
+                            me.$el.css({
+                                left: e.pageX - oriPos.left,
+                                top: e.pageY - oriPos.top
+                            });
+                            break;
+                        case 'mouseup':
+                            isMouseDown = false;
+                            $doc.off('.modaldrag');
+                            break;
+                        }
+                    });
+                });
+
+                me.$el.find(options.dragHandle).css('cursor', 'move');
+            }
+        },
+
+        /**
+         * 모달이 띄워진 상태에서 탭키를 누를 때, 모달안에서만 포커스가 움직이게
+         * @private
+         */
+        _enforceFocus: function () {
+            var me = this;
+
+            $doc
+                .off('focusin.modal')
+                .on('focusin.modal', me.proxy(function (e) {
+                    if (me.$el[0] !== e.target && !$.contains(me.$el[0], e.target)) {
+                        me.$el.find(':focusable').first().focus();
+                        e.stopPropagation();
+                    }
+                }));
+        },
+
+        /**
+         * esc키를 누를 때 닫히도록
+         * @private
+         */
+        _escape: function () {
+            var me = this;
+
+            if (me.isShown && me.options.closeByEscape) {
+                me.$el.off('keyup.modal').on('keyup.modal', me.proxy(function (e) {
+                    e.which === 27 && me.hide();
+                }));
+            } else {
+                me.$el.off('keyup.modal');
+            }
+        },
+
+        /**
+         * 오버레이 생성
+         * @private
+         */
+        _overlay: function () {
+            var me = this;
+            if ($('.d-modal-overlay').length > 0) {
+                return false;
+            } //140123_추가
+
+            me.$overlay = $('<div class="d-modal-overlay" />');
+            me.$overlay.css({
+                'backgroundColor': '#ffffff',
+                'opacity': 0.6,
+                'position': 'fixed',
+                'top': 0,
+                'left': 0,
+                'right': 0,
+                'bottom': 0,
+                'zIndex': 9000
+            }).appendTo('body');
+
+            me.$overlay.off('click.modal').on('click.modal', function (e) {
+                if (e.target != e.currentTarget) {
+                    return;
                 }
+                me.$overlay.off('click.modal');
+                me.hide();
+            });
+        },
+
+        /**
+         * 모달의 사이즈가 변경되었을 때 가운데위치를 재조절
+         * @example
+         * $('...').modal(); // 모달을 띄운다.
+         * $('...').find('.content').html( '...');  // 모달내부의 컨텐츠를 변경
+         * $('...').modal('center');    // 컨텐츠의 변경으로 인해 사이즈가 변경되었으로, 사이즈에 따라 화면가운데로 강제 이동
+         */
+        center: function () {
+            this.layout();
+        },
+
+        /**
+         * 열기
+         */
+        open: function () {
+            this.show();
+        },
+
+        /**
+         * 닫기
+         */
+        close: function () {
+            this.hide();
+        },
+
+        destroy: function () {
+            var me = this;
+
+            me.callParent();
+            me.$el.add(me.$overlay).off('.modal').remove();
+            $doc.off('.modal');
+            $win.off('.modal');
+        }
+    });
+
+    Modal.close = function (e) {
+        if (!Modal.active) return;
+        if (e) e.preventDefault();
+        Modal.active.hide();
+        Modal.active = null;
+    };
+
+    core.PubSub.on('hide:modal', function (e, force) {
+        if (force === false) {
+            if (Modal.active) {
+                Modal.close();
+            }
+        }
+    });
+
+    core.modal = function (el, options) {
+        $(el).modal(options);
+    };
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        strUtil = core.string,
+        dateUtil = core.date,
+        numberUtil = core.number,
+
+        daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+        Calendar;
+
+    /**
+     * @class
+     * @description 달력
+     * @name jsa.ui.Calendar
+     * @extends jsa.ui.View
+     */
+    Calendar = ui('Calendar', {
+        bindjQuery: 'calendar',
+        defaults: {
+            weekNames: ['일', '월', '화', '수', '목', '금', '토'],
+            monthNames: '1월,2월,3월,4월,5월,6월,7월,8월,9월,10월,11월,12월'.split(','),
+
+            weekendDisabled: false, // 주말을 disabled시킬 것인가
+            labelType: false, // 날짜가 선택되게 할 것인가
+            inputTarget: '', // 날짜를 선택했을 때, 날짜가 들어갈 인풋박스의 셀렉터
+            showDate: new Date(), // 처음에 표시할 기본 날짜
+            template: {
+                header: '<button class="d-calendar-prev">이전달</button>' +
+                    '<span class="d-calendar-text"></span>' +
+                    '<button class="d-calendar-next">다음달</button>',
+
+                label: '<span class="d-calendar-day" title="<%-title%>"><%=day%></span>',
+                button: '<button class="d-calendar-day <%-cls%>" title="<%-title%>" <%-disabled%>><%=day%></button>'
             },
+            holidays: [], // 휴일 날짜 -> ['2014-04-05', '2014-05-12']
+            canSelectHoliday: false // 휴일을 선택하게 할 것인가
+        },
+        events: {
 
-            /** 
-             * 표시
-             */
-            open: function () {
-                var me = this;
-                if (me.$el.is('.disabled, :disabled')) {
-                    return;
+        },
+
+        /**
+         *
+         * @param el
+         * @param options
+         * @returns {boolean}
+         */
+        initialize: function (el, options) {
+            var me = this;
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
+
+            me.isInline = !me.$el.is('button, input');
+            me.currDate = dateUtil.parseDate(me.options.showDate);
+
+            //data-holidays속성을 이용한 경우 문자열로 넘어오기 때문에 배열로 변환해주어야 한다.
+            if (core.is(me.options.holidays, 'string')) {
+                try {
+                    me.options.holidays = eval(me.options.holidays);
+                } catch (e) {
+                    me.options.holidays = [];
                 }
-                if (me.$dropdown.hasClass('d_open')) {
-                    return;
-                }
+            }
 
-                me.$el.attr('aria-pressed', 'true');
-                $dropdown.hideLayer();
+            if (me.isInline) {
+                me._render();
+            } else {
+                me.$el.on('click', function (e) {
+                    e.stopPropagation();
+                    if (me.$calendar && me.$calendar.is(':visible')) {
+                        me.close();
+                        return;
+                    }
+                    me.open();
+                });
+            }
+        },
 
-                me._posInArea(me.$el, me.$dropdown);
-                $dropdown = me.$dropdown.css({
-                    'zIndex': 9999
-                }).showLayer({
+        /**
+         * 위치 재조절
+         */
+        _reposition: function () {
+            var me = this,
+                offset = me.$el.offset(),
+                height = me.$el.height();
+
+            me.$calendar.css({
+                left: offset.left,
+                top: offset.top + height
+            }).focus();
+
+            return me;
+        },
+
+        /**
+         * 모달 띄우기
+         * @returns {Calendar}
+         */
+        open: function () {
+            var me = this;
+
+            Calendar.active && Calendar.active.close();
+            Calendar.active = this;
+
+            me._render();
+            me._reposition();
+            me.show();
+
+            return me;
+        },
+
+        /**
+         * 모달 닫기
+         * @returns {Calendar}
+         */
+        close: function () {
+            if (this.isInline) {
+                return;
+            }
+
+            this._remove();
+            $doc.off('.calendar');
+            Calendar.active = null;
+
+            return this;
+        },
+
+        /**
+         * 모달 표시
+         * @returns {Calendar}
+         */
+        show: function () {
+            var me = this;
+
+            if (!me.isInline) {
+                $doc.on('click.calendar', function (e) {
+                    if (me.$calendar[0].contains(e.target)) {
+                        e.stopPropagation();
+                        return;
+                    }
+
+                    me.close();
+                });
+                me.$calendar.showLayer({
                     opener: me.$el
                 });
-
-            },
-
-            /** 
-             * 숨김
-             */
-            close: function () {
-                var me = this;
-                me.$el.attr('aria-pressed', 'false');
-                me.$dropdown.hideLayer();
-            },
-
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                me.$el.off('.dropdown');
-                me.$dropdown.off('.dropdown');
-            }
-        });
-
-        // 드롭다운 모듈이 한번이라도 호출되면, 이 부분이 실행됨, 드롭다운 모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        Dropdown.onClassCreate = function () {
-            // ie7에서 드롭다운을 표시할 때 부모 엘리먼트의 zindex도 같이 올려주어야 한다.(data-zindex-target 속성에 부모엘리먼트를 지정)
-            if (jsa.browser.isIE7) {
-                $doc.on('beforeshow.dropdown hide.dropdown', 'div.d_layer', function (e) {
-                    var $this = $(this),
-                        attrTarget = $this.attr('data-zindex-target'),
-                        zIndexTarget = attrTarget || 'td, li',
-                        $target;
-
-                    zIndexTarget = zIndexTarget ? zIndexTarget.split(/\s*,\s*/) : [];
-                    for (var i = 0, len = zIndexTarget.length; i < len; i++) {
-                        if (!zIndexTarget[i]) {
-                            continue;
-                        }
-
-                        $target = $this.closest(zIndexTarget[i]);
-                        if ($target.length > 0) {
-                            $target.toggleClass('on', e.type === 'beforeshow');
-                            if (!attrTarget) {
-                                break;
-                            } // 기본 셀렉터(td, li)일때에는 하나만 실행하기
-                        }
-                    }
-                });
             }
 
-            // 레이어 영역외에서 클릭할 때 닫히게 해준다.
-            $doc.on('mousedown.dropdown keydown.dropdown', function (e) {
-                if (e.type === 'keydown' && e.keyCode !== 13) {
-                    return;
-                }
-
-                var $target = $(e.target),
-                    $popup = $target.closest('div.d_open.d_layer');
-
-                if ($popup.length === 0) {
-                    $dropdown.not('[role=dialog]').hideLayer();
-                }
-                e.stopPropagation();
-            });
-
-            //
-            jsa.PubSub.on('hide:modal', function () {
-                $dropdown.not('[role=dialog]').hideLayer();
-            });
-        };
-
-        jsa.bindjQuery(Dropdown, 'dropdown');
-        return Dropdown;
-    });
-
-    jsa.define('ui.Tooltip', function () {
+            return me;
+        },
 
         /**
-         * 툴팁 레이어
-         * @class
-         * @name jsa.ui.Tooltip
-         * @extends jsa.ui.View
+         * DOM 삭제
+         * @returns {Calendar}
          */
-        var Tooltip = Class({
-            name: 'Tooltip',
-            $extend: jsa.ui.View,
-            defaults: {
-                interval: 300
-            },
+        _remove: function () {
+            var me = this;
 
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me.$tooltip = (me.$el.attr('data-tooltip-target') ? $(me.$el.attr('data-tooltip-target')) : me.$el.next('div'));
-                me.isShown = false;
-                me.timer = null;
-
-                // 마우스가 버튼위에서 .3초이상 머물었을 때만 툴팁이 표시되며, 
-                // 마우스가 버튼과 툴팁박스를 완전히 벗어나서 .3초가 지났을 때만 툴팁이 사라지도록 처리 
-                // 마우스가 닿을 때마다 보였다안보였다하는 건 너무 난잡해 보여서...
-                me.on('focusin mouseenter', me.open.bind(me)).on('mouseleave focusout', me.close.bind(me));
-
-                me.$tooltip.on('focusin.tooltip mouseenter.tooltip', function () {
-                    if (me.$tooltip.data('timer')) {
-                        clearTimeout(me.$tooltip.data('timer')), me.$tooltip.removeData('timer');
-                    }
-                }).on('focusout.tooltip mouseleave.tooltip', function () {
-                    me.isShown && me.$tooltip.data('timer', setTimeout(function () {
-                        me.isShown = false, me.$tooltip.hide();
-                        if (me.$tooltip.data('timer')) {
-                            clearTimeout(me.$tooltip.data('timer')), me.$tooltip.removeData('timer');
-                        }
-                    }, me.options.interval));
-                });
-            },
-            /**
-             * 표시
-             */
-            open: function () {
-                var me = this,
-                    offset = me.$el.offset();
-
-                offset.top += me.$el.height();
-
-                me.timer = setTimeout(function () {
-                    me.$tooltip /*.css(offset)*/ .fadeIn('fast');
-                    me.isShown = true;
-                }, me.options.interval);
-            },
-            /**
-             * 숨김
-             */
-            close: function () {
-                var me = this;
-
-                if (me.isShown) {
-                    me.$tooltip.data('timer', setTimeout(function () {
-                        me.isShown = false;
-                        me.$tooltip.hide();
-                    }, me.options.interval));
-                } else {
-                    clearTimeout(me.timer), me.timer = null;
-                }
-            },
-            /**
-             * 소멸자
-             */
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                me.$tooltip.off('.tooltip').removeData('timer');
+            if (me.$calendar) {
+                me.$calendar.off();
+                me.$calendar.remove();
+                me.$calendar = null;
             }
-        });
 
-        jsa.bindjQuery(Tooltip, 'tooltip');
-        return Tooltip;
-    });
+            return me;
+        },
 
-    jsa.define('ui.Carousel', function () {
-        var $win = jsa.$win;
-
-        /** 
-         * 슬라이더
-         * @class
-         * @name jsa.ui.Carousel
-         * @extends jsa.ui.View
+        /**
+         * 렌더링
          */
-        var Carousel = Class( /** @lends jsa.ui.Carousel# */ {
-            name: 'Carousel',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_BEFORE_SLIDE: 'beforeslide',
-                ON_AFTER_SLIDE: 'afterslide'
-            },
-            defaults: {
-                orientation: 'horizontal',
-                duration: 300,
-                easing: 'ease-in-out',
-                minItems: 1,
-                start: 0,
-                animate: true
-            },
-            selectors: {
-                'sliderBox': '.d_slider_box',
-                'panel': '.d_panel',
-                'items': '.d_item',
-                'prevArrow': '.d_prev',
-                'nextArrow': '.d_next'
-            },
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                var me = this;
+        _render: function () {
+            var me = this,
+                opts = me.options,
+                timer, tmpl;
 
-                me.supr(el, options);
+            tmpl = '<div class="d-calendar-container">' +
+                '<div class="d-calendar-header">' +
+                opts.template.header +
+                '</div>' +
+                '<div class="d-calendar-date"></div>' +
+                '</div>'
 
-                me.itemsCount = me.$items.length;
-                if (me.itemCount === 0) {
-                    me._toggleControls('next', false);
-                    me._toggleControls('prev', false);
-                    me.destroy();
-                    return;
+            me._remove();
+            me.$calendar = $(tmpl);
+            if (me.isInline) {
+                // 인라인
+                me.$el.empty().append(me.$calendar);
+            } else {
+                // 모달
+                me.$calendar.css({
+                    position: 'absolute'
+                });
+                me.$el.after(me.$calendar);
+            }
+            me.$calendar.on('click.calendar mousedown.calendar', '.d-calendar-prev, .d-calendar-next', function (e) {
+                // 이전 / 다음
+                var $el = $(e.currentTarget),
+                    isPrev = $el.hasClass('d-calendar-prev');
+
+                switch (e.type) {
+                case 'click':
+                    me[isPrev ? 'prev' : 'next']();
+                    break;
+                case 'mousedown':
+                    clearInterval(timer);
+                    timer = null;
+                    timer = setInterval(function () {
+                        me[isPrev ? 'prev' : 'next']();
+                    }, 300);
+                    $doc.on('mouseup.calendar', function () {
+                        clearInterval(timer);
+                        timer = null;
+                        $doc.off('mouseup.calendar');
+                    });
+                    break;
                 }
-
-                me.current = me.options.start;
-                me.isSliding = false;
-                // transition
-                me.support = !! jsa.transition;
-                me.transEnd = me.support && jsa.transition.end;
-
-                me._layout();
-                me._configure();
-
-                if (me.moveItemCount >= me.itemsCount) {
-                    me._toggleControls('next', false);
-                    me._toggleControls('prev', false);
-                    me.destroy();
-                    return;
-                }
-
-                me._bindEvent();
-                me._slideToItem(me.current);
-
-                me.trigger('ready');
-            },
-
-            /**
-             * 동적으로 내부 컨텐츠가 변경되었을 때, UI를 갱신
-             */
-            update: function () {
-                var me = this;
-
-                me.itemsCount = me.$items.length;
-                me._layout();
-                me._configure();
-            },
-
-            /**
-             * 이벤트 바인딩
-             * @private
-             */
-            _bindEvent: function () {
-                var me = this;
-
-                $win.on(jsa.ui.Layout.ON_RESIZE_END + '.carousel', function () {
-                    me._refresh();
-                });
-
-                me.$prevArrow.css('zIndex', 1000).on('click.carousel', function (e) {
-                    e.preventDefault();
-                    if (me.isSliding) {
-                        return;
-                    }
-
-                    me._slide('prev');
-                });
-
-                me.$nextArrow.css('zIndex', 1000).on('click.carousel', function (e) {
-                    e.preventDefault();
-                    if (me.isSliding) {
-                        return;
-                    }
-
-                    me._slide('next');
-                });
-            },
-
-            /**
-             * 레이아웃 사이즈 계산
-             */
-            _layout: function () {
-                var me = this;
-                var $img = me.$items.first();
-
-                me.imgSize = {
-                    width: $img.outerWidth(true),
-                    height: $img.outerHeight(true)
-                };
-
-                me.$panel.css({
-                    'width': me.$items.size() * me.imgSize.width
-                });
-            },
-
-            /**
-             * 아이템 카운팅
-             * @private
-             */
-            _configure: function () {
-                this.moveItemCount = Math.floor(this.$sliderBox.width() / this.imgSize.width);
-            },
-
-            /**
-             * 좌우 버튼 활성화여부 설정
-             * @private
-             */
-            _toggleControls: function (dir, display) {
-                var me = this;
-
-                if (display) {
-                    (dir === 'next') ? me.$nextArrow.show() : me.$prevArrow.show();
-                } else {
-                    (dir === 'next') ? me.$nextArrow.hide() : me.$prevArrow.hide();
-                }
-            },
-
-            /** 
-             * 슬라이딩
-             * @private
-             */
-            _slide: function (dir, pMoveWidth) {
-                var me = this,
+            }).on('click', 'button.d-calendar-day', function (e) {
+                // 날짜 클릭
+                var $this = $(this).parent(),
+                    data = $this.data(),
+                    date = new Date(data.year, data.month - 1, data.day),
+                    format = dateUtil.format(date, opts.format || ''),
                     e;
 
-                if (me.isSliding) {
-                    return false;
+                if (opts.inputTarget) {
+                    $(opts.inputTarget).val(format)
                 }
 
-                me.trigger(e = $.Event('beforeslide'))
-                if (e.isDefaultPrevented()) {
-                    return false;
-                };
+                me.$el.triggerHandler(e = $.Event('calendarselected'), {
+                    year: $this.data('year'),
+                    month: $this.data('month'),
+                    day: $this.data('day'),
+                    value: format,
+                    date: date
+                });
 
-                if (me.moveItemCount <= me.itemCount) {
-                    return;
+                if (!e.isDefaultPrevented() && !me.isInline) {
+                    me.close();
                 }
+            });
 
-                me.isSliding = true;
+            me._renderDate();
 
-                var currentLeft = me.currentLeft,
-                    options = me.options,
-                    itemWidth = me.$items.outerWidth(true),
-                    totalWidth = me.itemsCount * itemWidth,
-                    visibleWidth = me.$sliderBox.width();
+            return me;
+        },
 
-                if (pMoveWidth === undefined) {
-                    var moveWidth = me.moveItemCount * itemWidth;
+        /**
+         * 휴일 여부
+         * @param {Number} y 년도
+         * @param {Number} m 월
+         * @param {Number} d 일
+         * @returns {boolean} 휴일여부
+         * @private
+         */
+        _isHoliday: function (y, m, d) {
+            var me = this,
+                holidays = me.options.holidays,
+                i, date, item;
 
-                    if (moveWidth < 0) {
-                        return false;
-                    }
+            for (var i = -1; item = holidays[++i];) {
+                date = dateUtil.parseDate(item);
+                if (date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d) {
+                    return true;
+                }
+            }
 
-                    if (dir === 'next' && totalWidth - (Math.abs(currentLeft) + moveWidth) < visibleWidth) {
+            return false;
+        },
 
-                        moveWidth = totalWidth - (Math.abs(currentLeft) + visibleWidth);
+        /**
+         * 달력 그리기
+         * @returns {Calendar}
+         * @private
+         */
+        _renderDate: function () {
+            var me = this,
+                opts = me.options,
+                renderItem = opts.renderItem,
+                date = me._getDateList(me.currDate),
+                html = '',
+                tmpl = core.template(opts.labelType ? opts.template.label : opts.template.button),
+                isHoliday = false,
+                i, j, y, m, d, week, len, cell;
 
-                        me._toggleControls('next', false);
-                        me._toggleControls('orev', true);
+            html += '<table class="d-calendar-table"><caption></caption>';
+            html += '<thead>';
+            for (i = 0; i < 7; i++) {
+                html += '<th class="d-calendar-dayname ' + (i === 0 ? ' d-calendar-sunday' : i === 6 ? ' d-calendar-saturday' : '') + '">';
+                html += opts.weekNames[i];
+                html += '</th>';
+            }
+            html += '</thead><tbody>';
 
-                    } else if (dir === 'prev' && Math.abs(currentLeft) - moveWidth < 0) {
+            for (i = 0, len = date.length; i < len; i++) {
+                week = date[i];
 
-                        moveWidth = Math.abs(currentLeft);
-
-                        me._toggleControls('next', true);
-                        me._toggleControls('prev', false);
-
+                html += '<tr>';
+                for (j = 0; j < 7; j++) {
+                    y = week[j].year, m = week[j].month, d = week[j].day;
+                    if (renderItem) {
+                        cell = renderItem(new Date(y, m, d));
                     } else {
-
-                        var ftv = dir === 'next' ? Math.abs(currentLeft) + Math.abs(moveWidth) : Math.abs(currentLeft) - Math.abs(moveWidth);
-
-                        me._toggleControls('prev', ftv > 0);
-                        me._toggleControls('next', ftv < totalWidth - visibleWidth);
-
+                        cell = {
+                            cls: '',
+                            html: '',
+                            disabled: ''
+                        };
                     }
-
-                    pMoveWidth = dir === 'next' ? currentLeft - moveWidth : currentLeft + moveWidth;
-
-                } else {
-
-                    var moveWidth = Math.abs(pMoveWidth);
-
-                    if (Math.max(totalWidth, visibleWidth) - moveWidth < visibleWidth) {
-                        pMoveWidth = -(Math.max(totalWidth, visibleWidth) - visibleWidth);
-                    }
-
-                    me._toggleControls('prev', moveWidth > 0);
-                    me._toggleControls('next', Math.max(totalWidth, visibleWidth) - visibleWidth > moveWidth);
-
-                }
-
-                me.currentLeft = pMoveWidth;
-                if (currentLeft === pMoveWidth) {
-                    me._onEndTransition();
-                    return false;
-                }
-
-                if (options.animate) {
-                    me.$panel.animate({
-                        left: pMoveWidth
-                    }, {
-                        duration: options.duration,
-                        onComplete: function () {
-                            me._onEndTransition();
-                        }
-                    });
-                } else {
-                    me.$panel.css('left', pMoveWidth);
-                    me._onEndTransition();
-                }
-
-                if (!me.hasTransition) {
-                    me._onEndTransition();
-                }
-            },
-
-            /**
-             * 슬라이딩이 끝났을 때 호출
-             * @private
-             */
-            _onEndTransition: function () {
-                var me = this;
-
-                me.isSliding = false;
-                me.trigger('afterslide');
-            },
-
-            /** 
-             * 지정된 위치(left)로 슬라이딩
-             * @private
-             */
-            _slideTo: function (pos) {
-
-                var me = this,
-                    pos = pos || me.current,
-                    currentLeft = parseInt(me.$panel.css('left'), 10),
-                    itemWidth = me.$items.outerWidth(true),
-                    posR = currentLeft + me.$sliderBox.width(),
-                    ftv = Math.abs(pos * itemWidth);
-
-                if (ftv + itemWidth > posR || ftv < currentLeft) {
-                    me._slideToItem(pos);
-                }
-            },
-
-            /**
-             * 지정된 위치(index)로 슬라이딩
-             * @private
-             */
-            _slideToItem: function (pos) {
-                var moveWidth = pos * this.$items.outerWidth(true);
-
-                this._slide('', -moveWidth);
-            },
-
-            /**
-             * 내부 아이템들이 동적으로 변경되었을 때 UI를 갱신
-             * @private
-             */
-            _refresh: function () {
-                var me = this,
-                    currentLeft = me.currentLeft,
-                    visibleWidth = me.$sliderBox.width(),
-                    totalWidth = me.$panel.width();
-
-                if (Math.abs(currentLeft) + visibleWidth > totalWidth) {
-                    currentLeft = visibleWidth - totalWidth;
-                }
-                me._configure();
-                me._slide('prev', currentLeft);
-            },
-
-            /**
-             * 지정된 index의 항목으로 슬라이딩
-             */
-            activateItem: function (index) {
-                var me = this;
-
-                me.$items.removeClass('on').eq(index).addClass('on');
-
-                var centerCount = Math.floor(me.moveItemCount / 2),
-                    startIndex = index - centerCount,
-                    startLeft = startIndex * me.itemWidth;
-
-                if (index >= centerCount && index <= (me.itemCount - centerCount)) {
-                    me.$panel.css('left', -startLeft);
-                } else {
-                    var perCount = Math.ceil(me.itemCount / me.moveItemCount);
-                    me._slide(Math.ceil(index / perCount));
-                }
-            },
-
-            /**
-             * 소멸자
-             */
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                WENSVC.$win.off('.carousel');
-                me.$panel.off(me.transEnd).off('swipeleft swiperight swipeup wipedown');
-                me.$prevArrow.off('click.carousel');
-                me.$nextArrow.off('click.carousel');
-            }
-
-        });
-
-        jsa.bindjQuery(Carousel, 'carousel');
-
-        return Carousel;
-    });
-
-    jsa.define('ui.Expander', function () {
-
-        /** 
-         * 확장기능 클래스
-         * @class
-         * @name jsa.ui.Expander
-         * @extends jsa.ui.View
-         *
-         * @example
-         * // 지원속성: data-expand-target="#해당요소의 id" // 확장 요소
-         */
-        var Expander = Class( /** @lends jsa.ui.Expander# */ {
-            name: 'Expander',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_COLLAPSE: 'collapse', // 확장될 때 발생
-                ON_EXPAND: 'expand' // 축소될 때 발생
-            },
-            defaults: {
-                interval: 300
-            },
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                var me = this,
-                    $target;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-                if (me.$el.hasClass('disabled')) {
-                    return;
-                }
-
-                $target = me.$target = me.$el.attr('data-expand-target') ? $(me.$el.attr('data-expand-target')) : me.$el.next('.d_expand');
-                if ($target.size() === 0) {
-                    return;
-                }
-
-                me.on('click', function (e) {
-                    e.preventDefault();
-                    var $this = $(this),
-                        evt,
-                        isExpand = $this.hasClass('on');
-
-                    evt = $.Event(isExpand ? 'collapse' : 'expand');
-                    me.trigger(evt);
-                    if (evt.isDefaultPrevented()) {
-                        return;
-                    }
-
-                    $this.toggleClass('on', !isExpand);
-                    $target.toggle(isExpand);
-                });
-            },
-
-            /**
-             * 토글
-             */
-            toggle: function () {
-                this.trigger('click');
-            },
-
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-            }
-        });
-
-        jsa.bindjQuery(Expander, 'expander');
-
-        return Expander;
-    });
-
-    jsa.define('ui.Exposer', function () {
-        // 펼침기능 베이스클래스
-        var BaseExpose = Class({
-            initialize: function (el, options) {
-                var me = this;
-
-                me.$el = $(el);
-                me.options = $.extend({}, me.defaults, me.$el.data(), options);
-                me.init();
-                me._init();
-            },
-            _init: function () {
-                var me = this;
-                me.$el.on('click.expose', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    me.toggle();
-                });
-            },
-
-            init: function () {},
-
-            expose: function () {},
-
-            unexpose: function () {},
-
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                me.$el.off('.expose');
-            }
-        });
-
-        // show/hide 조절방식의 expose
-        var DisplayExpose = Class({
-            $extend: BaseExpose,
-            defaults: {
-                moreClass: 'more',
-                exposeClass: 'on'
-            },
-            init: function () {
-                var me = this;
-                me.$target = me.$el.attr('data-expose-target') ? $(me.$el.attr('data-expose-target')) : me.$el.siblings('div.text');
-            },
-
-            toggle: function () {
-                var me = this,
-                    evt,
-                    isExpose = me.$el.hasClass(me.options.moreClass);
-
-                evt = $.Event(isExpose ? 'expose' : 'unexpose');
-                me.$el.trigger(evt, [me.$target[0]]);
-                if (evt.isDefaultPrevented()) {
-                    return;
-                }
-
-                if (isExpose) {
-                    me.expose();
-                } else {
-                    me.unexpose();
-                }
-            },
-
-            expose: function () {
-                var me = this;
-                me.$target.addClass(me.options.exposeClass);
-                me.$target.attr('tabindex', 0).focus();
-            },
-
-            unexpose: function () {
-                var me = this;
-                me.$target.removeClass(me.options.exposeClass);
-                me.$target.find('button.more').focus();
-            }
-        });
-
-        // height 조절방식의 expose
-        var HeightExpose = Class({
-            $extend: BaseExpose,
-            defaults: {
-                exposeClass: 'ws_normal',
-                downClass: 'arrow_d',
-                upClass: 'arrow_u'
-            },
-            init: function () {
-                //console.log(this.options);
-                var me = this;
-                me.$target = me.$el.attr('data-expose-target') ? $(me.$el.attr('data-expose-target')) : me.$el.closest('.d_expose');
-                me.$el.hasClass(me.options.downClass) && me.$target.data('old_height', parseInt(me.$target.css('height'), 10));
-            },
-
-            toggle: function () {
-                var me = this,
-                    evt,
-                    isExpose = me.$el.hasClass(me.options.downClass);
-
-                evt = $.Event(isExpose ? 'expose' : 'unexpose');
-                me.$el.trigger(evt, [me.$target[0]]);
-                if (evt.isDefaultPrevented()) {
-                    return;
-                }
-
-                if (isExpose) {
-                    me.expose();
-                } else {
-                    me.unexpose();
-                }
-            },
-
-            expose: function () {
-                var me = this;
-                me.$target.css('height', 'auto');
-                me.$target.addClass(me.options.exposeClass);
-                me.$el.replaceClass(me.options.downClass, me.options.upClass).html('<span class="text">접기</span> <span class="icon"></span>').attr('title', function () {
-                    return this.title.replace('더보기', '접기');
-                });
-            },
-
-            unexpose: function (isExpose) {
-                var me = this;
-                me.$target.css('height', me.$target.data('old_height'));
-                me.$target.removeClass(me.options.exposeClass);
-                me.$el.replaceClass(me.options.upClass, me.options.downClass).html('<span class="text">더보기</span> <span class="icon"></span>').attr('title', function () {
-                    return this.title.replace('접기', '더보기');
-                });
-            }
-        });
-
-        /**
-         * 펼침기능 클래스
-         * @class
-         * @name jsa.ui.Exposer
-         * @extends jsa.ui.View
-         *
-         * @example
-         * data-expose-type="height/display", data-expose-target="#id"
-         */
-        var Exposer = Class( /** @lends jsa.ui.Exposer# */ {
-            name: 'Exposer',
-            $statics: {
-                ON_EXPOSE: 'expose',
-                ON_UNEXPOSE: 'unexpose'
-            },
-            /** 
-             * 생성자
-             * @param {jQuery|Node|String} el 대상 엘리먼트
-             * @param {JSON} options {Optional} 옵션
-             */
-            initialize: function (el, options) {
-                options || (options = {});
-
-                var me = this,
-                    exposeType = $(el).attr('data-expose-type') || options.exposeType || 'height';
-
-                if (exposeType === 'height') {
-                    me.exposer = new HeightExpose(el, options);
-                } else {
-                    me.exposer = new DisplayExpose(el, options);
-                }
-            },
-
-            /**
-             * 토글(expose or unexpose)
-             */
-            toggle: function () {
-                this.exposer.toggle();
-            },
-
-            /**
-             * 펼치기
-             */
-            expose: function () {
-                this.exposer.expose();
-            },
-
-            /**
-             * 닫기
-             */
-            unexpose: function () {
-                this.exposer.unexpose();
-            },
-
-            /**
-             * 소멸자
-             */
-            destroy: function () {
-                var me = this;
-
-                me.exposer.destroy();
-            }
-        });
-
-        jsa.bindjQuery(Exposer, 'exposer');
-
-        return Exposer;
-    });
-
-
-    jsa.define('ui.Placeholder', function () {
-        /**
-         * placeholder를 지원하지 않는 IE7~8상에서 placeholder효과를 처리하는 클래스
-         * @class
-         * @name jsa.ui.Placeholder
-         * @extends jsa.ui.View
-         * @example
-         * new jsa.Placeholder( $('input[placeholder]'), {});
-         * // 혹은 jquery 플러그인 방식으로도 호출 가능
-         * $('input[placeholder]').placeholder({});
-         */
-        var Placeholder = Class( /** @lends jsa.ui.Placeholder# */ {
-            name: 'Placeholder',
-            $extend: jsa.ui.View,
-            defaults: {
-                foreColor: ''
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
-             * @param {Object} options 옵션값
-             */
-            initialize: function (el, options) {
-                var me = this,
-                    is = 'placeholder' in jsa.tmpInput;
-
-                if (is) {
-                    return;
-                }
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-                me.placeholder = me.$el.attr('placeholder');
-                me._foreColor = me.options.foreColor;
-
-                var isPassword = me.$el.attr('type') === 'password';
-
-                me.on('focusin click', function () {
-                    if ($.trim(this.value) === me.placeholder || !$.trim(this.value)) {
-                        me.$el.removeClass(me._foreColor);
-                        if (isPassword) {
-                            me.$el.removeClass('placeholder');
-                        }
-                        this.value = '';
-                    }
-                }).on('focusout', function () {
-                    if (this.value === '' || this.value === me.placeholder) {
-                        if (isPassword) {
-                            me.$el.val('').addClass('placeholder');
-                        } else {
-                            me.$el.val(me.placeholder).addClass(me._foreColor);
-                        }
-                    }
-                }).triggerHandler('focusout');
-            },
-
-            /**
-             * placeholder 갱신(only ie9 이하)
-             */
-            update: function () {
-                var me = this;
-                me.$el.val(me.placeholder);
-            },
-
-            /**
-             * 파괴자 : 자동으로 호출되지 않으므로, 필요할 때는 직접 호출해주어야 한다.
-             */
-            destroy: function () {
-                var me = this;
-
-                me.$el.removeData();
-                me.supr();
-            }
-        });
-
-        // 플레이스홀더 모듈이 한번이라도 호출되면, 이 부분이 실행됨, 플레이스홀더 모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        Placeholder.onClassCreate = function () {
-            if (!('placeholder' in jsa.tmpInput)) {
-                $doc.on('submit.placeholder', 'form', function (e) {
-                    $('input[placeholder], textarea[placeholder]').each(function () {
-                        if ($(this).attr('placeholder') === this.value) {
-                            $(this).removeClass(Placeholder.prototype.defaults.foreColor);
-                            this.value = '';
-                        }
-                    });
-                });
-            }
-
-        };
-
-        jsa.bindjQuery(Placeholder, 'placeholder');
-        return Placeholder;
-    });
-
-    jsa.define('ui.TextCounter', function () {
-        var browser = jsa.browser,
-            byteLength = jsa.string.byteLength,
-            charsByByte = jsa.string.charsByByte;
-
-        /**
-         * 입력제한 기능을 담당하는 클래스
-         * @class
-         * @name jsa.ui.TextCounter
-         * @extends jsa.ui.View
-         * @example
-         * new jsa.TextCounter( $('input.d_textcounter'), {});
-         * // 혹은 jquery 플러그인 방식으로도 호출 가능
-         * $('input.d_textcounter').textcounter({});
-         */
-        var TextCounter = Class( /** @lends jsa.ui.TextCounter# */ {
-            name: 'TextCounter',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_TEXTCOUNT_CHANGE: 'textcounterchange' // 글자수가 변경되었을 때 발생
-            },
-            defaults: {
-                countType: 'byte',
-                limit: 100 // 최대 글자 수(바이트)
-            },
-
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
-             * @param {Object} options 옵션값
-             */
-            initialize: function (el, options) {
-                this.supr(el, options);
-
-                var me = this;
-
-                me.currentLength = 0;
-                me.placeholder = 'placeholder' in jsa.tmpInput ? '' : me.$el.attr('placeholder');
-
-                if (jsa.browser.isGecko) {
-                    me._forceKeyup();
-                }
-
-                me.on('keydown keyup cut paste blur', function (e) {
-                    var isOver = me._checkLimit();
-
-                    if (e.type === 'keyup') {
-                        if (isOver) {
-                            alert('입력하신 글자 수가 초과되었습니다.');
-                            this.focus();
-                        }
-                    }
-                    me.trigger('textcounterchange', [me.currentLength]);
-                });
-                me._checkLimit();
-                me.trigger('textcounterchange', [me.currentLength]);
-            },
-
-            /**
-             * str의 길이 계산(options.countType이 char일 땐, 글자수, byte일땐 바이트수로 계산)
-             */
-            textLength: function (str) {
-                var me = this;
-
-                if (me.options.countType === 'byte') {
-                    return byteLength(str);
-                }
-                return (str || '').length;
-            },
-
-            /**
-             */
-            _checkLimit: function () {
-                var me = this,
-                    o = me.options,
-                    isOver = false;
-
-                me.currentLength = me.textLength(me.$el[0].value);
-                if (me.currentLength > o.limit) {
-                    me._truncateValue();
-                    isOver = true;
-                }
-                return isOver;
-            },
-
-            /**
-             * 텍스트박스의 문자열이 제한길이를 초과했을 경우, 자르는 역할을 담당
-             * @private
-             */
-            _truncateValue: function () {
-                var me = this,
-                    $el = me.$el,
-                    value = browser.isOldIE && $el[0].value === me.placeholder ? '' : $el[0].value,
-                    limit = me.options.limit,
-                    chars = 0;
-
-                if (limit === 0) {
-                    $el[0].value = me.placeholder;
-                    me.currentLength = limit;
-                } else if (limit < me.currentLength) {
-                    chars = (me.options.countType === 'byte' ? charsByByte(value, limit) : limit);
-                    $el[0].blur();
-                    $el[0].value = value.substring(0, chars);
-                    $el[0].focus();
-                    me.currentLength = limit;
-                }
-            },
-
-            /**
-             * 파이어폭스에서 한글을 입력할 경우, keyup이벤트가 발생하지 않는 버그가 있어서,
-             * timeout를 이용하여 value값이 변경됐을 때 강제로 keyup를 이벤트 날려주는 로직을 설정하는 함수
-             * @private
-             */
-            _forceKeyup: function () {
-                // 파이어폭스에서 한글을 입력할 때 keyup이벤트가 발생하지 않는 버그가 있어서 
-                // 타이머로 value값이 변경된걸 체크해서 강제로 keyup 이벤트를 발생시켜 주어야 한다.
-                var me = this,
-                    $el = me.$el,
-                    el = $el[0],
-                    prevValue,
-                    win = window,
-                    doc = document,
-
-                    // keyup 이벤트 발생함수: 크로스브라우징 처리
-                    fireEvent = (function () {
-                        if (doc.createEvent) {
-                            // anti ie
-                            return function () {
-                                var e;
-                                if (win.KeyEvent) {
-                                    e = doc.createEvent('KeyEvents');
-                                    e.initKeyEvent('keyup', true, true, win, false, false, false, false, 65, 0);
-                                } else {
-                                    e = doc.createEvent('UIEvents');
-                                    e.initUIEvent('keyup', true, true, win, 1);
-                                    e.keyCode = 65;
-                                }
-                                el.dispatchEvent(e);
-                            };
-                        } else {
-                            // ie: :(
-                            return function () {
-                                var e = doc.createEventObject();
-                                e.keyCode = 65;
-                                el.fireEvent('onkeyup', e);
-                            };
-                        }
-                    })();
-
-                me.timer = null;
-
-                me.on('focus', function () {
-                    if (me.timer) {
-                        return;
-                    }
-                    me.timer = setInterval(function () {
-                        if (prevValue !== el.value) {
-                            prevValue = el.value;
-                            fireEvent();
-                        }
-                    }, 60);
-                }).on('blur', function () {
-                    if (me.timer) {
-                        clearInterval(me.timer);
-                        me.timer = null;
-                    }
-                });
-            },
-
-            /**
-             * 파괴자 : 자동으로 호출되지 않으므로, 필요할 땐 직접 호출해주어야 한다.
-             */
-            destroy: function () {
-                var me = this;
-
-                me.timer && clearInterval(me.timer);
-                me.supr();
-            }
-        });
-
-        jsa.bindjQuery(TextCounter, 'textCounter');
-        return TextCounter;
-    });
-
-    jsa.define('ui.TextControl', function () {
-        /**
-         * textarea, input에서 글자수 체크 및 자동리사이징 처리를 담당하는 클래스
-         * @class
-         * @name jsa.ui.TextControl
-         * @extends jsa.ui.View
-         * @example
-         * new jsa.ui.TextControl( $('textarea'), {counting: true});
-         * // or
-         * $('textarea').textControl({counting: true});
-         */
-        var TextControl = Class( /** @lends jsa.ui.TextControl# */ {
-            name: 'TextControl',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_INIT: 'init',
-                ON_CHANGE: 'textcontrolchange'
-            },
-            defaults: {
-                counting: false,
-                limit: 100,
-                limitTarget: '',
-                autoResize: false,
-                allowPaste: false
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
-             * @param {Object} options 옵션값
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me._initTextControl();
-                me.trigger(TextControl.ON_INIT);
-            },
-
-            /**
-             * 초기화 작업
-             * @private
-             */
-            _initTextControl: function () {
-                var me = this,
-                    o = me.options;
-
-                // 붙여넣기 
-                if (!o.allowPaste) {
-                    me.on('paste', function (e) {
-                        e.preventDefault();
-                        alert("죄송합니다. \n도배글 등을 방지하기 위해 붙여넣기를 하실 수 없습니다.");
-                    });
-                }
-
-                // 자동 리사이징
-                if (me.$el.is('textarea') && o.autoResize) {
-                    me._autoResize();
-                }
-
-                // 입력글자 수 체크
-                if (o.counting) {
-                    // subviews에다 설정하면 destroy가 호출될 때, subviews에 들어있는 컨트롤들의 destroy도 알아서 호출해준다.
-                    me.textCounter = me.subviews.counter = new jsa.ui.TextCounter(me.$el, {
-                        countType: o.countType,
-                        limit: o.limit,
-                        on: {
-                            'textcounterchange': (function () {
-                                var $limitTarget = $(me.options.limitTarget);
-                                return function (e, len) {
-                                    $limitTarget.html('<strong>' + len + '</strong> / ' + o.limit + '자');
-                                };
-                            }())
-                        }
-                    });
-                }
-            },
-
-            /**
-             * 텍스트박스의 리사이징을 위한 초기화 작업 담당
-             * @private
-             */
-            _autoResize: function () {
-                var me = this,
-                    isOldIE = jsa.browser.isOldIE,
-                    $clone, oriHeight, offset = 0;
-
-
-                me.$el.css({
-                    overflow: 'hidden',
-                    resize: 'none' /*, height: 'auto'*/
-                });
-
-                $clone = isOldIE ? me.$el.clone().removeAttr('name').removeAttr('id').addClass('d_tmp_textarea').val('').appendTo(me.$el.parent()) : me.$el;
-                oriHeight = $clone.height();
-                $clone[0].scrollHeight; // for ie6 ~ 8
-
-                if ($clone[0].scrollHeight !== oriHeight) {
-                    offset = $clone.innerHeight() - oriHeight;
-                }
-                isOldIE && $clone.hide();
-
-                me.on('keyup change input paste focusin focusout', function () {
-                    this._layout(this, this.$el, $clone, oriHeight, offset);
-                }.bind(me));
-                me._layout(me, me.$el, $clone, oriHeight, offset);
-            },
-
-            /**
-             * 텍스트박스의 scrollHeight에 따라 height를 늘려주는 역할을 담당
-             * @private
-             */
-            _layout: function (me, $el, $clone, initialHeight, offset) {
-                var current = $el.val(),
-                    prev = me.prevVal,
-                    isOldIE = jsa.browser.isOldIE,
-                    scrollHeight, height;
-
-                if (current === prev) {
-                    return;
-                }
-                me.prevVal = current;
-
-                $clone.css('height', '');
-                isOldIE && $clone.val(current).show()[0].scrollHeight; // for IE6-8
-                scrollHeight = $clone[0].scrollHeight;
-                height = scrollHeight - offset;
-                isOldIE && $clone.hide();
-
-                $el.height(height = Math.max(height, initialHeight));
-                me.triggerHandler(TextControl.ON_CHANGE, [height]);
-            },
-
-            /**
-             * 파괴자 : 자동으로 호출되지 않으므로, 직접 호출해주어야 한다.
-             */
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-            }
-        });
-
-        jsa.bindjQuery(TextControl, 'textControl');
-
-        return TextControl;
-    });
-
-    jsa.define('ui.FormValidator', function () {
-        var ruleRegex = /^(.+?)\(([^\)]+)\)?$/,
-            numericRegex = /^[0-9]+$/,
-            integerRegex = /^\-?[0-9]+$/,
-            floatRegex = /^\-?[0-9]*\.?[0-9]+$/,
-            emailRegex = /[\S]+@[\w-]+(.[\w-]+)+/,
-            alphaRegex = /^[a-z]+$/i,
-            alphaNumericRegex = /^[a-z0-9]+$/i,
-            alphaDashRegex = /^[a-z0-9_\-]+$/i,
-            numberRegex = /^[1-9][0-9]+$/i,
-            numericDashRegex = /^[0-9\-]+$/,
-            urlRegex = /^(http|https|ftp)\:\/\/[a-z0-9\-\.]+\.[a-z]{2,3}(:[0-9]*)?\/?[a-z0-9\-\._\?\,\'\/+&amp;%\$#\=~]*$/i,
-            phoneRegex = /^[0-9]{2,4}\-?[0-9]{3,4}\-?[0-9]{4}$/i,
-            korRegex = /^[가-힝]+$/;
-
-        var messages = {
-            required: '필수입력 항목입니다.',
-            match: '동일한 값이어야 합니다.',
-            email: '이메일 형식이 잘못 되엇습니다.',
-            url: 'URL 형식이 잘못 되었습니다.',
-            min_chars: '유효하지 않은 길이입니다.',
-            max_chars: '유효하지 않은 길이입니다.',
-            exact_chars: '유효하지 않은 길이입니다.',
-            alpha: '유효하지 않은 값입니다.',
-            alpha_numeric: '유효하지 않은 값입니다.',
-            numeric: '유효하지 않은 값입니다.',
-            integer: '유효하지 않은 값입니다.',
-            decimal: '유효하지 않은 값입니다.(예: -0.2)',
-            kor: '한글만 입력해 주세요.',
-            file_exts: '유효하지 않은 확장자입니다.',
-            ssn: '잘못된 주민등록번호입니다.'
-        };
-
-        /**
-         * 폼밸리데이터
-         * @class
-         * @name jsa.FormValidator
-         */
-        var FormValidator = Class( /** @lends jsa.FormValidator# */ {
-            name: 'Validator',
-            defaults: {},
-            /**
-             * 생성자
-             * @param {jQuery} el 노드
-             * @param {Object} options 옵션
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                me.$el = el instanceof jQuery ? el : $(el);
-                me.options = $.extend({}, me.defaults, options);
-                me.messages = me.handlers = {};
-                me.fields = me.errors = {};
-
-                // ready
-                $.each(me.$el[0].elements, function (i, eitem) {
-                    var $item = $(eitem),
-                        rules;
-                    if (!$item.is(':disabled, :hidden') && (rules = $item.attr('data-valid-rules'))) {
-                        me.fields[$item.attr('name')] = rules;
-                    }
-                });
-                me.fields = $.extend(me.fields, me.options.fields || {});
-            },
-
-            _clearPlaceholder: function () {
-                var me = this,
-                    elems = me.$el[0].elements,
-                    ph;
-
-                for (var i = 0, el; el = elements[i++];) {
-                    if ((ph = el.getAttribute('placeholder')) && ph === el.value) {
-                        el.value = '';
-                    }
-                }
-            },
-
-            _generateRule: function (rule) {
-                var pairs = ruleRegex.exec(rule);
-
-                return {
-                    name: pairs && pairs[1] || rule,
-                    params: (pairs && pairs[2] && pairs[2].replace(/\s/g, '').split(',')) || []
-                };
-            },
-
-            /**
-             * 실행
-             * @return {Boolean}
-             */
-            run: function () {
-                return this._validate();
-            },
-
-            _validate: function (e) {
-                var me = this,
-                    fields = me.fields,
-                    els = me.$el[0].elements,
-                    rules, rule, el;
-
-                for (var name in fields) {
-                    if (fields.hasOwnProperty(name)) {
-                        rules = fields[name].split('|');
-                        for (var i = 0, len = rules.length; i < len; i++) {
-                            rule = me._generateRule(rules[i]), el = els[name];
-                            if (me._valid[rule.name] && (me._valid[rule.name].apply(me, [el].concat(rule.params)) === false)) {
-                                messages[rule.name] && alert(messages[rule.name]);
-                                el.focus();
-                                el.select();
-                                return false;
-                            }
-                        }
-                    }
-                }
-            },
-
-            /** 
-             * @namespace
-             * @name jsa.FormValidator._valid
-             */
-            _valid: /** @lends jsa.FormValidator._valid */ {
-                /**
-                 * 필수입력 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                required: function (el) {
-                    var val = el.value,
-                        form = el.form;
-
-                    if (el.type === 'checkbox' || el.type === 'radio') {
-                        return el.checked === true;
-                    }
-
-                    return !!val;
-                },
-                /**
-                 * 인자로 받은 두 인풋의 값이 동일한가 체크
-                 * @param {Node} el 인풋박스
-                 * @param {Node} targetName 인풋박스
-                 * @return {Boolean}
-                 */
-                match: function (el, targetName) {
-                    var target = el.form[targetName];
-                    if (target) {
-                        return el.value === target.value;
-                    }
-                    return false;
-                },
-                /**
-                 * 이메일 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                email: function (el) {
-                    return emailRegex.test(el.value);
-                },
-                /**
-                 * url 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                url: function (el) {
-                    return urlRegex.test(el.value);
-                },
-                /**
-                 * 최소 입력 글자 수 체크
-                 * @param {Node} el 인풋박스
-                 * @param {Number} len 최소 입력 글자 수
-                 * @return {Boolean}
-                 */
-                min_chars: function (el, len) {
-                    return el.value.length >= parseInt(len, 10);
-                },
-                /**
-                 * 최대 입력 글자 수 체크
-                 * @param {Node} el 인풋박스
-                 * @param {Number} len 최대 입력 글자 수
-                 * @return {Boolean}
-                 */
-                max_chars: function (el, len) {
-                    return el.value.length <= parseInt(len, 10);
-                },
-                /**
-                 * 고정 입력 글자 수 체크
-                 * @param {Node} el 인풋박스
-                 * @param {Number} len 고정 입력 글자 수
-                 * @return {Boolean}
-                 */
-                exact_chars: function (el, len) {
-                    return el.value.length === parseInt(len, 10);
-                },
-                /**
-                 * 알파벳 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                alpha: function (el) {
-                    return alphaRegex.test(el.value);
-                },
-                /**
-                 * 알파벳+숫자 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                alpha_numeric: function (el) {
-                    return alphaNumericRegex.test(el.value);
-                },
-                /**
-                 * 숫자 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                numeric: function (el) {
-                    return numericRegex.test(el.value);
-                },
-                /**
-                 * 숫자 체크(-, . 허용)
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                integer: function (el) {
-                    return integerRegex.test(el.value);
-                },
-                /**
-                 * 소수점 숫자 체크(-, . 허용)
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                decimal: function (el) {
-                    return decimalRegex.test(el.value);
-                },
-                /**
-                 * 한글 체크
-                 * @param {Node} el 인풋박스
-                 * @return {Boolean}
-                 */
-                kor: function (el) {
-                    return korRegex.test(el.value);
-                },
-                /**
-                 * 파일 확장자 체크
-                 * @param {Node} el 인풋박스
-                 * @param {String} exts 허용할 확장자
-                 * @return {Boolean}
-                 */
-                file_exts: function (el, exts) {
-                    var types = exts.split('|'),
-                        ext = el.value.substr(el.value.lastIndexOf('.') + 1);
-                    for (var i = 0, len = types.length; i < len; i++) {
-                        if (ext === types[i]) {
-                            return true;
-                        }
-                    }
-                    return false;
-                },
-                /**
-                 * 주민번호 체크
-                 * @param {Node} el 인풋박스
-                 * @param {Node} other {Optional} 입력칸이 두개일 때 두번째 인풋박스
-                 * @return {Boolean}
-                 */
-                ssn: function (el, other) {
-                    var val = el.value + (other && other.value);
-                    return jsa.valid.SSN(val);
-                }
-            }
-        });
-
-        jsa.bindjQuery(FormValidator, 'validator');
-        return FormValidator;
-    });
-
-    jsa.define('ui.Tabs', function () {
-        // 일반 탭(탭버튼과 컨텐츠가 따로 존재할 경우 사용)
-        var NormalTabs = Class({
-            name: 'NormalTabs',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SELECTED: 'selected'
-            },
-            defaults: {
-                selectedIndex: 0,
-                selectEvent: 'click'
-            },
-            selectors: {
-                tabs: '.d_tab',
-                contents: '.d_content'
-            },
-            // 생성자
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-                me.on(me.options.selectEvent, me.options.selectors.tabs, function (e) {
-                    e.preventDefault();
-                    var $this = $(e.currentTarget),
-                        index = me.$tabs.parent().index($this.parent());
-
-                    me.select(index);
-                });
-
-                if (me.$el.find('li.on').index() >= 0) {
-                    me.options.selectedIndex = me.$el.find('li.on').index();
-                }
-                me.select(me.options.selectedIndex);
-            },
-
-            // index에 해당하는 탭 활성화
-            select: function (index) {
-                var me = this,
-                    $tabs = me.$tabs,
-                    $contents = me.$contents;
-
-                $tabs.parent().siblings('.on').removeClass('on').end().eq(index).addClass('on');
-                $contents.hide().eq(index).show();
-                me.trigger(NormalTabs.ON_SELECTED, [index]); // 이벤트를 날림.
-            }
-        });
-
-        // 컨텐츠가 li안에 있고, li에 on클래스를 추가하면 컨텐츠가 표시되는 형태일 때 사용
-        var ParentOnTabs = Class({
-            name: 'ParentOnTabs',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SELECTED: 'selected'
-            },
-            defaults: {
-                selectedIndex: 0,
-                selectEvent: 'click'
-            },
-            selectors: {
-                tabs: '>li>a'
-            },
-            // 생성자
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-                me.on(me.options.selectEvent, me.options.selectors.tabs, function (e) {
-                    e.preventDefault();
-                    var $this = $(e.currentTarget);
-
-                    me.select($this.parent().index());
-                });
-                // 
-                if (me.$el.find('li.on').index() >= 0) {
-                    me.options.selectedIndex = me.$el.find('li.on').index();
-                }
-                me.select(me.options.selectedIndex);
-            },
-
-            // index에 해당하는 탭 활성화
-            select: function (index) {
-                var me = this,
-                    $tabs = me.$tabs;
-
-                $tabs.parent().filter('.on').removeClass('on').end().eq(index).addClass('on');
-                me.trigger(ParentOnTabs.ON_SELECTED, [index]); // 이벤트를 날림.
-            }
-        });
-
-        /**
-         * 탭컨트롤
-         * @class
-         * @name jsa.ui.Tabs
-         * @extends jsa.ui.View
-         */
-        var Tabs = Class( /** @lends jsa.ui.Tabs# */ {
-            name: 'Tabs',
-            $statics: {
-                ON_SELECTED: 'selected',
-                TYPES: {
-                    NORMAL: 'normal',
-                    PARENT_ON: 'parent-on'
-                }
-            },
-            defaults: {
-                type: 'parent-on', // or 'display'
-                selectedIndex: 0
-            },
-            /**
-             * 생성자
-             * @param {jQuery|Element|String} el 대상 엘리먼트
-             * @param {JSON} options
-             */
-            initialize: function (el, options) {
-                var me = this;
-                options = $.extend({}, this.defaults, options);
-                if (options.type === 'parent-on') {
-                    me.tabs = new ParentOnTabs(el, options);
-                } else {
-                    me.tabs = new NormalTabs(el, options);
-                }
-            },
-
-            /**
-             * index에 해당하는 탭 활성화
-             * @param {Number} index
-             */
-            select: function (index) {
-                this.tabs.select(index);
-            }
-        });
-
-        jsa.bindjQuery(Tabs, 'tabs'); // 이 부분을 실행하면 $(..).tabs()로도 호출이 가능해진다.
-        return Tabs;
-    });
-
-    jsa.define('ui.ToggleSlider', function () {
-        /**
-         * 토글 슬라이더
-         * @class
-         * @name jsa.ui.ToggleSlider
-         */
-        var ToggleSlider = Class( /** @lends jsa.ui.ToggleSlider# */ {
-            name: 'ToggleSlider',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_CHANGED: 'togglesliderchanged'
-            },
-            defaults: {
-                selectedIndex: 0,
-                selectEvent: 'click'
-            },
-            selectors: {
-                tabs: '>div.wrap_page>div.page>span.wrap_btn>a', // 탭버튼
-                contents: '>div.wrap_list_mv>ul', // 컨텐츠
-                nowpages: '>div.wrap_page>div.page>span.page_num>strong', // 현재 페이지 표시영역
-                totalpages: '>div.wrap_page>div.page>span.page_num>span' // 전체 페이지 표시영역
-            },
-
-            /**
-             * 생성자
-             * @param {jQuery|Element|String} el 대상 엘리먼트
-             * @param {JSON} options
-             */
-            initialize: function (el, options) {
-                var me = this;
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me.nowpage = 0;
-                me.maxpage = me.$contents.size() - 1;
-                me.$totalpages.html(me.maxpage + 1);
-
-                if (me.maxpage === 0) {
-                    me.$tabs.addClass('disabled');
-                } else {
-                    me.$tabs.eq(0).addClass('disabled');
-                }
-
-                me.on(me.options.selectEvent, me.options.selectors.tabs, function (e) {
-                    e.preventDefault();
-                    if ($(this).hasClass('disabled')) return;
-
-                    if (me.$tabs.index(this) === 0 && me.nowpage > 0) {
-                        me.nowpage = me.nowpage - 1;
-                    } else if (me.$tabs.index(this) === 1 && me.nowpage < me.maxpage) {
-                        me.nowpage = me.nowpage + 1;
-                    }
-
-                    me._toggleButtons();
-
-                    me.$nowpages[0].innerHTML = me.nowpage + 1;
-                    me.select(me.nowpage);
-                });
-                me.select(me.options.selectedIndex);
-            },
-
-            /**
-             * index에 해당하는 컨텐츠 표시
-             * @param {Number} index 인덱스
-             */
-            select: function (index) {
-                var me = this,
-                    $tabs = me.$tabs,
-                    $contents = me.$contents;
-
-                $contents.hide().eq(index).show();
-                // START : 131126_수정
-                me.trigger(ToggleSlider.ON_CHANGED, [index]); // 이벤트를 날림.
-                // END : 131126_수정
-            },
-
-            /**
-             * 이전/다음 버튼 활성화 토글링
-             * @private
-             */
-            // START : 131126_수정
-            _toggleButtons: function () {
-                var me = this;
-                if (me.maxpage === 0) {
-                    me.$tabs.attr('disabled', 'disabled').addClass('disabled');
-                } else if (me.nowpage === 0) {
-                    me.$tabs.eq(0).attr('disabled', 'disabled').addClass('disabled');
-                    me.$tabs.eq(1).removeAttr('disabled').removeClass('disabled');
-                } else if (me.nowpage === me.maxpage) {
-                    me.$tabs.eq(0).removeAttr('disabled').removeClass('disabled');
-                    me.$tabs.eq(1).attr('disabled', 'disabled').addClass('disabled');
-                } else {
-                    me.$tabs.removeAttr('disabled').removeClass('disabled');
-                }
-            },
-            // END : 131126_수정
-
-            /**
-             * 컨텐츠가 변경됐을 경우, 갱신
-             * @example
-             * $('div.slider').toggleSlider('update');
-             */
-            update: function () {
-                var me = this;
-
-                me.$contents = me.$el.find(me.options.selectors.contents);
-                me.$contents.hide().first().show();
-
-                me.nowpage = 0;
-                me.maxpage = me.$contents.size() - 1;
-                me.$nowpages[0].innerHTML = me.nowpage + 1;
-                me.$totalpages.html(me.maxpage + 1);
-
-                me._toggleButtons();
-            }
-        });
-
-        jsa.bindjQuery(ToggleSlider, 'toggleSlider'); // 이 부분을 실행하면 $(..).tabs()로도 호출이 가능해진다.
-        return ToggleSlider;
-    });
-
-    jsa.define('ui.StarRating', function () {
-        /**
-         * 별점주기
-         * @class
-         * @name jsa.ui.StarRating
-         * @extends jsa.ui.View
-         */
-        var StarRating = Class( /** @lends jsa.ui.StarRating# */ {
-            name: 'StarRating',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_CHANGED_RATE: 'changedrate'
-            },
-            defaults: {
-                activateClass: 'on',
-                ratio: 0.5
-            },
-            selectors: {
-                stars: 'label'
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el
-             * @param {Object} options
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-                me._initStarRating();
-            },
-
-            _initStarRating: function () {
-                var me = this,
-                    $stars = me.$stars,
-                    index = me.$stars.filter('.on:last').index();
-
-                $stars.on('click', function (e) {
-                    e.preventDefault();
-
-                    index = $(this).index();
-                    me.activate(index);
-                    me.trigger(StarRating.ON_CHANGED_RATE, {
-                        rate: (index + 1) * me.options.ratio
-                    });
-                }).on('mouseenter focus', function () {
-                    me.activate($(this).index());
-                }).on('mouseleave blur', function () {
-                    me.activate(index);
-                });
-
-            },
-            /**
-             * idx에 해당하는 별점를 활성화
-             * @param {Number} idx 별점
-             * @example
-             * $('#starRating').startRating('activate', 3.5);
-             */
-            activate: function (idx) {
-                var me = this,
-                    $stars = me.$stars,
-                    onCls = me.options.activateClass;
-
-                if (idx < 0) {
-                    $stars.removeClass(onCls);
-                } else {
-                    $stars.eq(idx).nextAll().removeClass(onCls).end().prevAll().addBack().addClass(onCls);
-                }
-            }
-        });
-
-        jsa.bindjQuery(StarRating, 'starRating');
-        return StarRating;
-    });
-
-    jsa.define('ui.SimpleBanner', function () {
-        /**
-         * 단순한 배너 모듈
-         * @class
-         * @name jsa.ui.SimpleBanner
-         */
-        var SimpleBanner = Class({
-            name: 'SimpleBanner',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SLIDE_END: 'simplebannerslideend',
-                ON_PLAY: 'simplebannerplay',
-                ON_STOP: 'simplebannerstop'
-            },
-            defaults: {
-                start: 0,
-                interval: 3000,
-                useFade: true,
-                autoStart: true,
-                buttonDisabled: false
-            },
-            selectors: {
-                items: 'li',
-                indicators: 'a.d_indicator',
-                btnPlay: '.d_btn_ctrl.play',
-                btnPause: '.d_btn_ctrl.pause'
-            },
-            events: {
-                'click .d_btn_ctrl': function (e) {
-                    e.preventDefault();
-                    var me = this,
-                        $this = $(e.currentTarget);
-
-                    if ($this.hasClass('pre') || $this.hasClass('prev')) {
-                        me.prev();
-                    } else if ($this.hasClass('pause')) {
-                        me.stop();
-                    } else if ($this.hasClass('play')) {
-                        me.play();
-                    } else if ($this.hasClass('next')) {
-                        me.next();
-                    }
-                }
-            },
-            initialize: function (el, options) {
-                var me = this;
-                if (me.supr(el, options) === false) {
-                    me.destroy();
-                    return;
-                }
-                me._current = 0;
-                me._count = me.$items.length;
-
-                if (me._count === 0) {
-                    me.destroy();
-                    return;
-                }
-
-                me._isMouseOver = false;
-
-                me.$indicators.on('click', function (e) {
-                    e.preventDefault();
-                    me.select($(this).index());
-                });
-
-                me.on('mouseenter focusin mouseleave focusout', function (e) {
-                    switch (e.type) {
-                    case 'mouseenter':
-                    case 'focusin':
-                        me._isMouseOver = true;
-                        break;
-                    default:
-                        me._isMouseOver = false;
-                        break;
-                    }
-                });
-
-                me.select(me.options.start);
-                me.options.autoStart && me.play();
-            },
-            select: function (index) {
-                var me = this;
-                if (index < 0) {
-                    index = me._count - 1;
-                } else if (index >= me._count) {
-                    index = 0;
-                }
-
-                if (me.options.type === 'show') {
-                    me.$items.hide().eq(index).show();
-                } else {
-                    me.$items.removeClass('on').eq(index).addClass('on');
-                }
-                me.$indicators.removeClass('on').eq(index).addClass('on');
-                if (me.options.buttonDisabled) {
-                    me.$el.find('button.d_btn_ctrl')
-                        .filter('.pre').prop('disabled', index === 0).toggleClass('disabled', index === 0).end().
-                    filter('.next').prop('disabled', index + 1 === me._count).toggleClass('disabled', index + 1 === me._count);
-                }
-                me._current = index;
-                me.triggerHandler('simplebannerslideend', [index]);
-            },
-            play: function () {
-                var me = this,
-                    seltor = me.options.selectors;
-                if (me.timer) {
-                    return;
-                }
-
-                me.timer = setInterval(function () {
-                    if (me._isMouseOver) {
-                        return;
-                    }
-                    me.next();
-                }, me.options.interval);
-
-                var $btn = me.$el.find(seltor.btnPlay);
-                $btn.attr('title', ($btn.attr('title') || '').replace('재생', '일시정지')).replaceClass('play', 'pause').children().html('일시정지');
-                me.triggerHandler('simplebannerplay');
-            },
-            stop: function () {
-                var me = this,
-                    seltor = me.options.selectors;
-                if (me.timer) {
-                    clearInterval(me.timer);
-                    me.timer = null;
-                }
-
-                var $btn = me.$el.find(seltor.btnPause);
-                $btn.attr('title', ($btn.attr('title') || '').replace('일시정지', '재생')).replaceClass('pause', 'play').children().html('재생');
-                me.triggerHandler('simplebannerstop');
-            },
-            prev: function () {
-                var me = this;
-
-                me.select(me._current - 1);
-            },
-            next: function () {
-                var me = this;
-
-                me.select(me._current + 1);
-            }
-        });
-
-        jsa.bindjQuery(SimpleBanner, 'simpleBanner');
-
-        return SimpleBanner;
-    });
-
-
-    jsa.define('ui.WeekCalendar', function () {
-        var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-            dateUtil = jsa.date;
-        /**
-         * 주간 달력
-         * @class
-         * @name jsa.ui.WeekCalendar
-         * @extends jsa.ui.View
-         * @example
-         * // 속성 : data-active-start="2013-12-12" : 선택된 주간의 시작일
-         * // 속성 : data-active-end="2013-12-19" : 선택된 주간의 종료일
-         * // 속성 : data-last-date="2013-12-19" : 선택할 수 있는 마지막 날짜
-         * // 속성 : data-limit-week="12" : 12주 이전부터 선택가능
-         */
-        var WeekCalendar = Class( /** @lends jsa.ui.WeekCalendar# */ {
-            name: 'WeekCalendar',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SELECTED: 'selected', // 날짜 선택시 발생되는 이벤트
-                ON_SELECTED_WEEK: 'selectedweek', // 날짜 선택시 발생되는 이벤트
-                ON_SHOWCALENDAR: 'showcalendar', // 달력이 표시될 때 발생되는 이벤트
-                ON_HIDECALENDAR: 'hidecalendar' // 달력이 숨겨질 때 발생되는 이벤트
-            },
-            defaults: {
-                weekNames: ['월', '화', '수', '목', '금', '토', '일'],
-                monthNames: '1월,2월,3월,4월,5월,6월,7월,8월,9월,10월,11월,12월'.split(','),
-                startDate: '19700101',
-                endDate: '21001231',
-                limitWeek: 12,
-                title: '',
-                // 테이블의 캡션부분을 표시될 문구 생성(클래스 생성시 오버라이딩 가능)
-                getCaption: function (type, wname, sy, sm, sd, ey, em, ed) {
-                    if (!this.options.title) {
-                        return '';
-                    }
-
-                    switch (type) {
-                    case 'active':
-                        return '선택된 주간입니다.(' + sy + '.' + sm + '.' + sd + ' ~ ' + ey + '.' + em + '.' + ed + ')';
-                    case 'before':
-                    case 'after':
-                        return '선택할 수 없는 주간입니다.';
-                    }
-                    return wname + '입니다.(' + sy + '.' + sm + '.' + sd + ' ~ ' + ey + '.' + em + '.' + ed + ')';
-                },
-                // 각 날짜의 title속성에 표시할 문구 생성(클래스 생성시 오버라이딩 가능)
-                getTitle: function () {
-                    return this.options.getCaption.apply(this, arguments);
-                }
-            },
-            template: ['<div class="l_calendar" tabindex="0" style="position:absolute; z-index:13; left:35px; top:55px;"><dl class="cntt"><dt>',
-                '<button type="button" class="btn_round small pre"><span><span>이전 달</span></span></button>',
-                '<span class="date"></span>',
-                '<button type="button" class="btn_round small next"><span><span>다음 달</span></span></button>',
-                '</dt><dd class="week_calendar"><table border="1">',
-                '<caption></caption>',
-                '<colgroup><col /><col style="width:36px;" /><col style="width:36px;" /><col style="width:36px;" /><col style="width:36px;" /><col style="width:36px;" /><col style="width:36px;" /><col style="width:36px;" /></colgroup>',
-                '<thead><tr><th>주 선택란</th><th id="week01">월</th><th id="week02">화</th><th id="week03">수</th><th id="week04">목</th><th id="week05">금</th><th id="week06">토</th><th id="week07">일</th></tr></thead>',
-                '<tbody class="days"><!-- 내용부분 --></tbody></table></dd>',
-                '</dl><button type="button" class="btn_close"><span>닫기</span></button><span class="shadow"></span></div>'
-            ].join(''),
-            events: {
-                // 달력버튼을 클릭할 때
-                'click': function (e) {
-                    if (WeekCalendar.active === this) {
-                        this.close();
+                    isHoliday = ((j === 0 || j === 6) && opts.weekendDisabled) || me._isHoliday(y, m, d);
+
+                    html += '<td class="d-calendar-cell' + (isHoliday ? ' d-calendar-holiday' : '') + (j === 0 ? ' d-calendar-sunday' : j === 6 ? ' d-calendar-saturday' : '') + '" data-year="' + y + '" data-month="' + m + '" data-day="' + d + '">';
+                    if (cell.html) {
+                        html += cell.html;
                     } else {
-                        this.open();
-                    }
-                }
-            },
-
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el
-             * @param {Object} options
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                me.supr(el, options);
-                me.limitWeek = me.$el.data('limitWeek') || me.options.limitWeek;
-                me._initWeekCalendar();
-            },
-
-            /**
-             * 초기화
-             * @private
-             */
-            _initWeekCalendar: function () {
-                var me = this;
-            },
-
-            /**
-             * 버튼의 data속성을 바탕으로 표시할 날짜를 계산
-             * @private
-             */
-            _configure: function () {
-                var me = this,
-                    activeStart = me.$el.attr('data-active-start') || me.options.activeStart,
-                    activeEnd = me.$el.attr('data-active-end') || me.options.activeEnd,
-                    lastDate = me.$el.attr('data-last-date') || me.options.lastDate;
-
-                me.lastDate = lastDate && dateUtil.parseDate(lastDate) || (function () {
-                    var d = new Date();
-                    d.setDate(d.getDate() - d.getDay());
-                    return d;
-                }());
-                me.startDate = activeStart && dateUtil.parseDate(activeStart) || (function () {
-                    var d = new Date(me.lastDate.getTime());
-                    d.setDate(d.getDate() - d.getDay() - 6);
-                    return d;
-                }());
-                me.endDate = activeEnd && dateUtil.parseDate(activeEnd) || (function () {
-                    var d = new Date(me.startDate.getTime());
-                    d.setDate(d.getDate() + 6);
-                    return d;
-                }());
-                me.currentDate = new Date(me.endDate.getTime());
-
-                me.startLimitDate = new Date(me.lastDate.getTime() - (1000 * 60 * 60 * 24 * 7 * (me.limitWeek)) + (1000 * 60 * 60 * 24));
-                me.endLimitDate = new Date(me.lastDate.getTime());
-            },
-
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                $doc.off(me._eventNamespace);
-                me.$calendar.off().remove();
-            },
-
-            /**
-             * 이벤트 바인딩 및 달력표시
-             */
-            open: function () {
-                var me = this;
-
-                me._configure();
-
-                me.$calendar = $(me.template).hide().insertAfter(me.$el[0]);
-                me.$calendar
-                    .css('zIndex', 9999)
-                    .css(me.options.css || {})
-                    .on('click', 'button.pre, button.next', function (e) {
-                        // 이전, 다음 클릭
-                        me.currentDate.setMonth(me.currentDate.getMonth() + (this.className.indexOf('pre') > -1 ? -1 : 1));
-                        me.render(new Date(me.currentDate));
-                    }).on('click mouseenter mouseleave focusin focusout', 'tbody tr.d_week', function (e) {
-                        // 주간 row에 대한 이벤트 바인딩
-                        switch (e.type) {
-                        case 'mouseenter':
-                        case 'focusin':
-                            // 활성화
-                            $(this).closest('tr').siblings().removeClass('mfocus').end().addClass('mfocus');
-                            break;
-                        case 'mouseleave':
-                        case 'focusout':
-                            // 비활성화
-                            $(this).closest('tr').removeClass('mfocus');
-                            break;
-                        case 'click':
-                            // 주간 클릭
-                            var $this = $(this),
-                                value = {};
-
-                            if (!$this.hasClass('on')) {
-                                value = {
-                                    startDate: $this.attr('data-start-date'),
-                                    endDate: $this.attr('data-end-date'),
-                                    startYear: $this.attr('data-start-year'),
-                                    startMonth: $this.attr('data-start-month'),
-                                    startDay: $this.attr('data-start-day'),
-                                    endYear: $this.attr('data-end-year'),
-                                    endMonth: $this.attr('data-end-month'),
-                                    endDay: $this.attr('data-end-day'),
-                                    isFirstDate: $this.attr('data-start-date') === dateUtil.format(me.startLimitDate, 'yyyyMMdd'),
-                                    isLastDate: $this.attr('data-end-date') === dateUtil.format(me.endLimitDate, 'yyyyMMdd'),
-                                    week: $this.attr('data-week')
-                                };
-
-                                me.$el.triggerHandler(WeekCalendar.ON_SELECTED, [
-                                    value.startDate, value.endDate,
-                                    value.startYear, value.startMonth, value.startDay,
-                                    value.endYear, value.endMonth, value.endDay,
-                                    value.isFirst,
-                                    value.isLast,
-                                    value.week
-                                ]);
-                                me.$el.triggerHandler(WeekCalendar.ON_SELECTED_WEEK, [value]);
-                            }
-                            break;
-                        }
-                    }).on('click', 'tbody th>a', function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        $(this).closest('tr').click();
-                    }).on('click', function (e) {
-                        // 달력내에서 마우스다운시 닫히지 않도록
-                        e.stopPropagation();
-                    }).on('click', 'button.btn_close', function (e) {
-                        // 닫기 버튼
-                        e.stopPropagation();
-                        me.close();
-                    });
-
-                if (jsa.browser.isIE7) {
-                    // zindex fix
-                    me.$calendar.on('beforeshow hide', function (e) {
-                        if (e.type === 'beforeshow') {
-                            $(this).closest('div.summ_prid').addClass('on');
-                        } else {
-                            $(this).closest('div.summ_prid').removeClass('on');
-                        }
-                    });
-                }
-
-                // 달력밖에서 클릭시 닫는다.
-                $doc.on('click' + me._eventNamespace, function (e) {
-                    if (me.$el[0] !== e.target && !$.contains(me.$el[0], e.target) &&
-                        me.$calendar[0] !== e.target && !$.contains(me.$calendar[0], e.target)) {
-
-                        WeekCalendar.active && WeekCalendar.active.close();
-                    }
-                });
-
-                me.show();
-            },
-
-            /**
-             * 달력표시
-             */
-            show: function () {
-                var me = this;
-
-                WeekCalendar.active = me;
-
-                me.render(me.currentDate);
-                me.$calendar.showLayer().focus();
-                me.trigger(WeekCalendar.ON_SHOWCALENDAR, [me.$calendar]);
-            },
-
-            /**
-             * 달력숨김
-             */
-            hide: function () {
-                var me = this;
-                me.isShown = false;
-                this.$calendar.hideLayer();
-                me.trigger(WeekCalendar.ON_HIDECALENDAR, [me.$calendar]);
-            },
-
-            /**
-             * 달력닫기
-             */
-            close: function () {
-                var me = this;
-
-                $doc.off('click' + me._eventNamespace);
-                me.hide();
-                me.$calendar.off().remove();
-                WeekCalendar.active = null;
-            },
-
-            /**
-             * 이전 주 계산
-             * @param date 현재 날짜
-             * @return {JSON} 이전 주에 해당하는 값들
-             */
-            _getPrevWeek: function (date) {
-                var d = new Date(date.getTime() - (1000 * 60 * 60 * 24 * 7));
-                return {
-                    startDate: new Date(d.getTime()),
-                    endDate: new Date(d.getTime() + (1000 * 60 * 60 * 24 * 6))
-                };
-            },
-
-            /**
-             * 다음 주 계산
-             * @param date 현재 날짜
-             * @return {JSON} 이전 주에 해당하는 값들
-             */
-            _getNextWeek: function (date) {
-                var d = new Date(date.getTime() + (1000 * 60 * 60 * 24 * 7));
-                return {
-                    startDate: new Date(d.getTime()),
-                    endDate: new Date(d.getTime() + (1000 * 60 * 60 * 24 * 6))
-                };
-            },
-
-            _sameWeekDate: function (date, d) {
-                return date.getFullYear() === d.year && date.getMonth() === d.month - 1 && date.getDate() === d.day;
-            },
-
-            /**
-             * 달력 렌더링
-             * @param {Date} 렌더링시 기준 날짜
-             */
-            render: function (date) {
-                var me = this,
-                    zeroPad = jsa.number.zeroPad,
-                    data = me._getDateList(date),
-                    startLimit = me.startLimitDate.getTime(),
-                    endLimit = me.endLimitDate.getTime(),
-                    title = me.options.title,
-                    getCaption = me.options.getCaption,
-                    getTitle = me.options.getTitle,
-                    html = '',
-                    curr, headerId, isOn, cls, wn, wi, week, startWeek, endWeek, sy, sm, sd, ey, em, ed, args;
-
-                for (var i = 0; i < data.length; i++) {
-                    week = data[i];
-                    startWeek = week[0];
-                    endWeek = week[6];
-                    curr = new Date(startWeek.year, startWeek.month - 1, startWeek.day, 0, 0, 0);
-                    isOn = me._sameWeekDate(me.startDate, startWeek) && me._sameWeekDate(me.endDate, endWeek);
-                    cls = isOn ? "on" : "d_btn";
-                    headerId = 'cycle0' + (i + 1);
-                    sy = startWeek.year;
-                    sm = zeroPad(startWeek.month);
-                    sd = zeroPad(startWeek.day);
-                    ey = endWeek.year;
-                    em = zeroPad(endWeek.month);
-                    ed = zeroPad(endWeek.day);
-
-                    if (i > 1 && startWeek.month !== endWeek.month) {
-                        wn = endWeek.month + '월 1주차';
-                        wi = 1;
-                    } else {
-                        wn = endWeek.month + '월 ' + (wi = (i + 1)) + '주차';
-                    }
-
-                    args = [wn, sy, sm, sd, ey, em, ed];
-                    if (startLimit <= curr.getTime() && endLimit > curr.getTime()) {
-                        html += '<tr class="d_week ' + cls + '" title="' + getTitle.apply(me, [isOn ? 'active' : 'normal'].concat(args)) + '" ';
-                        html += 'data-start-date="' + sy + sm + sd + '" data-start-year="' + sy + '" data-start-month="' + sm + '" data-start-day="' + sd + '" ';
-                        html += 'data-end-date="' + ey + em + ed + '" data-end-year="' + ey + '" data-end-month="' + em + '" data-end-day="' + ed + '" data-week="' + wi + '">';
-
-                        if (isOn) {
-                            html += '<th id="' + headerId + '">' + getCaption.apply(me, ['active'].concat(args)) + '</th>';
-                        } else {
-                            html += '<th id="' + headerId + '"><a href="#" title="' + getCaption.apply(me, ['normal'].concat(args)) + '">' + (i + 1) + '</a></th>';
-                        }
-                    } else {
-                        html += '<tr class="end">';
-
-                        if (startLimit > curr.getTime()) {
-                            html += '<tr class="end" title="' + getTitle.apply(me, ['before'].concat(args)) + '">';
-                            html += '<th>' + getCaption.apply(me, ['before'].concat(args)) + '</th>';
-                        } else {
-                            html += '<tr class="end" title="' + getTitle.apply(me, ['after'].concat(args)) + '">';
-                            html += '<th>' + getCaption.apply(me, ['after'].concat(args)) + '</th>';
-                        }
-                    }
-
-                    for (var j = 0, len = week.length; j < len; j++) {
-                        if (j === 0) {
-                            cls = 'first';
-                        } else if (j === len - 1) {
-                            cls = 'end';
-                        } else {
-                            cls = '';
-                        }
-                        html += '<td headers="' + headerId + ' week0' + (j + 1) + '" class="' + cls + '">' + (week[j].month - 1 === date.getMonth() ? '' : '<span class="none">' + week[j].month + '월</span>') + week[j].day + '</td>';
-                    }
-                    html += '</tr>';
-                }
-
-                // 날짜 제한에 따른 이전, 다음 버튼 활성화
-                if (me.startLimitDate.getFullYear() === date.getFullYear() && me.startLimitDate.getMonth() === date.getMonth()) {
-                    me.$calendar.find('button.pre').addClass('disabled').prop('disabled', true);
-                } else {
-                    me.$calendar.find('button.pre').removeClass('disabled').prop('disabled', false);
-                }
-                var now = me.endLimitDate;
-                if (date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()) {
-                    me.$calendar.find('button.next').addClass('disabled').prop('disabled', true);
-                } else {
-                    me.$calendar.find('button.next').removeClass('disabled').prop('disabled', false);
-                }
-
-                me.$calendar.find('tbody.days').html(html);
-                me.$calendar.find('span.date').html(date.getFullYear() + '<span class="none">년</span>.' + zeroPad(date.getMonth() + 1) + '<span class="none">월</span>');
-                me.$calendar.find('caption').html(date.getFullYear() + '년 ' + (date.getMonth() + 1) + '월 주간 선택 달력 테이블');
-            },
-
-            /**
-             * 날짜 데이타 계산
-             * @param {Date} date 렌더링할 날짜 데이타 생성
-             * @return {Array}
-             */
-            _getDateList: function (date) {
-                date.setDate(1);
-
-                var me = this,
-                    month = date.getMonth() + 1,
-                    year = date.getFullYear(),
-                    startOnWeek = date.getDay() === 0 ? 7 : date.getDay(), // 1일의 요일
-                    last = daysInMonth[date.getMonth()], // 마지막날
-                    prevLast = daysInMonth[date.getMonth() === 0 ? 11 : date.getMonth() - 1], // 이전달의 마지막날
-                    startPrevMonth = prevLast - startOnWeek, // 이전달의 시작일
-                    y = year,
-                    m = month;
-
-                if (month > 12) {
-                    month -= 12, year += 1;
-                } else {
-                    if (month == 2 && me._isLeapYear(year)) {
-                        last = 29;
-                    }
-                }
-
-                var weekDay = 0,
-                    data = [],
-                    week = [];
-
-                if (startOnWeek > 0) {
-                    if (month == 3 && me._isLeapYear(year)) {
-                        startPrevMonth += 1;
-                    }
-                    if ((m = month - 1) < 1) {
-                        m = 12, y = year - 1;
-                    }
-                    for (var i = 1; i < startOnWeek; i++) {
-                        week.push({
-                            year: y,
-                            month: m,
-                            day: startPrevMonth + i + 1
-                        }); // ***** +1
-                    }
-                    if (week.length > 6) {
-                        data.push(week), week = [];
-                    }
-                }
-
-                for (var i = 1; i <= last; i++) {
-                    week.push({
-                        year: year,
-                        month: month,
-                        day: i
-                    });
-                    if (week.length > 6) {
-                        data.push(week), week = [];
-                    }
-                }
-
-                if (week.length > 0 && week.length < 7) {
-                    if ((m = month + 1) > 12) {
-                        m -= 12, y = year + 1;
-                    }
-                    for (var i = week.length, d = 1; i < 7; i++, d++) {
-                        week.push({
-                            year: y,
-                            month: m,
+                        html += tmpl({
+                            title: y + '년 ' + m + '월 ' + d + '일',
+                            cls: cell.cls,
+                            disabled: isHoliday || cell.disabled ? 'disabled="disabled" ' : '',
                             day: d
                         });
                     }
                 }
-                week.length && data.push(week);
-                return data;
-            },
-
-            /**
-             * 윤년 여부
-             * @param {Date} date 렌더링할 날짜 데이타 생성
-             * @return {Boolean} 윤년 여부
-             */
-            _isLeapYear: function (year) {
-                return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0))
-            },
-
-            /**
-             * 현재 표시된 주가 제한값의 시작주인가
-             * @return {Boolean}
-             */
-            isFirstDate: function () {
-                var me = this;
-                me._configure();
-                return dateUtil.format(me.startDate, 'yyyyMMdd') === dateUtil.format(me.startLimitDate, 'yyyyMMdd');
-            },
-
-            /**
-             * 현재 표시된 주가 제한값의 마지막주인가
-             * @return {Boolean}
-             */
-            isLastDate: function () {
-                var me = this;
-                me._configure();
-                return dateUtil.format(me.endDate, 'yyyyMMdd') === dateUtil.format(me.endLimitDate, 'yyyyMMdd');
-            },
-
-            /**
-             * 전주, 다음주 계산
-             * @private
-             * @param {Number} 1: 다음주, -1: 전주
-             * @return {JSON} 주간정보
-             */
-            _calc: function (n) {
-                var me = this,
-                    value;
-
-                me._configure();
-                value = n > 0 ? me._getNextWeek(me.startDate) : me._getPrevWeek(me.startDate);
-
-                if (value.startDate.getMonth() !== value.endDate.getMonth()) {
-                    value.week = 1;
-                } else {
-                    value.week = Math.ceil((value.startDate.getDay() + value.startDate.getDate()) / 7);
-                }
-
-                value.startYear = value.startDate.getFullYear();
-                value.startMonth = numberUtil.zeroPad(value.startDate.getMonth() + 1);
-                value.startDay = numberUtil.zeroPad(value.startDate.getDate());
-
-                value.endYear = value.endDate.getFullYear();
-                value.endMonth = numberUtil.zeroPad(value.endDate.getMonth() + 1);
-                value.endDay = numberUtil.zeroPad(value.endDate.getDate());
-
-                value.startDate = dateUtil.format(value.startDate, 'yyyyMMdd');
-                value.endDate = dateUtil.format(value.endDate, 'yyyyMMdd');
-
-                value.isFirstDate = value.startDate === dateUtil.format(me.startLimitDate, 'yyyyMMdd');
-                value.isLastDate = value.endDate === dateUtil.format(me.endLimitDate, 'yyyyMMdd');
-
-                return value;
-            },
-
-            /**
-             * 전주
-             * @return {JSON} 전주 정보
-             */
-            prev: function () {
-                return this._calc(-1);
-            },
-
-            /**
-             * 다음주
-             * @return {JSON} 다음주 정보
-             */
-            next: function () {
-                return this._calc(1);
+                html += '</tr>'
             }
-        });
 
-        // 달력 모듈이 한번이라도 호출되면, 이 부분이 실행됨, 달력 모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        WeekCalendar.onClassCreate = function () {
-            jsa.PubSub.on('hide:modal', function () {
-                WeekCalendar.active && WeekCalendar.active.close();
-            });
-        };
-        jsa.bindjQuery(WeekCalendar, 'weekCalendar');
-        return WeekCalendar;
-    });
+            html += '</tbody></table>';
 
-    jsa.define('ui.MonthCalendar', function () {
-        var dateUtil = jsa.date;
+            me.$calendar.find('.d-calendar-date').html(html);
+            me.$calendar.find('.d-calendar-text').text(dateUtil.format(me.currDate, 'yyyy-MM'));
+
+            return me;
+        },
 
         /**
-         * 월간 달력
-         * @class
-         * @name jsa.ui.MonthCalendar
-         * @extends jsa.ui.View
+         * 날짜 변경
+         * @param date
          */
-        var MonthCalendar = Class( /** @lends jsa.ui.MonthCalendar# */ {
-            name: 'MonthCalendar',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SELECTED: 'selected', // 날짜 선택시 발생되는 이벤트
-                ON_SHOWCALENDAR: 'showcalendar', // 달력이 표시될 때 발생되는 이벤트
-                ON_HIDECALENDAR: 'hidecalendar' // 달력이 숨겨질 때 발생되는 이벤트
-            },
-            events: {
-                // 달력버튼을 클릭할 때
-                'click': function (e) {
-                    if (MonthCalendar.active === this) {
-                        this.close();
-                    } else {
-                        this.open();
-                    }
-                }
-            },
-            template: ['<div class="l_calendar" tabindex="0" style="position:absolute; z-index:13; left:35px; top:55px;"><dl class="cntt"><dt>',
-                '<button type="button" class="btn_round small pre"><span><span>이전 년도</span></span></button>',
-                '<span class="date">2013<span class="none">년</span></span>',
-                '<button type="button" class="btn_round small next"><span><span>다음 년도</span></span></button>',
-                '</dt><dd class="month_calendar"><ul>',
-                '</ul></dd></dl><button type="button" class="btn_close"><span>닫기</span></button>',
-                '<span class="shadow"></span>',
-                '</div>'
-            ].join(''),
-            defaults: {
-                limitMonth: 0,
-                title: '',
-                // 테이블의 캡션부분을 표시될 문구 생성(클래스 생성시 오버라이딩 가능)
-                getCaption: function () {
-                    return '';
-                },
-                // 각 날짜의 title속성에 표시할 문구 생성(클래스 생성시 오버라이딩 가능)
-                getTitle: function () {
-                    return '';
-                }
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el
-             * @param {Object} options
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                me.supr(el, options);
-                me._initMonthCalendar();
-            },
-
-            /**
-             * 초기화
-             * @private
-             */
-            _initMonthCalendar: function () {
-                var me = this;
-
-            },
-
-            /**
-             * 버튼의 data속성을 바탕으로 표시할 날짜를 계산
-             * @private
-             */
-            _configure: function () {
-                var me = this,
-                    limitMonth = me.$el.data('limitMonth') || me.options.limitMonth,
-                    lastDate = me.$el.attr('data-last-date') || me.options.lastDate,
-                    activeDate = me.$el.attr('data-active-date') || me.options.activeDate;
-
-                me.endDate = lastDate && dateUtil.parseDate(lastDate + '.01') || (function () {
-                    var d = new Date();
-                    d.setMonth(d.getMonth() - 1);
-                    return d;
-                }());
-
-                me.activeDate = activeDate && dateUtil.parseDate(activeDate + '.01') || new Date(me.endDate.getTime());
-                me.currentDate = new Date(me.activeDate.getTime());
-                me.limitDate = new Date(me.endDate.getTime());
-                if (limitMonth) {
-                    me.limitDate.setMonth(me.limitDate.getMonth() - limitMonth);
-                } else {
-                    me.limitDate.setYear(me.limitDate.getFullYear() - 1);
-                    me.limitDate.setMonth(0); // - limitMonth
-                }
-            },
-
-
-            /**
-             * 이벤트 바인딩 및 달력표시
-             */
-            open: function () {
-                var me = this;
-
-                me._configure();
-
-                me.$calendar = $(me.template).hide().insertAfter(me.$el);
-                if (me.options.style) {
-                    me.$calendar[0].style.cssText = me.options.style;
-                }
-                me.$calendar
-                    .css('zIndex', 9999)
-                    .on('click', 'li>a', function (e) {
-                        e.preventDefault();
-                        var $this = $(this);
-                        // selected 이벤트 트리거
-                        me.trigger(MonthCalendar.ON_SELECTED, [
-                            $this.attr('data-date'),
-                            $this.attr('data-year'),
-                            $this.attr('data-month'),
-                            $this.attr('data-date') === dateUtil.format(me.limitDate, 'yyyyMM'),
-                            $this.attr('data-date') === dateUtil.format(me.endDate, 'yyyyMM')
-                        ]);
-                    })
-                    .on('click', 'button.pre, button.next', function (e) {
-                        me.currentDate.setYear(me.currentDate.getFullYear() + (this.className.indexOf('pre') > -1 ? -1 : 1));
-                        me.render(new Date(me.currentDate));
-                    })
-                    .on('click', 'button.btn_close', function (e) {
-                        e.stopPropagation();
-                        me.close();
-                    });
-
-                if (jsa.browser.isIE7) {
-                    // z-index 문제 해결
-                    me.$calendar.on('beforeshow hide', function (e) {
-                        if (e.type === 'beforeshow') {
-                            $(this).closest('div.summ_prid').addClass('on');
-                        } else {
-                            $(this).closest('div.summ_prid').removeClass('on');
-                        }
-                    });
-                }
-
-                $doc.on('click' + me._eventNamespace, function (e) {
-                    // 달력 영역 바깥에서 클릭하면 닫는다.
-                    if (me.$el[0] !== e.target && !$.contains(me.$el[0], e.target) &&
-                        me.$calendar[0] !== e.target && !$.contains(me.$calendar[0], e.target)) {
-                        MonthCalendar.active && MonthCalendar.active.close();
-                    }
-                });
-                me.show();
-            },
-
-            /**
-             * 현재 표시된 월이 제한값의 시작월인가
-             */
-            isFirstDate: function () {
-                var me = this;
-                me._configure();
-                return dateUtil.format(me.activeDate, 'yyyyMM') === dateUtil.format(me.limitDate, 'yyyyMM');
-            },
-
-            /**
-             * 현재 표시된 월이 제한값의 마지막월인가
-             */
-            isLastDate: function () {
-                var me = this;
-                me._configure();
-                return dateUtil.format(me.activeDate, 'yyyyMM') === dateUtil.format(me.endDate, 'yyyyMM');
-            },
-
-            /**
-             * 달력표시
-             */
-            show: function () {
-                var me = this;
-
-                MonthCalendar.active = me;
-
-                me.render(me.currentDate);
-                me.$calendar.showLayer().focus();
-                me.trigger(MonthCalendar.ON_SHOWCALENDAR, [me.$calendar]);
-            },
-
-            /**
-             * 달력숨김
-             */
-            hide: function () {
-                var me = this;
-
-                this.$calendar.hide();
-                me.trigger(MonthCalendar.ON_HIDECALENDAR, [me.$calendar]);
-            },
-
-            /**
-             * 달력삭제
-             */
-            close: function () {
-                var me = this;
-
-                $doc.off('click' + me._eventNamespace);
-                me.hide();
-                me.$calendar.off().remove();
-                MonthCalendar.active = null;
-            },
-
-            /**
-             * 달력 렌더링
-             * @param {Date} date 렌더링시 기준 날짜
-             */
-            render: function (date) {
-                var me = this,
-                    html = '',
-                    title = me.options.title,
-                    year = date.getFullYear(),
-                    limitDate = parseInt(dateUtil.format(me.limitDate, 'yyyyMM'), 10),
-                    endDate = parseInt(dateUtil.format(me.endDate, 'yyyyMM'), 10),
-                    getCaption = function () {
-                        return me.options.getCaption.apply(me, arguments);
-                    },
-                    getTitle = function () {
-                        return me.options.getTitle.apply(me, arguments);
-                    },
-                    curr, isOn
-
-                for (var i = 1; i <= 12; i++) {
-                    curr = parseInt(date.getFullYear() + "" + numberUtil.zeroPad(i), 10);
-                    isOn = (me.activeDate.getFullYear() === date.getFullYear() && me.activeDate.getMonth() === (i - 1));
-
-                    if (limitDate <= curr && endDate >= curr) {
-                        html += '<li><a href="#" data-date="' + curr + '" title="' + getTitle(isOn ? 'active' : 'normal', year, i) + '" data-year="' + date.getFullYear() + '" data-month="' + numberUtil.zeroPad(i) + '" class="btn' + (isOn ? ' on' : '') + '"><span><span class="none">' + year + '년도</span>' + i + '월</span></a></li>';
-                    } else {
-                        if (limitDate > curr) {
-                            // 이전
-                            html += '<li class="d_before"><span class="btn disabled"><span><span class="none">' + year + '년도</span>' + i + '월<span class="none">' + getTitle('before', year, i) + '</span></span></span></li>';
-                        } else {
-                            // 이후
-                            html += '<li class="d_nodata"><span class="btn disabled"><span><span class="none">' + year + '년도</span>' + i + '월<span class="none">' + getTitle('after', year, i) + '</span></span></span></li>';
-                        }
-                    }
-                }
-
-                me.$calendar.find('dd.month_calendar>ul').html(html);
-                // 날짜 제한에 따른 이전, 다음 버튼 활성화
-                if (me.limitDate.getFullYear() === date.getFullYear()) {
-                    me.$calendar.find('button.pre').addClass('disabled').prop('disabled', true);
-                } else {
-                    me.$calendar.find('button.pre').removeClass('disabled').prop('disabled', false);
-                }
-                if (date.getFullYear() === (new Date()).getFullYear()) {
-                    me.$calendar.find('button.next').addClass('disabled').prop('disabled', true);
-                } else {
-                    me.$calendar.find('button.next').removeClass('disabled').prop('disabled', false);
-                }
-                me.$calendar.find('span.date').html(date.getFullYear() + '<span class="none">년</span>');
-            },
-
-            /**
-             * 이전달, 다음달 계산
-             * @private
-             * @param {Number} 1: 다음달, -1: 이전달
-             * @return {JSON} 월간 정보
-             */
-            _calc: function (n) {
-                var me = this,
-                    date;
-
-                me._configure();
-                me.activeDate.setMonth(me.activeDate.getMonth() + n);
-                date = dateUtil.format(me.activeDate, 'yyyyMM');
-
-                var value = {
-                    date: date,
-                    year: me.activeDate.getFullYear() + "",
-                    month: numberUtil.zeroPad(me.activeDate.getMonth() + 1),
-                    isFirstDate: date === dateUtil.format(me.limitDate, 'yyyyMM'),
-                    isLastDate: date === dateUtil.format(me.endDate, 'yyyyMM')
-                };
-
-                // 변경된 날짜를 버튼에 셋팅
-                me.$el.attr('data-active-date', value.date);
-                return value;
-            },
-
-            /**
-             * 이전달
-             * @return {JSON} 이전달 정보
-             */
-            prev: function () {
-                return this._calc(-1);
-            },
-
-            /**
-             * 다음달
-             * @return {JSON} 다음달 정보
-             */
-            next: function () {
-                return this._calc(1);
+        setDate: function (date) {
+            if (!date) {
+                return;
             }
 
-        });
-
-        // 달력 모듈이 한번이라도 호출되면, 이 부분이 실행됨, 달력 모듈이 단 한번도 사용안하는 경우도 있는데, 
-        // 무조건 바인딩시켜놓는건 비효율적인 듯 해서 이와 같이 처리함
-        MonthCalendar.onClassCreate = function () {
-
-            jsa.PubSub.on('hide:modal', function () {
-                MonthCalendar.active && MonthCalendar.active.close();
-            });
-
-        };
-
-        jsa.bindjQuery(MonthCalendar, 'monthCalendar');
-        return MonthCalendar;
-    });
-
-    jsa.define('ui.Timeline', function () {
-        /**
-         * 아티스트 상세 타임라인
-         * @class jsa.ui.Timeline
-         * @extends jsa.ui.View
-         */
-        var Timeline = Class( /** @lends jsa.ui.Timeline# */ {
-            $extend: View,
-            name: 'timeline',
-            defaults: {
-                arrowHeight: 48, // 40 + 8    : 아이콘의 사이즈
-                boxTopMargin: 24 // 박스간의 간격
-            },
-            /**
-             * @constructor
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                // 각 아이템이 배치될 위치(좌 or 우)를 결정할 때 기준이 되는 값 :
-                // 좌우에 차례로 배치되면서 각 아이템의 top+height를 계속 더해간다.(좌측에 배치되면 left에, 우측에 배치되면 right에)
-                me.measure = {
-                    left: 0, // 왼쪽 높이
-                    center: 0, // 가운데부분 높이
-                    right: 0 // 오른쪽부분 높이
-                };
-
-                // 배치 시작
-                me.update();
-            },
-            /**
-             * 요소들을 배치
-             * @param {Integer} start 몇번째 항목부터 배치할 것인가...더보기를 했을 때, ajax로 가져온 항목들을 append한 후, 새로 append된 아이템부터 배치하기 위함
-             */
-            update: function (start) {
-                // 몇번째 항목부터 배치할 것인가...더보기를 했을 때, ajax로 가져온 항목들을 append한 후, 새로 append된 아이템부터 배치하기 위함
-                // (이미 배치된 항목을 다시 배치할 필요는 없음)
-                start = start || 0;
-
-                var me = this,
-                    $items = me.$el.find('>ul>li').filter(function (i) {
-                        return i >= start;
-                    }), // 새로 추가된 항목을 필터링
-                    items = [],
-                    measure = me.measure,
-                    ARROW_HEIGHT = me.options.arrowHeight, // 아이콘의 높이
-                    BOX_TOP_MARGIN = me.options.boxTopMargin; // 박스간의 간격
-
-                // UI요소가 차지하는 화면상의 사이즈를 계산하기 위해선 display가 none이 아니어야 되므로, 
-                // 대신 visibility:hidden으로 해놓고, display:block으로 변경
-                me.$el.css('visibility', 'hidden').show();
-                if (start === 0) {
-                    // 첫항목부터 배치되어야 하는 경우, 배치값을 초기화.
-                    measure.left = measure.center = measure.right = 0;
-                }
-
-                // 각각 li 항목의 좌우위치와 높이, 그리고 그에따른 아이콘 위치를 계산해서 items에 담는다.(아직 배치전)
-                $items.each(function (i) {
-                    var $li = $(this),
-                        boxHeight = $li.show().height(),
-                        align, targetTopOffset, arrowTopOffset;
-
-                    align = (measure.left <= measure.right) ? 'left' : 'right';
-                    targetTopOffset = measure[align];
-                    arrowTopOffset = Math.max(measure.center - targetTopOffset, 0);
-
-                    items.push({
-                        $target: $li.hide(), // 대상
-                        css: align, // 위치
-                        top: targetTopOffset, // top 위치
-                        arrowTop: arrowTopOffset // 아이콘 위치
-                    });
-
-                    measure[align] += boxHeight + BOX_TOP_MARGIN; // 좌측, 우측의 위치별로 최종 top를 저장(다음 항목의 top를 계산하기 위해)
-                    measure.center = targetTopOffset + arrowTopOffset + ARROW_HEIGHT; // 중앙쪽에 최종 top를 저장(다음 항목의 top를 계산하기 위해)
-                });
-
-                // 위에서 계산 위치를 바탕으로 실제로 배치(top css)
-                $.each(items, function (i, item) {
-                    item.$target.removeClass('lc_left lc_right')
-                        .addClass('lc_' + item.css) // 좌 or 우
-                    .css({
-                        'top': item.top
-                    }) // top 설정
-                    .fadeIn('slow')
-                        .find('div.wrap_icon').css({
-                            'top': item.arrowTop
-                        }); // 아이콘
-                });
-
-                // 가장밑에 배치된 항목을 기준으로 컨테이너 높이를 지정
-                me.$el.css({
-                    'visibility': '',
-                    height: Math.max(measure.left, measure.right)
-                });
-                me.trigger('completed'); // 완료 이벤트를 발생
+            try {
+                this.currDate = core.is(date, 'date') ? date : dateUtil.parseDate(date);
+                this._renderDate();
+            } catch (e) {
+                throw new Error('Calendar#setDate(): 날짜 형식이 잘못 되었습니다.');
             }
-        });
-
-        jsa.bindjQuery(Timeline, 'timeline');
-        return Timeline;
-    });
-
-
-    jsa.define('ui.TimeSlider', function () {
+            return this;
+        },
 
         /**
-         * 실시간차트의 타임슬라이더
-         * @class jsa.ui.TimeSlider
+         * 이전달
+         * @returns {Calendar}
          */
-        var TimeSlider = Class( /** @lends jsa.ui.TimeSlider# */ {
-            name: 'TimeSlider',
-            $extend: jsa.ui.View,
-            defaults: {
-                orientation: 'horizontal', // 방향(가로)
-                duration: 300, // 슬라이딩 duration
-                easing: 'ease-in-out', // 이징
-                animate: true, // 애니메이트 사용여부
-                render: false // true: 동적으로 그릴 것인가(false: 서버에서 뿌릴 것인가)
-            },
-            selectors: {
-                'sliderBox': '.d_slider_box', // 컨테이너
-                'panel': '.d_panel', // 움직이는 박스
-                'prevArrow': '.d_prev', // 왼쪽 버튼
-                'nextArrow': '.d_next' // 오른쪽 버튼
-            },
+        prev: function () {
+            this.currDate.setMonth(this.currDate.getMonth() - 1);
+            this._renderDate();
 
-            initialize: function (el, options) {
-                var me = this;
+            return this;
+        },
 
-                if (me.supr(el, options) === false) {
-                    me.destroy();
-                    return;
+        /**
+         * 다음달
+         * @returns {Calendar}
+         */
+        next: function () {
+            this.currDate.setMonth(this.currDate.getMonth() + 1);
+            this._renderDate();
+
+            return this;
+        },
+
+        /**
+         * 날짜 데이타 계산
+         * @param {Date} date 렌더링할 날짜 데이타 생성
+         * @return {Array}
+         */
+        _getDateList: function (date) {
+            date.setDate(1);
+
+            var me = this,
+                month = date.getMonth() + 1,
+                year = date.getFullYear(),
+                startOnWeek = date.getDay() + 1,
+                last = daysInMonth[date.getMonth()], // 마지막날
+                prevLast = daysInMonth[date.getMonth() === 0 ? 11 : date.getMonth() - 1], // 이전달의 마지막날
+                startPrevMonth = prevLast - startOnWeek, // 이전달의 시작일
+                y = year,
+                m = month;
+
+            if (month > 12) {
+                month -= 12, year += 1;
+            } else {
+                if (month == 2 && me._isLeapYear(year)) {
+                    last = 29;
                 }
-
-                // 마지막 시간
-                me.lastTime = me.options.lastTime || me.$el.attr('data-last-time') || dateUtil.format(new Date(), 'hh:00');
-                // 선택된 시간
-                me._activeTime = me.options.activeTime || me.$el.attr('data-active-time') || me.lastTime; // 131104_수정: onTime -> activeTime
-                // start: 131104_수정
-                // 통계자료가 있는 시간(01:00;02:00;03:00...)
-                me._enableTimes = me.options.enableTimes || me.$el.attr('data-disable-times') || "";
-                // end: 131104_수정
-
-                me._initTimeSlider();
-                // 옵션으로 받은 시간을 활성화
-                me.active(me._activeTime); // 131104_수정
-            },
-
-            /**
-             * 기본 작업
-             * @private
-             */
-            _initTimeSlider: function () {
-                var me = this;
-
-                me.$panel.css('width', me.totalWidth); // 
-
-                me.$prevArrow.on('click', function () {
-                    me._slide('prev');
-                });
-
-                me.$nextArrow.on('click', function () {
-                    me._slide('next');
-                });
-
-                me.on('click', 'a', function (e) {
-                    e.preventDefault();
-
-                    me.trigger('selected', [$(this).text()]);
-                });
-
-            },
-
-            /**
-             * time에 해당하는 요소를 활성화
-             * @param {String} time ex) 13:00
-             */
-            active: function (time) {
-                var me = this,
-                    left = 0,
-                    centerPos = 0,
-                    t = time.match(/^\d+/);
-
-                if (t) {
-                    me._activeTime = time; // 131104_수정
-                    me.options.render && me.render(); // 스크립트에서 그린것인가
-
-                    me.$items = me.$panel.find('>li'); // 시간 아이템들 
-                    me.itemCount = me.$items.length; // 갯수
-                    me.moveWidth = me.$sliderBox.width(); // 한번에 움직일 width
-                    me.itemWidth = me.$items.eq(0).width(); // 아이템 하나의 width
-                    me.totalWidth = me.itemWidth * me.itemCount; // 총 너비
-                    me.limitLeft = me.moveWidth - me.totalWidth; // 움직일 수 있는 최대 left값
-
-                    centerPos = Math.floor((me.moveWidth / me.itemWidth) / 2);
-                    t = parseInt(t[0], 10); // 13:00 에서 13을 추출
-
-                    if (t < centerPos) {
-                        left = 0;
-                    } else if (centerPos >= (me.itemCount - t)) {
-                        left = me.limitLeft;
-                    } else {
-                        left = -((t - centerPos) * me.itemWidth);
-                    }
-
-                    me._slide('cur', left);
-                }
-            },
-
-            _slide: function (dir, currentLeft) {
-                var me = this;
-
-                currentLeft = typeof currentLeft === 'undefined' ? parseInt(me.$panel.css('left'), 10) : currentLeft;
-
-                if (dir === 'prev') {
-                    // 왼쪽 방향
-                    currentLeft = Math.min(0, currentLeft + me.moveWidth);
-                } else if (dir === 'next') {
-                    // 오른쪽 방향
-                    currentLeft = Math.max(me.limitLeft, currentLeft - me.moveWidth);
-                }
-                // 애니메이트
-                me.$panel.stop().animate({
-                    'left': currentLeft
-                }, {
-                    'easing': 'easeInOutCubic',
-                    'duration': 600
-                });
-                // 왼쪽, 오른쪽 버튼의 토글링
-                if (currentLeft === 0) {
-                    me.$prevArrow.addClass('disabled').prop('disabled', true);
-                    me.$nextArrow.removeClass('disabled').prop('disabled', false);
-                } else if (currentLeft === me.limitLeft) {
-                    me.$prevArrow.removeClass('disabled').prop('disabled', false);
-                    me.$nextArrow.addClass('disabled').prop('disabled', true);
-                } else {
-                    me.$prevArrow.removeClass('disabled').prop('disabled', false);
-                    me.$nextArrow.removeClass('disabled').prop('disabled', false);
-                }
-            },
-            // 스크립트로 렌더링
-            render: function () {
-                // start: 131104_수정
-                var me = this,
-                    nowHour = parseInt(me.lastTime.split(':')[0], 10),
-                    html = '',
-                    h, t, isOn;
-
-                for (var i = 0; i < 24; i++) {
-                    h = numberUtil.zeroPad(i), t = h + ':00';
-                    isOn = (t === me._activeTime);
-                    if (!isOn && i <= nowHour) {
-                        // 이전 시간이지만, disable 하고자 하는 시간인지 여부
-                        if (me._enableTimes.indexOf(h) >= 0) {
-                            html += '<li data-time="' + t + '"><a href="#" title="' + h + '시 실시간 급상승 TOP100 페이지로 이동">' + t + '</a></li>';
-                        } else {
-                            html += '<li data-time="' + t + '"><span>' + t + '</span></li>';
-                        }
-                    } else {
-                        html += '<li data-time="' + t + '"' + (isOn ? ' class="on"' : "") + '><span>' + t + '</span></li>';
-                    }
-                }
-                // end: 131104_수정
-
-                me.$panel.html(html);
             }
-        });
 
-        jsa.bindjQuery(TimeSlider, 'timeSlider');
+            var data = [],
+                week = [];
 
-        return TimeSlider;
+            if (startOnWeek > 0) {
+                if (month == 3 && me._isLeapYear(year)) {
+                    startPrevMonth += 1;
+                }
+                if ((m = month - 1) < 1) {
+                    m = 12, y = year - 1;
+                }
+                for (var i = 1; i < startOnWeek; i++) {
+                    week.push({
+                        year: y,
+                        month: m,
+                        day: startPrevMonth + i + 1
+                    }); // ***** +1
+                }
+                if (week.length > 6) {
+                    data.push(week), week = [];
+                }
+            }
+
+            for (var i = 1; i <= last; i++) {
+                week.push({
+                    year: year,
+                    month: month,
+                    day: i
+                });
+                if (week.length > 6) {
+                    data.push(week), week = [];
+                }
+            }
+
+            if (week.length > 0 && week.length < 7) {
+                if ((m = month + 1) > 12) {
+                    m -= 12, y = year + 1;
+                }
+                for (var i = week.length, d = 1; i < 7; i++, d++) {
+                    week.push({
+                        year: y,
+                        month: m,
+                        day: d
+                    });
+                }
+            }
+            week.length && data.push(week);
+            return data;
+        },
+
+        /**
+         * 윤년 여부
+         * @param {Date} date 렌더링할 날짜 데이타 생성
+         * @return {Boolean} 윤년 여부
+         */
+        _isLeapYear: function (year) {
+            return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0))
+        }
     });
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        strUtil = core.string,
+        dateUtil = core.date,
+        numberUtil = core.number;
 
     /**
-     * 인기배틀의 인기상 후보 타임라인 모듈
-     * @class jsa.ui.Timeline
+     * @class
+     * @name jsa.ui.Paginate
+     * @description 페이징모듈
+     * @extends jsa.ui.View
      */
-    var Timeline = Class( /** @lends jsa.ui.Timeline# */ {
-        $extend: jsa.ui.View,
-        name: 'timeline',
-        defaults: {
-            arrowHeight: 48, // 40 + 8        // 아이콘 크기
-            boxTopMargin: 24 // 박스간 간격
+    ui('Paginate', /** @lends jsa.ui.Paginate# */ {
+        bindjQuery: 'paginate',
+        $statics: /** @lends jsa.ui.Paginate */ {
+            ON_CLICK_PAGE: 'paginateclickpage'
         },
-        /** 
-         * 생성자
+        defaults: {
+            pageSize: 10, // 페이지 수
+            page: 1, // 기본 페이지
+            totalCount: 0, // 전체 리스트 수
+            paramName: 'page',
+            isRenderLayout: false,
+
+            ajax: false,
+
+            firstImgSrc: 'first.gif',
+            prevImgSrc: 'prev.gif',
+            nextImgSrc: 'next.gif',
+            lastImgSrc: 'last.gif'
+        },
+
+        events: {
+            // 페이지링크 클릭
+            'click a, button': function (e) {
+                e.preventDefault();
+
+                var me = this,
+                    $btn = $(e.currentTarget),
+                    page;
+
+                if ($btn.hasClass('disable')) {
+                    return;
+                }
+
+                if ($btn.hasClass('d-paginate-first')) {
+                    // 첫 페이지
+                    page = 1;
+                } else if ($btn.hasClass('d-paginate-prev')) {
+                    // 이전 페이지
+                    page = Math.max(1, me.page - 1);
+                } else if ($btn.hasClass('d-paginate-next')) {
+                    // 다음 페이지
+                    page = Math.min(me.options.totalCount, me.page + 1);
+                } else if ($btn.hasClass('d-paginate-last')) {
+                    // 마지막 페이지
+                    page = me.options.totalCount;
+                } else {
+                    // 클릭한 페이지
+                    page = $btn.data('page');
+                }
+
+                if (me.options.ajax) {
+                    me.loadPage(page);
+                } else {
+                    me.setPage(page);
+                }
+            }
+        },
+        selectors: {},
+        /**
+         *
+         * @param el
+         * @param options
          */
         initialize: function (el, options) {
             var me = this;
 
-            if (me.supr(el, options) === false) {
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
+
+            /*if(!me.options.ajax){
+                throw new Error('ajax 옵션을 지정해 주세요.');
+            }*/
+
+            me.rowTmpl = me.$('.d-paginate-list').first().html();
+            me.$('.d-paginate-list').empty();
+
+            me._configure();
+            me._render();
+            if (me.options.ajax) {
+                me.loadPage(me.options.page);
+            } else {
+                me.setPage(me.options.page);
+            }
+
+            me.$el.show();
+        },
+
+        /**
+         * 멤버변수 초기화
+         * @private
+         */
+        _configure: function () {
+            var me = this;
+
+            me.page = 1;
+            me.currPage = 1;
+            me.totalPage = Math.ceil(me.options.totalCount / me.options.pageSize);
+        },
+
+        /**
+         * 기본 DOM 생성
+         * @private
+         */
+        _render: function () {
+            var me = this,
+                opts = me.options,
+                html = '';
+
+            if (opts.isRenderLayout) {
+                html = '<ul class="d-paginate-box">' +
+                    '<li><button class="d-paginate-first" title="첫 페이지로 이동" >' +
+                    '<img src="' + opts.firstImgSrc + '"/></button></li>' +
+                    '<li><button href="#" class="d-paginate-prev" title="이전 페이지로 이동" >' +
+                    '<img src="' + opts.prevImgSrc + '"/></button></li><li class="d-paginate-list"></li>' +
+                    '<li><button href="#" class="d-paginate-next" title="다음 페이지로 이동" >' +
+                    '<img src="' + opts.nextImgSrc + '"/></button></li>' +
+                    '<li><button href="#" class="d-paginate-last" title="마지막 페이지로 이동" >' +
+                    '<img src="' + opts.lastImgSrc + '"/></button></li></ul>';
+
+                me.$el.html(html);
+            }
+
+        },
+
+        /**
+         * 페이지 번호 DOM 생성
+         * @private
+         */
+        _renderPage: function () {
+            var me = this,
+                tmpNode = null,
+                item = null,
+                opts = me.options,
+                total = opts.totalCount,
+                nowPage, start, end;
+
+            me.$('.d-paginate-first').prop('disabled', total === 0 || me.page === 1);
+            me.$('.d-paginate-prev').prop('disabled', total === 0 || me.page <= 1);
+            me.$('.d-paginate-next').prop('disabled', total === 0 || me.page >= total);
+            me.$('.d-paginate-last').prop('disabled', total === 0 || me.page === total);
+
+            if (total <= 0) {
+                me.$el.find('.d-paginate-list').empty();
+                me.$items = null;
                 return;
             }
 
-            me.measure = {
-                left: 0,
-                center: 0,
-                right: 0
-            };
+            nowPage = Math.floor((me.page - 1) / opts.pageSize);
+            if (me.currPage !== nowPage && nowPage < me.totalPage) {
+                me.currPage = nowPage;
+                start = opts.pageSize * nowPage;
+                end = Math.min(opts.totalCount, start + opts.pageSize);
+
+                tmpNode = $('<ul>');
+                for (var i = start + 1; i <= end; i++) {
+                    item = $($.trim(me.rowTmpl.replace(/\{0\}/g, i)));
+                    item.find('.d-paginate-page').attr('data-page', i);
+                    tmpNode.append(item);
+                }
+                me.$('.d-paginate-list').empty().append(tmpNode.children());
+                me.$items = me.$('.d-paginate-page');
+                tmpNode = null;
+            }
+
+            me.$items.eq((me.page % opts.pageSize) - 1).parent().activeItem('on');
+        },
+
+        setPage: function (page) {
+            this.page = page;
+            this._renderPage();
+        },
+
+        /**
+         * ajax 호출
+         * @param {JSON} params 추가파라미터
+         * @returns {Deferred}
+         * @private
+         */
+        _ajax: function (params) {
+            var me = this,
+                opts = me.options;
+
+            if (!opts.ajax) {
+                return;
+            }
+            opts.ajax.data = $.extend({}, opts.ajax.data, params);
+            return $.ajax(opts.ajax);
+        },
+
+        /**
+         * ajax 호출 및 해당 페이지번호 활성화
+         * @param {Number} page 페이지
+         */
+        loadPage: function (page) {
+            var me = this,
+                opts = me.options;
+
+            if (page > 0) {
+                var params = {},
+                    e;
+
+                params[opts.paramName] = page;
+                me._ajax(params).done(function (res) {
+                    var data = {
+                        page: page,
+                        result: res
+                    };
+
+                    me.triggerHandler(e = $.Event('paginatecomplete'), data);
+                    if (e.isDefaultPrevented()) {
+                        return;
+                    }
+
+                    me.setPage(page);
+                    if ((!opts.ajax.dataType || opts.ajax.dataType === 'html' || data.type === 'html') && opts.listTarget) {
+                        $(opts.listTarget).html(data.result);
+                    }
+                });
+            }
+        },
+
+        /**
+         * UI 새로고침
+         * @param {JSON} options 변경할 옵션
+         */
+        update: function (options) {
+            var me = this;
+
+            me.options = $.extend({}, me.options, options);
+            me._configure();
+            me._renderPage();
+        },
+
+        release: function () {
+            var me = this;
+
+            me.callParent();
+        }
+    });
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        strUtil = core.string,
+        dateUtil = core.date,
+        numberUtil = core.number;
+
+    /**
+     * placeholder를 지원하지 않는 IE7~8상에서 placeholder효과를 처리하는 클래스
+     * @class
+     * @name jsa.ui.Placeholder
+     * @extends jsa.ui.View
+     * @example
+     * new jsa.ui.Placeholder( $('input[placeholder]'), {});
+     * // 혹은 jquery 플러그인 방식으로도 호출 가능
+     * $('input[placeholder]').placeholder({});
+     */
+    var Placeholder = ui('Placeholder', /** @lends jsa.ui.Placeholder# */ {
+        bindjQuery: 'placeholder',
+        defaults: {
+            foreColor: '',
+            placeholderClass: 'placeholder'
+        },
+        /**
+         * 생성자
+         * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
+         * @param {Object} options 옵션값
+         */
+        initialize: function (el, options) {
+            var me = this,
+                is = 'placeholder' in core.tmpInput;
+
+            if (is) {
+                return me.release();
+            }
+            if (me.callParent(el, options) === false) {
+                // 암호인풋인 경우 백그라운으로 처리
+                if (me.$el.attr('type') === 'password') {
+                    me.$el.addClass(me.options.placeholderClass);
+                } else {
+                    me.$el.val(me.$el.attr('placeholder'));
+                }
+                return me.release();
+            }
+            me.placeholder = me.$el.attr('placeholder');
+            me._foreColor = me.options.foreColor;
+
+            var isPassword = me.$el.attr('type') === 'password';
+
+            me.on('focusin click', function () {
+                if (strUtil.trim(this.value) === me.placeholder || !$.trim(this.value)) {
+                    me.$el.removeClass(me._foreColor);
+                    // 암호요소인 경우 백그라운드로 처리
+                    if (isPassword) {
+                        me.$el.removeClass(me.options.placeholderClass);
+                    }
+                    this.value = '';
+                }
+            }).on('focusout', function () {
+                if (this.value === '' || this.value === me.placeholder) {
+                    if (isPassword) {
+                        me.$el.val('').addClass(me.options.placeholderClass);
+                    } else {
+                        me.$el.val(me.placeholder).addClass(me._foreColor);
+                    }
+                }
+            }).triggerHandler('focusout');
+        },
+
+        /**
+         * placeholder 갱신(only ie9 이하)
+         */
+        update: function () {
+            var me = this;
+            me.$el.val(me.placeholder);
+        },
+
+        /**
+         * 파괴자 : 자동으로 호출되지 않으므로, 필요할 때는 직접 호출해주어야 한다.
+         */
+        destroy: function () {
+            var me = this;
+
+            me.$el.removeData();
+            me.callParent();
+        }
+    });
+
+    if (!('placeholder' in core.tmpInput)) {
+        $doc.on('submit.placeholder', 'form', function (e) {
+            $('input[placeholder], textarea[placeholder]').each(function () {
+                var $el;
+                if (($el = $(this)).attr('placeholder') === this.value) {
+                    $el.removeClass(Placeholder.prototype.defaults.foreColor);
+                    this.value = '';
+                }
+            });
+        });
+    }
+
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        browser = core.browser,
+        isTouch = browser.isTouch;
+
+    /**
+     * 커스텀스크롤이 붙은 컨텐츠담당 클래스
+     * @class
+     * @name jsa.ui.ScrollView
+     * @extends jsa.ui.View
+     * @example
+     * new ScrollView('select.d_name', {});
+     */
+    var ScrollView = ui('ScrollView', /**@lends jsa.ui.ScrollView# */ {
+        selectors: {
+
+        },
+        /**
+         * 생성자
+         * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
+         * @param {Object} options 옵션값
+         */
+        initialize: function (el, options) {
+            var me = this;
+
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
+
+            if (!me.$el.has('.d-scrollview')) {
+                me._createScrollbar();
+            }
+
+            // 스크롤 컨테이너
+            me.$scrollView = me.$('.d-scrollview');
+            // 스크롤바
+            me.$scrollBar = me.$('.d-scrollbar');
+            // 컨텐츠
+            me.$content = me.$('.d-scrollcontent');
+
+            me._configure();
+            me._isMouseEnter = false;
+            me._isMouseDown = false;
+            me.isScrollForceHide = false;
+
+            me.$scrollBar.parent().hide();
+
+            if (isTouch) {
+                // 터치기반 디바이스일 때, 터치이벤트 바인딩
+                me._bindTouch();
+            } else {
+                me._bindMouse();
+            }
 
             me.update();
         },
+
+        _createScrollbar: function () {
+            var me = this;
+
+            me.$el.append('<div class="scroll_wrap" style="display: none;">' +
+                '<div class="scroll d-scrollbar" style="height: 94px; top: 0px;">' +
+                '<div class="body" style="height: 100px;"></div>' +
+                '<div class="bottom"></div>' +
+                '</div></div>');
+        },
+
         /**
-         * 자세한 설명은 codejweb_artist.js의 timeline 모듈 참조
+         * 마우스기반 디바이스에서는 마우스 이벤트 바인딩
+         * @private
          */
-        update: function (start) {
-            start = start || 0;
+        _bindMouse: function () {
+            var me = this;
 
+            // 스크롤바 드래그 시작 준비
+            me.$scrollBar.on('mousedown', function (e) {
+                e.preventDefault();
+                if (isTouch) {
+                    e.stopPropagation();
+                }
+
+                me._isMouseDown = true;
+                me._currY = parseInt($(this).css('top'), 10);
+                me._downY = me._getY(e); // 마우스의 y 위치
+
+                // 글로벌 이벤트 등록
+                me._bindDocEvent();
+                return false;
+            });
+
+            // 스크롤 시, 커스텀스크롤바 위치 조절
+            me.$scrollView.on('scroll', function () {
+                if (!me._isMouseDown) { // 마우스휠에 의한 스크롤일 때만 스크롤바 위치 조절
+                    me.update();
+                }
+            }).on('mousewheel DOMMouseScroll', function (e) {
+                // 마우스 휠로 스크롤링 할때 내부컨텐츠 scrollTop 갱신
+                e.preventDefault();
+                e = e.originalEvent;
+                var delta = e.wheelDelta || -e.detail;
+
+                me.$scrollView.scrollTop(me.$scrollView.scrollTop() - delta);
+            });
+            // 탭키로 리스트에 접근했을 때, 스크롤바를 표시....
+            // (timer를 쓰는 이유는 포커스가 옮겨질때마다 레이아웃을 새로 그려지는 걸 방지하기 위함으로,
+            // ul내부에 포커스가 처음 들어올 때, 마지막으로 빠져나갈 때만 발생한다.)
+            me.on('focusin focusout', '.d-scrollcontent', (function () {
+                var timer = null;
+                return function (e) {
+                    clearTimeout(timer), timer = null;
+                    if (e.type === 'focusin') {
+                        !me._isMouseEnter && (timer = setTimeout(function () {
+                            me.$el.triggerHandler('mouseenter');
+                        }, 200));
+                    } else {
+                        me._isMouseEnter && (timer = setTimeout(function () {
+                            me.$el.triggerHandler('mouseleave');
+                        }, 200));
+                    }
+                };
+            })());
+
+            me.$el.on('mouseenter mouseleave', function (e) {
+                if (e.type === 'mouseenter' && !me.isScrollForceHide) {
+                    // 마우스가 컨텐츠영역 안으로 들어올 때 스크롤 위치를 계산후, 표시
+                    me._isMouseEnter = true;
+                    me._configure();
+                    me._toggleScrollbar(true);
+                } else {
+                    // 마우스가 컨텐츠영역 밖으로 벗어날 때 숨김
+                    me._isMouseEnter = false;
+                    if (!me._isMouseDown) {
+                        me._toggleScrollbar(false);
+                    }
+                }
+            });
+        },
+
+        /**
+         * 터치기반 디바이스에서는 터치이벤트 바인딩
+         * @private
+         */
+        _bindTouch: function () {
             var me = this,
-                $items = me.$el.find('>ul>li').filter(function (i) {
-                    return i >= start;
-                }), // 이후에 추가된 항목
-                items = [],
-                measure = me.measure,
-                ARROW_HEIGHT = me.options.arrowHeight,
-                BOX_TOP_MARGIN = me.options.boxTopMargin;
+                $con = me.$scrollView,
+                scrollTop = 0,
+                startY = 0;
 
-            me.$el.css('visibility', 'hidden').show(); // 정확한 사이즈계산을 위해 visibility:hidden, display:block로 변경
-            if (start === 0) {
-                measure.left = measure.center = measure.right = 0;
+            me.on('touchstart touchmove touchend touchcancel', '.d-scrollview>ul', function (e) {
+                var oe = e.originalEvent;
+                if (oe.touches.length != 1) {
+                    return;
+                }
+                var touchY = oe.touches[0].pageY;
+
+                switch (e.type) {
+                case 'touchstart':
+                    scrollTop = $con.scrollTop();
+                    startY = touchY;
+                    break;
+                case 'touchmove':
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $con.scrollTop(scrollTop + (startY - touchY));
+                    break;
+                default:
+                    break;
+                }
+            });
+        },
+
+        /**
+         * 스크롤바 드래그를 위한 글로벌 이벤트 바인딩
+         * @private
+         */
+        _bindDocEvent: function () {
+            var me = this;
+
+            $doc.off('.scrollview').on('mouseup.scrollview touchend.scrollview mousemove.scrollview touchmove.scrollview', function (e) {
+                switch (e.type) {
+                case 'mouseup':
+                case 'touchend':
+                    // 드래그 끝
+                    me._isMouseDown = false;
+                    me._moveY = 0;
+
+                    $doc.off('.scrollview');
+                    if (!me._isMouseEnter) {
+                        me._toggleScrollbar(false);
+                    }
+                    break;
+                case 'mousemove':
+                case 'touchmove':
+                    // 드래그 중
+                    me._moveY = me._getY(e);
+                    me._move(me._currY - (me._downY - me._moveY));
+
+                    e.preventDefault();
+                    break
+                }
+            });
+        },
+        /**
+         * 현 시점에 컨텐츠 길이와 컨테이너 길이를 바탕으로 스크롤바 사이즈와 위치를 재계산
+         * @private
+         */
+        _configure: function () {
+            var me = this;
+
+            me._moveY = 0;
+            me._containerHeight = me.$scrollView.height(); // 컨테이너 높이
+            me._contentHeight = me.$content.innerHeight(); // 컨텐츠 높이
+            me._scrollRate = me._containerHeight / me._contentHeight; // 스크롤 사이즈 비율
+            me._scrollBarHeight = me._containerHeight * me._scrollRate; // 스크롤바 크기
+            if (me._scrollBarHeight < 20) { // 최소 크기: 20
+                me._scrollRate = (me._containerHeight - (20 - me._scrollBarHeight)) / me._contentHeight;
+                me._scrollBarHeight = 20;
             }
+            me._scrollHeight = me._containerHeight - me._scrollBarHeight; // 실제 스크롤 영역 크기
+            me._contentTop = me.$scrollView.scrollTop(); // 현재 컨텐츠의 scrollTop
+        },
 
+        /**
+         * _configure에서 계산된 값을 바탕으로 스크롤바 위치 조절
+         * @private
+         */
+        _scrollLayout: function () {
+            var me = this;
+            // 컨텐츠가 컨테이너보다 클 경우에만...
+            if (me._contentHeight > me._containerHeight) {
+                me.$scrollBar.css({
+                    'height': me._scrollBarHeight,
+                    'top': Math.min(me._contentTop * me._scrollRate, me._scrollHeight)
+                })
+                    .children('div.body').css('height', me._scrollBarHeight - 6);
+            }
+        },
 
-            $items.each(function (i) {
-                var $li = $(this),
-                    boxHeight = $li.show().height(),
-                    align, targetTopOffset, arrowTopOffset;
+        /**
+         * 스크롤바 표시 토글링
+         * @private
+         * @param {Boolean} isShow 표시여부
+         */
+        _toggleScrollbar: function (isShow) {
+            var me = this;
+            if (me._contentHeight < me._containerHeight) {
+                me.$scrollBar.parent().hide();
+            } else {
+                me._scrollLayout();
+                me.$scrollBar.parent().toggle(isShow);
+            }
+        },
+        /**
+         * 드래그 시 호출되는 함수
+         * @private
+         * @param {Integer} top 마우스의 y 위치
+         */
+        _move: function (top) {
+            var me = this;
 
-                align = (measure.left <= measure.right) ? 'left' : 'right';
-                targetTopOffset = measure[align];
-                arrowTopOffset = Math.max(measure.center - targetTopOffset, 0);
+            top = Math.max(0, Math.min(top, me._scrollHeight));
 
-                items.push({
-                    $target: $li.hide(),
-                    css: align,
-                    top: targetTopOffset,
-                    arrowTop: arrowTopOffset
-                });
+            me.$scrollBar.css('top', top);
+            me.$scrollView.scrollTop((me._contentHeight - me._containerHeight) * (top / me._scrollHeight));
+        },
 
-                measure[align] += boxHeight + BOX_TOP_MARGIN;
-                measure.center = targetTopOffset + arrowTopOffset + ARROW_HEIGHT;
-            });
+        /**
+         * 터치이벤트, 마우스이벤트에 따른 y좌표값 반환(_bindDocEvent에서 호출됨)
+         * @param {jQuery#Event} e jquery 이벤트
+         * @return {Integer}
+         */
+        _getY: function (e) {
+            if (isTouch && e.originalEvent.touches) {
+                e = e.originalEvent.touches[0];
+            }
+            return e.pageY;
+        },
+        /**
+         * 스크롤를 다시 계산하여 표시하기
+         */
+        update: function () {
+            var me = this;
 
-            // 위에서 계산된 위치정보를 바탕으로 요소를 배치시킨다.
-            $.each(items, function (i, item) {
-                item.$target.removeClass('lc_left lc_right')
-                    .addClass('lc_' + item.css)
-                    .css({
-                        'top': item.top
-                    })
-                    .fadeIn('slow')
-                    .find('div.wrap_icon').css({
-                        'top': item.arrowTop
-                    });
-            });
+            me._configure();
+            me._scrollLayout();
 
-            // 컨텐이너의 크기를 최종적으로 배치된 높이에 맞게 변경
-            me.$el.css({
-                'visibility': '',
-                height: Math.max(measure.left, measure.right)
-            });
-            me.triggerHandler('completed');
+            return this;
         }
     });
 
-    jsa.bindjQuery(Timeline, 'timeline');
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        isTouch = core.browser.isTouch;
 
     /**
-     * 롤링카운터 모듈
-     * @class jsa.ui.RollingCounter
+     * 커스텀 셀렉트박스<br />
+     * wrapClasses: ''<br />
+     * disabledClass: 'disabled'<br />
+     *
+     * @class
+     * @name jsa.ui.Selectbox
+     * @extends jsa.ui.View
      */
-    var RollingCounter = Class( /** @lends jsa.ui.RollingCounter# */ {
-        name: 'RollingCounter',
-        $extend: jsa.ui.View,
+    var Selectbox = ui('Selectbox', /** @lends jsa.ui.Selectbox# */ {
+        bindjQuery: 'selectbox',
         $statics: {
-            ON_ROLLING_END: 'rollingcounterend'
+            ON_CHANGED: 'selectboxchanged'
         },
-        defaults: {
-            height: 75, // 높이
-            duration: 1000, // 애니메이션 duration
-            delay: 300, // 자릿수간에 애니메이션 간격
-            easing: 'easeInOutQuart'
-        },
-        initialize: function (el, options) {
-            var me = this;
-
-            if (me.supr(el, options) === false) {
-                return;
-            }
-
-            me._$items = [].reverse.call(me.$el.find('>span')); // 숫자에 해당하는 각 요소를 찾아서 거꾸로 정렬시켜서 가지고 있는다.(일단위부터 애니메이션을 시작)
-            me._numbers = (me.$el.attr('data-value') || parseInt(me.$el.text() || 0)) + ""; // 뿌려질 숫자값
-
-            me.start();
-        },
-        // 시작
-        start: function () {
-            var me = this,
-                opts = me.options,
-                numbers = [].reverse.call(me._numbers.split('')).join(''), // 숫자를 거꾸로 정렬
-                cssUtil = jsa.css,
-                ease = opts.easing,
-                len = numbers.length;
-
-            me._$items.attr('style', 'background-position:0 75px').stop(true).each(function (i) {
-                if (i >= len) {
-                    return false;
-                }
-
-                var $el = $(this),
-                    n = parseInt(numbers.substr(i, 1), 10), // i번째 숫자를 가져옴
-                    y = ((n * opts.height) + 750); // n에 해당하는 top를 계산
-
-                $el.data('number', n); // n를 보관(동일한 숫자일 때 애니메이트를 안하기 위함)
-                $el.delay(i * opts.delay).queue(function () {
-                    // ie9, firefox에서 backgroundPosition에 대한 animate기능이 문제가 있어서 트릭으로 구현
-                    $el.prop({
-                        ypos: -y
-                    }).stop().animate({
-                        ypos: 0
-                    }, {
-                        duration: opts.duration,
-                        easing: opts.easing,
-                        step: function (now) {
-                            $el.css('background-position', '0 ' + (y + now + 75) + 'px');
-                        }
-                    });
-                    $el.dequeue(); // 큐를 제거
-                });
-                $el.children().html(n);
-            });
-        },
-        // 업데이트
-        // @param {Interger} newNumber 새로운 숫자값
-        // $('..').rollingCounter('update', 1234); 로 호출하면 숫자가 변경됨
-        update: function (newNumber) {
-            var me = this;
-
-            me.$el.attr('data-value', newNumber)
-            me._numbers = newNumber + "";
-            me._$items.attr('style', 'background-position:0 75px').children().html(0);
-            me.start();
-        }
-    });
-    jsa.bindjQuery(RollingCounter, 'rollingCounter');
-
-
-    // 시간 타이머
-    var TimeCountdown = Class({
-        name: 'TimeCountdown',
-        $extend: jsa.ui.View,
-        $statics: {
-            ON_TIMER_END: 'timecountdownend'
-        },
-        defaults: {
-            height: 75,
-            duration: 400,
-            easing: 'easeInOutQuart',
-            serverTime: 0,
-            limits: [9, 5, 9, 5, 9, 9] // 각 요소별 최대수(초단위, 십초단위, 분단위, 십분단위, 시단위, 열시단위]
-        },
-        initialize: function (el, options) {
-            var me = this;
-
-            if (me.supr(el, options) === false) {
-                me.destroy();
-                return;
-            }
-
-            me._time = jsa.date.parseDate(me.options.time);
-            me._timeGap = (+new Date) - me.options.serverTime; // 서버와 로컬의 시간차를 가지고 타이머를 시작한다.(보다 정확한 타이밍을 위해)
-            me._$items = [].reverse.call(me.$el.find('>span')); // 숫자 노드를 찾아서 거꾸로 정렬
-
-            me._init();
-            me._timer();
-        },
-
-        // 초기 시간을 셋팅
-        _init: function () {
-            var me = this,
-                time = me._time.getTime() - (+new Date) + me._timeGap;
-
-            if (time < 0) {
-                return;
-            }
-
-            var numbers = me._convertReverseTime(time);
-            me._$items.css('background-position', '0 75px').data('number', 0).children().html(0); // 초기화(0위치로 설정)
-            me._$items.each(function (i) {
-                if (i >= numbers.length) {
-                    return false;
-                } // 자릿수까지 왔으면 멈춘다.(더이상의 처리는 무의미하므로...)
-
-                var $el = me._$items.eq(i),
-                    n = parseInt(numbers.substr(i, 1), 10); // 자릿수에 해당하는 수를 추출
-
-                if (n == $el.data('number')) {
-                    return;
-                } // 현재 표시된 수와 동일하면 무시
-                // n에 해당하는 백그라운드 위치를 지정
-                $el.data('number', n).css('background-position', '0 ' + ((n + 1) * me.options.height) + 'px').children().html(n);
-            });
-        },
-        // 타이머 실행
-        _timer: function () {
-            var me = this,
-                time = me._time.getTime();
-
-            // 완료
-            if (time < 0) {
-                me.$el.triggerHandler(TimeCountdown.ON_TIMER_END);
-                clearInterval(me.interval);
-                return;
-            }
-
-            // interval은 시간이 지날수록 오차가 커지므로, 로컬시간+서버시간과의 갭을 기준으로 잔여시간 계산
-            me.interval = setInterval(function () {
-                var now = time - (+new Date) + me._timeGap;
-                if (now <= 0) {
-                    clearInterval(me.interval);
-                    me.$el.triggerHandler(TimeCountdown.ON_TIMER_END);
-                } else {
-                    me._update(now);
-                }
-            }, 200);
-        },
-        // 밀리초인 amount를 시분초로 변환한 후, 역으로 정렬
-        _convertReverseTime: function (amount) {
-            var zeroPad = jsa.number.zeroPad,
-                days = 0,
-                hours = 0,
-                mins = 0,
-                secs = 0;
-
-            amount = amount / 1000;
-            days = Math.floor(amount / 86400), amount = amount % 86400;
-            hours = Math.floor(amount / 3600), amount = amount % 3600;
-            mins = Math.floor(amount / 60), amount = amount % 60;
-            secs = Math.floor(amount);
-
-            return [].reverse.call((zeroPad(hours + (24 * days)) + zeroPad(mins) + zeroPad(secs)).split('')).join('');
-        },
-        // 애니메이트 수행
-        _update: function (time) {
-            var me = this,
-                opts = me.options,
-                limits = opts.limits,
-                numbers = me._convertReverseTime(time);
-
-            me._$items.each(function (i) {
-                // 주어진 값의 자릿수까지 왔으면 멈춘다.
-                if (i >= numbers.length) {
-                    return false;
-                }
-
-                var $el = me._$items.eq(i),
-                    no = $el.data('number'),
-                    n = parseInt(numbers.substr(i, 1), 10),
-                    y; // i번째 숫자를 가져옴
-
-                if (n == no) {
-                    return;
-                } // 현재 표시된 숫자와 동일하면 무시함
-                $el.data('number', n).children().html(n);
-                y = (n + 1) * opts.height;
-
-                // ie9, firefox에서 backgroundPosition에 대한 animate기능이 문제가 있어서 트릭으로 구현
-                $el.prop('ypos', -75).stop().animate({
-                    ypos: 0
-                }, {
-                    duration: opts.duration,
-                    easing: opts.easing,
-                    step: function (now) {
-                        $el.css('background-position', '0 ' + (y - now) + 'px');
-                    },
-                    complete: function () {
-                        // 한바퀴 돌았으면 다시 원위치 시킨다.
-                        if (y === 0) {
-                            $el.attr('style', 'background-position:0 ' + ((limits[i] + 2) * 75) + 'px');
-                        }
-                    }
-                });
-            });
-        }
-    });
-    jsa.bindjQuery(TimeCountdown, 'timeCountdown');
-
-    jsa.define('ui.Tiles', function () {
-
-        // 소식함 타일 클래스
-        var Tiles = Class({
-            $extend: View,
-            name: 'tiles',
-            defaults: {
-                itemWidth: 310,
-                space: 18,
-                scrollLoad: false,
-                itemSelector: 'div.wrap_feed_cntt'
-            },
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                me.init();
-                me._configure();
-                me.update();
-            },
-            // 기본작업
-            init: function () {
-                var me = this,
-                    timer = null,
-                    getDocHeight = jsa.util.getDocHeight;
-
-                // 스크롤을 내릴때 새로 추가된 노드에 대해서 재배치
-                me.options.scrollLoad && $(window).on('scroll.tiles', function () {
-                    clearTimeout(timer);
-                    timer = setTimeout(function () {
-                        var clientHeight = $(this).height(),
-                            scrollTop = $(this).scrollTop(),
-                            docHeight = getDocHeight();
-
-                        if (docHeight - 100 < clientHeight + scrollTop) {
-                            me.update(me.$el.find(me.options.itemSelector).length);
-                        }
-                    }, 400);
-                });
-            },
-            // 갯수, 컬럼 계산
-            _configure: function () {
-                var me = this,
-                    opts = me.options;
-
-                me._width = me.$el.width(); // 컨테이너 너비
-                me._itemWidth = opts.itemWidth + opts.space; // 아이템 너비
-                me._colCount = Math.ceil(me._width / me._itemWidth); // 열 갯수
-
-                // 컬럼당 height를 0으로 초기화
-                me._colsHeight = [];
-                for (var i = 0; i < me._colCount; i++) {
-                    me._colsHeight[i] = 0;
-                }
-            },
-            // 렬 중에서 가장 짧은 렬 반환
-            _getMinCol: function () {
-                var heights = this._colsHeight,
-                    col = 0;
-                for (var i = 0, len = heights.length; i < len; i++) {
-                    if (heights[i] < heights[col]) {
-                        col = i;
-                    }
-                }
-                return col;
-            },
-
-            // 렬 중에서 가장 긴 렬 반환
-            _getMaxCol: function () {
-                var heights = this._colsHeight,
-                    col = 0;
-                for (var i = 0, len = heights.length; i < len; i++) {
-                    if (heights[i] > heights[col]) {
-                        col = i;
-                    }
-                }
-                return col;
-            },
-            // 요소배치 수행
-            // @param {Integer} start start번째 요소부터 배치수행(ajax에 의해 append된 요소부터 배치시키기 위함)
-            update: function (start) {
-                start = start || 0;
-
-                var me = this,
-                    space = me.options.space, // 박스간 간격
-                    boxes = me.$el.find(me.options.itemSelector).filter(function (i) {
-                        return i >= start;
-                    }); // start이후의 요소를 필터링
-
-                me.$el.css('visibility', 'hidden').show();
-
-                boxes.each(function (i) {
-                    var $this = $(this),
-                        thisWidth = $this.width(),
-                        thisHeight = $this.height(),
-                        isBigItem = thisWidth > me._itemWidth,
-                        col, top;
-
-                    col = me._getMinCol(); // 젤 짧은 렬 검색
-                    top = me._colsHeight[col];
-
-                    // 두칸짜리이고 전체너비를 초과하는 경우에, 다음 행에 표시
-                    if (isBigItem) {
-                        if (col === me._colCount - 1) {
-                            col = 0;
-                        }
-
-                        if (me._colsHeight.length > col) {
-                            top = Math.max(me._colsHeight[col], me._colsHeight[col + 1]);
-                            me._colsHeight[col + 1] = top + thisHeight + space;
-                        }
-                    }
-                    // 컬럼마다 요소를 배치시키고, top+height를 기록(다음 요소의 top를 계산할 때 기준이 된다)
-                    me._colsHeight[col] = top + thisHeight + space;
-
-                    // 배치
-                    // start: 131128
-                    $this.css({
-                        'top': top,
-                        'left': col * me._itemWidth
-                    });
-                    // end: 131128
-                });
-
-                col = me._getMaxCol(me._colsHeight);
-                me.$el.css({
-                    'height': me._colsHeight[col] - space,
-                    'visibility': ''
-                });
-                // start: 131128
-                boxes.fadeIn();
-                // end: 131128
-            }
-        });
-
-        jsa.bindjQuery(Tiles, 'tiles');
-        return Tiles;
-    });
-
-    jsa.define('ui.Search.KeywordRolling', function () {
-        var KeywordRolling = Class({
-            name: 'KeywordRolling',
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SLIDE_END: 'slideend'
-            },
-            defaults: {
-                start: 0,
-                interval: 3000,
-                useFade: true,
-                autoStart: true
-            },
-            selectors: {
-                items: 'ol>li',
-                btnPlay: 'button.btn_keywd_control.play',
-                btnPause: 'button.btn_keywd_control.stop',
-                btnPrev: 'button.btn_keywd_control.pre',
-                btnNext: 'button.btn_keywd_control.next',
-                indicators: 'a.d_indicator'
-            },
-            events: {
-                'click div.keywd_control button': function (e) {
-                    e.preventDefault();
-                    var me = this,
-                        $this = $(e.currentTarget);
-
-                    if ($this.hasClass('pre')) {
-                        me.prev();
-                    } else if ($this.hasClass('stop')) {
-                        me.stop();
-                        me.$btnPlay.focus();
-                    } else if ($this.hasClass('play')) {
-                        me.play();
-                        me.$btnPause.focus();
-                    } else if ($this.hasClass('next')) {
-                        me.next();
-                    }
-                }
-            },
-            initialize: function (el, options) {
-                var me = this;
-                if (me.supr(el, options) === false) {
-                    me.destroy();
-                    return;
-                }
-                me._current = 0;
-                me._count = me.$items.length;
-                me._isMouseOver = false;
-                me._isPlay = true;
-                me._isMouseOver = false;
-
-                if (me._count === 0) {
-                    me.destroy();
-                    return;
-                }
-
-                me.on('mouseenter', 'li', function (e) {
-                    me.select($(this).index());
-                }).on('mouseenter focusin mouseleave focusout', function (e) {
-                    switch (e.type) {
-                    case 'mouseenter':
-                    case 'focusin':
-                        me._isMouseOver = true;
-                        break;
-                    case 'mouseleave':
-                    case 'focusout':
-                        me._isMouseOver = false;
-                        break;
-                    }
-                });
-
-                me.select(me.options.start);
-                me.options.autoStart && me.play();
-            },
-            select: function (index) {
-                var me = this;
-                if (index < 0) {
-                    index = me._count - 1;
-                } else if (index >= me._count) {
-                    index = 0;
-                }
-
-                me.$items.removeClass('on').eq(index).addClass('on');
-                me.$indicators.removeClass('on').eq(index).addClass('on');
-                me._current = index;
-
-                me.triggerHandler('slideend', [index]);
-            },
-            play: function () {
-                var me = this;
-                if (me.timer) {
-                    return;
-                }
-
-                me.timer = setInterval(function () {
-                    if (me._isMouseOver) {
-                        return;
-                    }
-                    me.next();
-                }, me.options.interval);
-
-                me._isPlay = true;
-
-                me.$btnPlay.hide();
-                me.$btnPause.show();
-                me.triggerHandler('play');
-            },
-            stop: function () {
-                var me = this;
-                if (me.timer) {
-                    clearInterval(me.timer);
-                    me.timer = null;
-                }
-
-                me._isPlay = false;
-
-                me.$btnPlay.show();
-                me.$btnPause.hide();
-                me.triggerHandler('stop');
-            },
-            prev: function () {
-                var me = this;
-
-                me.select(me._current - 1);
-            },
-            next: function () {
-                var me = this;
-
-                me.select(me._current + 1);
-            }
-        });
-
-        //code.bindjQuery(KeywordRolling, 'KeywordRolling');
-
-        return KeywordRolling;
-    });
-
-    jsa.define('ui.SpyScroller', function () {
         /**
-         * SCROLL 추척 메뉴
-         * @class
-         * @name jsa.ui.SpyScroller
-         * @example
-         * new jsa.ui.SpyScroller('#nav');
-         * // or
-         * $('#nav').spyScroller();
+         * 옵션
+         * @property {JSON}
          */
-        var SpyScroller = Class({
-            name: 'SpyScroller',
-            $extend: jsa.ui.View,
-            defaults: {
-                activeClass: 'on',
-                offset: 43,
-                duration: 300,
-                easing: 'easeInQuart',
-                zIndex: 9999
-            },
-            selectors: {
-                items: 'a'
-            },
-            /**
-             * 생성자
-             * @function
-             * @name jsa.ui.SpyScroller#initialize
-             */
-            initialize: function (el, options) {
-                var me = this;
+        defaults: {
+            wrapClasses: '',
+            disabledClass: 'disabled'
+        },
+        /**
+         * 생성자
+         * @param {jQuery|Node|String} el 대상 엘리먼트
+         * @param {JSON} options {Optional} 옵션
+         */
+        initialize: function (el, options) {
+            var me = this;
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
+            me._create();
+        },
 
-                me.supr(el, options);
+        /**
+         * select 컨트롤을 기반으로 UI DOM 생성
+         * @private
+         */
+        _create: function () {
+            var me = this,
+                cls = me.$el.attr('data-class') || 'select_type01',
+                timer = null;
 
-                me.$panels = $([]);
-                me.$items.each(function (i) {
-                    me.$panels.push($($(this).attr('href')));
+            me.width = parseInt(me.$el.css('width'), 10);
+            // 셀렉트박스
+            me.$selectbox = $('<div class="' + cls + '"></div>').addClass(me.options.wrapClasses);
+            me.$selectbox.insertAfter(me.$el.hide());
+
+            me._createLabel();
+            me._createList();
+
+            me.$selectbox.on('selectboxopen selectboxclose', function (e) {
+                e.stopPropagation();
+
+                // 리스트가 열리거나 닫힐 때 zindex 처리
+                var zindexSelector = me.$el.attr('data-zindex-target'),
+                    $zIndexTargets = zindexSelector ? me.$el.parents(zindexSelector) : false;
+
+                if (e.type === 'selectboxopen') {
+                    me.$label.addClass('open');
+                    me.$el.closest('div.select_wrap').addClass('on');
+                    $zIndexTargets && $zIndexTargets.addClass('on');
+
+                    isTouch && $('body').on('touchend.selectbox', function () {
+                        me.close();
+                    });
+                } else {
+                    me.$label.removeClass('open');
+                    me.$el.closest('div.select_wrap').removeClass('on');
+                    $zIndexTargets && $zIndexTargets.removeClass('on');
+                    clearTimeout(timer), timer = null;
+
+                    isTouch && $('body').off('touchend.selectbox');
+                }
+            });
+
+            // 비터치 기반일 때에 대한 이벤트 처리
+            if (!isTouch) {
+                // 셀렉트박스에서 포커스가 벗어날 경우 자동으로 닫히게
+                me.$selectbox.on('focusin focusout', function (e) {
+                    clearTimeout(timer), timer = null;
+                    if (e.type === 'focusout' && me.$label.hasClass('open')) {
+                        timer = setTimeout(function () {
+                            me.close();
+                        }, 100);
+                    }
+                }).on('keydown', function (e) {
+                    if (e.keyCode === core.keyCode.ESCAPE) {
+                        me.close();
+                        me.$label.focus();
+                    }
                 });
-                if (me.$panels.length === 0) {
+            } else {
+                me.$selectbox.on('touchend', function (e) {
+                    e.stopPropagation();
+                });
+            }
+
+            me.$el.on('change.selectbox', function (e) {
+                me.selectedIndex(this.selectedIndex, false);
+            });
+
+            me.$el.closest('form').on('reset', function () {
+                me.update();
+            });
+
+            me.update();
+        },
+
+        /**
+         * 레이블 생성
+         * @private
+         */
+        _createLabel: function () {
+            var me = this;
+
+            me.$label = $('<span class="select_box" tabindex="0" title="' + (me.$el.attr('title') || '셀렉트박스') + '"><span class="sel_r" style="width:190px;">&nbsp;</span></span>');
+            me.$label.on('click', '.sel_r', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (me === Selectbox.active) {
+                    me.close();
                     return;
                 }
 
+                if (!me.$label.hasClass(me.options.disabledClass)) {
+                    // 현재 셀렉트박스가 열려있으면 닫고, 닫혀있으면 열어준다.
+                    if (me.$label.hasClass('open')) {
+                        me.close();
+                    } else {
+                        me.open();
+                    }
+                }
+            });
 
-                me.$el.css('zIndex', 100);
-                me.$parent = me.$el.parent();
-                me.$body = $('html, body');
-                me.defaultId = me.$panels.get(0)[0].id;
-                me.minScroll = me.$panels.get(0).offset().top;
-                me.originalPos = me.$el.offset();
-                me.parentPadding = parseInt(me.$parent.css('paddingLeft'), 10);
-                me.$tmpEl = $('<div class="' + me.$el[0].className + '" style="height:' + me.$el.height() + 'px;display:none"></div>');
-                me.$tmpEl.insertAfter(me.$el);
+            // 키보드에 의해서도 작동되도록 바인딩
+            !isTouch && me.$label.on('keydown', function (e) {
+                if (e.keyCode === 13) {
+                    $(this).find('.sel_r').trigger('click');
+                } else if (e.keyCode === core.keyCode.DOWN) {
+                    me.open();
+                    me.$list.find(':focusable:first').focus();
+                }
+            });
+            me.$label.find('.sel_r').css('width', me.width);
+            me.$selectbox.append(me.$label);
+        },
 
-                me._initSpyScroller();
-                me.onScrolling();
-            },
+        /**
+         * 리스트 생성
+         * @private
+         */
+        _createList: function () {
+            var me = this;
 
-            /**
-             * 초기화 작업 수행: window.onscroll 바인딩, 메뉴 클릭 바인딩, 공간유지를 위한 빈복제본 생성
-             * @function
-             * @private
-             * @name jsa.ui.SpyScroller#_initSpyScroller
-             */
-            _initSpyScroller: function () {
-                var me = this,
-                    ns = me.getEventNamespace();
+            me.$list = $('<div class="select_open" style="position:absolute;" tabindex="0"></div>');
+            me.$list.hide().on('click', function (e) {
+                me.$list.focus();
+            }).on('click', 'li>a', function (e) {
+                // 아이템을 클릭했을 때
+                e.preventDefault();
+                e.stopPropagation();
 
-                me.$scrollEl = $win.off(ns).on('resize' + ns + ' scroll' + ns, me.onScrolling.bind(me));
+                me.selectedIndex($(this).parent().index());
+                me.close();
+                me.$label.focus();
+            }).on('mousedown', 'li>a', function () {
+                this.focus();
+            });
 
-                me.$el.on('click', 'a', function (e) {
+            !isTouch && me.$list.on('keydown', 'li a', function (e) {
+                // 키보드의 위/아래 키로 이동
+                var index = $(this).parent().index(),
+                    items = me.$list.find('li'),
+                    count = items.length;
+
+                switch (e.keyCode) {
+                case core.keyCode.UP:
+                    e.stopPropagation();
                     e.preventDefault();
-                    var $el = $(this),
-                        href = $el.data('target') || $el.attr('href'),
-                        $href = $(href);
+                    items.eq(Math.max(0, index - 1)).children().focus();
+                    break;
+                case core.keyCode.DOWN:
+                    e.stopPropagation();
+                    e.preventDefault();
+                    items.eq(Math.min(count - 1, index + 1)).children().focus();
+                    break;
+                }
+            });
+            me.$selectbox.append(me.$list);
+        },
 
-                    if ($href.length === 0) {
+        /**
+         * 리스트 표시
+         */
+        open: function () {
+            var me = this,
+                scrollTop = $win.scrollTop(),
+                winHeight = $win.height(),
+                offset = me.$selectbox.offset(),
+                listHeight = me.$list.height();
+
+            Selectbox.active && Selectbox.active.close();
+
+            me.$list.css('visibility', 'hidden').show();
+            if (offset.top + listHeight > scrollTop + winHeight) {
+                me.$list.css('marginTop', (listHeight + me.$selectbox.height()) * -1);
+            } else {
+                me.$list.css('marginTop', '');
+            }
+
+            me.$list.css('visibility', '');
+            me.$selectbox.triggerHandler('selectboxopen');
+            Selectbox.active = me;
+            $doc.on('click.selectbox', function (e) {
+                Selectbox.active && Selectbox.active.close();
+            });
+        },
+
+        /**
+         * 리스트 닫기
+         */
+        close: function () {
+            var me = this;
+
+            me.$list.hide(), me.$selectbox.triggerHandler('selectboxclose');
+            $doc.off('.selectbox');
+            Selectbox.active = null;
+        },
+
+        /**
+         * index에 해당하는 option항목을 선택
+         *
+         * @param {Number} index 선택하고자 하는 option의 인덱스
+         * @param {Boolean} trigger change이벤트를 발생시킬 것인지 여부
+         */
+        selectedIndex: function (index, trigger) {
+            if (arguments.length === 0) {
+                return this.$el[0].selectedIndex;
+            }
+
+            var me = this,
+                item = me.$el.find('option')
+                    .prop('selected', false).removeAttr('selected')
+                    .eq(index).prop('selected', true).attr('selected', 'selected');
+
+            if (trigger !== false) {
+                me.trigger('change', {
+                    selectedIndex: index
+                });
+            }
+
+            me.$list.find('li').removeClass('on').eq(index).addClass('on');
+            me.$label.children().text(item.text());
+        },
+
+        /**
+         * value 에 해당하는 option항목을 선택, 인자가 없을땐 현재 선택되어진 value를 반환
+         *
+         * @param {String} index 선택하고자 하는 option의 인덱스
+         * @param {Boolean} trigger change이벤트를 발생시킬 것인지 여부
+         * @return {String}
+         * @example
+         * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
+         *
+         * $('#sel').selectbox('value', 2);
+         * value = $('#sel').selectbox('value'); // = $('#sel')[0].value 와 동일
+         */
+        value: function (_value) {
+            var me = this;
+
+            if (arguments.length === 0) {
+                return me.$el[0].options[me.$el[0].selectedIndex].value;
+            } else {
+                core.each(me.$el[0].options, function (item, i) {
+                    if (item.value == _value) {
+                        me.selectedIndex(i);
                         return false;
                     }
-
-                    var top = $href.offset().top;
-                    me.$body.stop().animate({
-                        scrollTop: top - me.options.offset
-                    }, {
-                        duration: me.options.duration,
-                        easing: me.options.easing,
-                        complete: function () {
-                            //location.hash = href;
-                        }
-                    });
                 });
+            }
+        },
+        /**
+         * 동적으로 select의 항목들이 변경되었을 때, UI에 반영
+         *
+         * @example
+         * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
+         *
+         * $('#sel')[0].options[2] = new Option(3, 3);
+         * $('#sel')[0].options[3] = new Option(4, 4);
+         * $('#sel').selectbox('update');
+         */
+        update: function (list) {
+            var me = this,
+                opts = me.options,
+                html = '',
+                index = -1,
+                text = '';
 
-            },
+            if (core.isArray(list)) {
+                // list 값이 있으면 select를 갱신시킨다.
+                me.el.options.length = 1;
+                core.each(list, function (item, i) {
+                    me.el.options.add(new Option(item.text || item.value, item.value));
+                });
+            }
 
-            /**
-             * window.onscroll 핸들러
-             * @function
-             * @name jsa.ui.SpyScroller#onScrolling
-             */
-            onScrolling: function (e) {
+            // select에 있는 options를 바탕으로 UI를 새로 생성한다.
+            core.each(core.toArray(me.$el[0].options), function (item, i) {
+                if ($(item).prop('selected')) {
+                    index = i;
+                    text = item.text;
+                }
+                html += '<li><a href="#" data-value="' + item.value + '" data-text="' + item.text + '">' + item.text + '</a></li>';
+            });
+            me.$list.empty().html('<ul>' + html + '</ul>').find('li:eq(' + index + ')').addClass('on');
+            me.$label.children().text(text);
+
+            if (me.$el.prop('disabled')) {
+                me.$label.addClass(opts.disabledClass).removeAttr('tabIndex');
+            } else {
+                me.$label.removeClass(opts.disabledClass).attr('tabIndex', 0);
+            }
+        },
+
+        /**
+         * 소멸자
+         */
+        release: function () {
+            var me = this;
+
+            me.callParent();
+            me.$label.off().remove();
+            me.$list.off().remove();
+            me.$el.unwrap('<div></div>');
+            me.$el.off('change.selectbox').show();
+        }
+    });
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $win = core.$win,
+        $doc = core.$doc,
+        strUtil = core.string,
+        dateUtil = core.date,
+        numberUtil = core.number;
+
+    /**
+     * @class
+     * @name jsa.ui.Tab
+     * @description 페이징모듈
+     * @extends jsa.ui.View
+     */
+    ui('Tab', /** @lends jsa.ui.Tab# */ {
+        bindjQuery: 'tab',
+        $statics: /** @lends jsa.ui.Tab */ {
+            ON_TAB_CHANGED: 'tabchanged'
+        },
+        defaults: {
+            selectedIndex: 0,
+            onClassName: 'on'
+        },
+
+        events: {
+            // 페이지링크 클릭
+            'click >ul>li>a': function (e) {
+                e.preventDefault();
+
                 var me = this,
-                    scrollTop = me.$scrollEl.scrollTop(),
-                    scrollLeft = me.$scrollEl.scrollLeft(),
-                    scrollTopOffset = scrollTop + me.options.offset,
-                    scrollHeight = me.$scrollEl[0].scrollHeight || me.$body[0].scrollHeight,
-                    maxScroll = scrollHeight - me.$scrollEl.height(),
-                    activeId = me.activeId,
-                    $panels = me.$panels,
-                    $p, id = me.defaultId,
-                    style = {};
+                    $btn = $(e.currentTarget),
+                    index = $btn.parent().index();
 
-                if (me.originalPos.top < scrollTop) {
-                    if (!me.fixed) {
-                        me.$el.css({
-                            position: 'fixed',
-                            zIndex: me.options.zIndex,
-                            top: 0
-                        });
-                        me.$tmpEl.show();
-                    }
-                    me.fixed = true;
-                    if (scrollLeft > 0) {
-                        me.$el.css('left', me.$parent.offset().left - scrollLeft + me.parentPadding);
-                    } else {
-                        me.$el.css('left', '');
-                    }
-                } else {
-                    if (me.fixed) {
-                        me.$el.css({
-                            position: '',
-                            zIndex: '',
-                            top: '',
-                            left: ''
-                        });
-                        me.$tmpEl.hide();
-                    }
-                    me.fixed = false;
-                    me.activate(me.defaultId);
-                    return;
-                }
+                me.selectTab(index);
+            }
+        },
+        selectors: {
+            tab: '>ul>li'
+        },
+        /**
+         *
+         * @param el
+         * @param options
+         */
+        initialize: function (el, options) {
+            var me = this;
 
-                if (scrollTop >= maxScroll) {
-                    return activeId !== (id = $panels.last().get(0)[0].id) && me.activate(id);
-                }
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
 
-                for (var i = 0, len = $panels.size(); i < len; i++) {
-                    $p = $panels.get(i);
-                    if ($p.offset().top > scrollTopOffset) {
-                        break;
-                    }
-                    id = $p[0].id;
+            me.selectTab(me.options.selectedIndex);
+        },
+
+        selectTab: function (index) {
+            var me = this;
+
+            me.selectedIndex = index;
+            me.$tab.eq(index).activeItem(me.options.onClassName);
+            me.triggerHandler('tabchanged', {
+                selectedIndex: index
+            });
+        }
+    });
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    var $win = core.$win,
+        $doc = core.$doc,
+        $body = core.$body;
+
+
+    /**
+     * 아코디언  이벤트
+     * @name ui.AccordionListEvent
+     * @class AccordionListEvent Class
+     */
+    core.define("ui.AccordionListEvent", {
+        /** @lends ui.AccordionListEvent */
+        /** @property { String } EXPAND 리스트 열기  */
+        EXPAND: "expand",
+        /** @property { String } FOLD 리스트 닫기  */
+        FOLD: "fold",
+        /** @property { String } EXPAND 리스트 열림*/
+        EXPANDED: "expanded",
+        /** @property { String } EXPAND 리스트 닫힘*/
+        FOLDED: "folded"
+    });
+
+
+    /**********************************************************************************************
+     *
+     * AccordionList
+     *
+     **********************************************************************************************/
+
+    /**
+     * ...
+     * @class
+     * @name ui.AccordionList
+     */
+    ui('AccordionList', /**@lends ui.AccordionList# */ {
+        bindjQuery: 'accordion',
+        $statics: /**@lends ui.AccordionList */ {
+
+        },
+
+        $mixins: [ui.Listener],
+
+        defaults: {
+            selectedClass: "on",
+            disabledTitleClass: "disable",
+            noneClass: "none",
+            isSlideType: false,
+            slideTime: 300,
+            foldOthers: true,
+            defaultOpenIndex: -1
+        },
+
+        selectors: {
+            list: ".d-accord-content",
+            toggleClassTarget: ".d-accord-content",
+            toggleButton: ".d-toggle-button",
+            content: ".cont"
+        },
+
+        events: {},
+
+        /**
+         *
+         * @param el
+         * @param options
+         */
+        initialize: function (el, options) {
+            if (this.callParent(el, options) === false) {
+                return;
+            }
+            this.isAniComplete = true;
+            this.currentIndex;
+            this.$contentList;
+
+            if (this.options.isSlideType == "false") {
+                this.options.isSlideType = false
+            }
+
+            if (this.options.defaultOpenIndex != -1) {
+                this._visibleExpand(this.options.defaultOpenIndex);
+            }
+
+            this._setHandlerOption();
+            this._bindEvent();
+        },
+
+        /**
+         * _option.isSlideType에 따라 핸들러 함수 설정
+         * @private
+         */
+        _setHandlerOption: function () {
+            this.fold = this._visibleFold;
+            this.expand = this._visibleExpand;
+            if (this.options.isSlideType) {
+                this.fold = this._slideFold;
+                this.expand = this._slideExpand;
+            }
+        },
+
+        /**
+         * 이벤트 바인딩
+         * @private
+         */
+        _bindEvent: function () {
+            var me = this;
+            var gnbTimer = undefined;
+            var clicked = false;
+            var isTouch = jsa.browser.isTouch;
+
+            function setClickedTimer() {
+                clicked = true;
+                clearTimeout(gnbTimer);
+                gnbTimer = setTimeout(function () {
+                    clicked = false;
+                }, 500);
+            }
+
+            var count = 0;
+            this.$el.on("click dblclick", this.selectors.toggleButton, function (e) {
+                if (isTouch && clicked) {
+                    e.preventDefault();
+                    return
                 };
 
-                if (activeId !== id) {
-                    me.activate(id);
+                if (isTouch) {
+                    setClickedTimer();
                 }
-            },
 
-            /**
-             * 파괴자 :
-             * @function
-             * @name jsa.ui.SpyScroller#destroy
-             */
-            destroy: function () {
-                var me = this;
-
-                me.supr();
-                $win.off(me.getEventNamespace());
-                me.$tmpEl.remove();
-            },
-
-            /**
-             * 현재 화면안에 들어와 있는 영역의 해당 메뉴를 활성화 시켜준다.
-             * @function
-             * @name jsa.ui.SpyScroller#activate
-             */
-            activate: function (id) {
-                var me = this,
-                    activeClass = me.options.activeClass,
-                    active;
-
-                me.activeId = id;
-                me.$items
-                    .parent('li')
-                    .removeClass(activeClass);
-
-                active = me.$items.filter('[href=#' + id + ']')
-                    .parent('li')
-                    .addClass(activeClass);
-                // TODO
-                me.trigger('activate', [active]);
-            }
-        });
-
-        jsa.bindjQuery(SpyScroller, 'spyScroller');
-
-        return SpyScroller;
-    });
-
-
-    // 아티스트 파인더 모듈
-    jsa.define('ui.ArtistFinder', function () {
-
-        // 각 장르에 해당하는 세부장르 셋팅
-        // 가요 : 0101, 팝 : 0201, OST : 0301, 일본음악 : 0401, 클래식 : 0501, CCM : 0601, 어린이 : 0701, 뉴에이지 : 0801, 재즈 : 0901, 월드 : 1001, 종교음악 : 1101, 국악 : 1201, 중국음악 : 1301
-        var genres = {
-            '0101': [{
-                'cd': '0102',
-                'name': '발라드'
-            }, {
-                'cd': '0103',
-                'name': '댄스'
-            }, {
-                'cd': '0104',
-                'name': '랩/힙합'
-            }, {
-                'cd': '0105',
-                'name': 'R&B/소울'
-            }, {
-                'cd': '0106',
-                'name': '락'
-            }, {
-                'cd': '0107',
-                'name': '일렉트로니카'
-            }, {
-                'cd': '0108',
-                'name': '트로트'
-            }, {
-                'cd': '0109',
-                'name': '포크'
-            }, {
-                'cd': '0110',
-                'name': '인디음악'
-            }],
-            '0201': [{
-                'cd': '0202',
-                'name': '팝'
-            }, {
-                'cd': '0203',
-                'name': '락'
-            }, {
-                'cd': '0204',
-                'name': '얼터너티브락'
-            }, {
-                'cd': '0205',
-                'name': '하드락'
-            }, {
-                'cd': '0206',
-                'name': '모던락'
-            }, {
-                'cd': '0207',
-                'name': '헤비메탈'
-            }, {
-                'cd': '0208',
-                'name': '뉴 메탈/하드코어'
-            }, {
-                'cd': '0209',
-                'name': '프로그레시브/아트락'
-            }, {
-                'cd': '0210',
-                'name': '일렉트로니카'
-            }, {
-                'cd': '0211',
-                'name': '클럽뮤직'
-            }, {
-                'cd': '0212',
-                'name': '랩/힙합'
-            }, {
-                'cd': '0213',
-                'name': 'R&amp;B/소울'
-            }, {
-                'cd': '0214',
-                'name': 'Urban'
-            }, {
-                'cd': '0215',
-                'name': '올디스'
-            }, {
-                'cd': '0216',
-                'name': '포크'
-            }, {
-                'cd': '0217',
-                'name': '블루스'
-            }, {
-                'cd': '0218',
-                'name': '컨트리'
-            }, {
-                'cd': '0219',
-                'name': '월드팝'
-            }],
-            '0301': [{
-                'cd': '0301',
-                'name': '국내영화'
-            }, {
-                'cd': '0302',
-                'name': '국외영화'
-            }, {
-                'cd': '0303',
-                'name': '국내드라마'
-            }, {
-                'cd': '0304',
-                'name': '국외드라마'
-            }, {
-                'cd': '0305',
-                'name': '애니메이션/게임'
-            }, {
-                'cd': '0306',
-                'name': '국내뮤지컬'
-            }, {
-                'cd': '0307',
-                'name': '국외뮤지컬'
-            }],
-            '0401': [{
-                'cd': '0402',
-                'name': 'J-POP'
-            }, {
-                'cd': '0403',
-                'name': 'J-Rock'
-            }, {
-                'cd': '0404',
-                'name': '일렉트로니카'
-            }, {
-                'cd': '0405',
-                'name': '랩/힙합'
-            }, {
-                'cd': '0406',
-                'name': 'R&amp;B/소울'
-            }, {
-                'cd': '0407',
-                'name': '시부야케이'
-            }, {
-                'cd': '0408',
-                'name': '뉴에이지'
-            }, {
-                'cd': '0409',
-                'name': '재즈'
-            }],
-            '0501': [{
-                'cd': '0501',
-                'name': '관현악곡'
-            }, {
-                'cd': '0502',
-                'name': '교향곡'
-            }, {
-                'cd': '0503',
-                'name': '실내악'
-            }, {
-                'cd': '0504',
-                'name': '협주곡'
-            }, {
-                'cd': '0505',
-                'name': '독주곡'
-            }, {
-                'cd': '0506',
-                'name': '오페라'
-            }, {
-                'cd': '0507',
-                'name': '크로스오버'
-            }, {
-                'cd': '0508',
-                'name': '현대음악'
-            }, {
-                'cd': '0509',
-                'name': '성악/합창곡'
-            }, {
-                'cd': '0510',
-                'name': '발레/무용곡'
-            }],
-            '0601': [{
-                'cd': '0601',
-                'name': '국내CCM'
-            }, {
-                'cd': '0602',
-                'name': '국외CCM'
-            }, {
-                'cd': '0603',
-                'name': '워십'
-            }, {
-                'cd': '0604',
-                'name': '찬송가'
-            }, {
-                'cd': '0605',
-                'name': '성가'
-            }, {
-                'cd': '0606',
-                'name': '연주곡'
-            }, {
-                'cd': '0607',
-                'name': '어린이'
-            }],
-            '0701': [{
-                'cd': '0701',
-                'name': '동요세상'
-            }, {
-                'cd': '0702',
-                'name': '동화나라'
-            }, {
-                'cd': '0703',
-                'name': '만화잔치'
-            }, {
-                'cd': '0704',
-                'name': '영어마을'
-            }, {
-                'cd': '0705',
-                'name': '어린이클래식'
-            }],
-            '0801': [{
-                'cd': '0801',
-                'name': '이지 리스닝'
-            }, {
-                'cd': '0802',
-                'name': 'J-Newage'
-            }, {
-                'cd': '0803',
-                'name': '기능성 음악'
-            }, {
-                'cd': '0804',
-                'name': '뉴에이지 피아노'
-            }],
-            '0901': [{
-                'cd': '0902',
-                'name': 'Acid Jazz'
-            }, {
-                'cd': '0903',
-                'name': 'Bop'
-            }, {
-                'cd': '0904',
-                'name': 'Bossa nova'
-            }, {
-                'cd': '0905',
-                'name': 'J-Jazz'
-            }, {
-                'cd': '0906',
-                'name': 'Latin Jazz'
-            }, {
-                'cd': '0907',
-                'name': 'Big Bang/Swing'
-            }],
-            '1001': [{
-                'cd': '1002',
-                'name': 'French Pop/Chanson'
-            }, {
-                'cd': '1003',
-                'name': 'Itanlian Pop/Canzone'
-            }, {
-                'cd': '1004',
-                'name': 'Celtic/Irish'
-            }, {
-                'cd': '1005',
-                'name': 'Brazil'
-            }, {
-                'cd': '1006',
-                'name': 'Tango/Flamenco'
-            }, {
-                'cd': '1007',
-                'name': 'Latin'
-            }, {
-                'cd': '1008',
-                'name': 'Reggae'
-            }, {
-                'cd': '1009',
-                'name': 'Fado'
-            }],
-            '1101': [{
-                'cd': '1102',
-                'name': '불교음악'
-            }, {
-                'cd': '1103',
-                'name': '가톨릭음악'
-            }],
-            '1201': [{
-                'cd': '1201',
-                'name': '국악 크로스오버'
-            }, {
-                'cd': '1202',
-                'name': '국악가요'
-            }, {
-                'cd': '1203',
-                'name': '민요'
-            }, {
-                'cd': '1204',
-                'name': '판소리/단가'
-            }, {
-                'cd': '1205',
-                'name': '풍물/사물놀이'
-            }],
-            '1301': [{
-                'cd': '1302',
-                'name': 'C-POP'
-            }, {
-                'cd': '1303',
-                'name': 'C-Rock'
-            }]
-        },
-            isTouch = jsa.isTouch;
-
-
-        // 연대 슬라이더 클래스(private)
-        var PeriodSlider = Class({
-            $extend: jsa.ui.View,
-            name: 'PeriodSlider',
-            defaults: {
-                width: 588, // 총너비
-                distance: 84, // 눈금당 간격
-                items: [0, 1960, 1970, 1980, 1990, 2000, 2010, 2020],
-                startYear: 0,
-                endYear: 2020
-            },
-            selectors: {
-                btnMin: 'div.yearlk_bar.last', // 연대 왼쪽버튼
-                btnMax: 'div.yearlk_bar.start', // 연대 오른쪽 버튼
-                sliderBar: 'div.yearlk_bar.bar_year'
-            },
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
+                var $t = $(this);
+                if ($t.hasClass(me.options.disabledTitleClass)) {
                     return;
                 }
 
-                me.$btnMin.css('zIndex', 101);
-                me.$btnMax.css('zIndex', 100);
-
-                me._moveX = me._downX = me._currX = 0; // 드래그앤드롭을 위한 속성값
-                me._isMouseDown = false;
-                me.$activeBtn = me.$lastMovedBtn = null; // 현재 드래그중인 버튼, 마지막으로 움직인 버튼을 기억하기 위함
-                me._currStartLeft = parseInt(me.$btnMin.css('width'), 10); // 왼쪽버튼의 위치(너비값으로 위치 조절)
-                me._currEndLeft = parseInt(me.$btnMax.css('width'), 10); // 오른쪽버튼의 위치(너비값으로 위치 조절)
-                me._maxWidth = me.options.width;
-
-                // 년대 링크를 클릭할 때 해당 위치로 이동
-                me.on('click', 'div.yearlk_text>a', function (e) {
-                    e.preventDefault();
-
-                    var left = $(this).index() * me.options.distance,
-                        diffMin = Math.abs(me._currStartLeft - left),
-                        diffMax = Math.abs(me._currEndLeft - left);
-
-                    if (me._currStartLeft > left) {
-                        me.$activeBtn = me.$btnMin;
-                    } else if (me._currEndLeft < left) {
-                        me.$activeBtn = me.$btnMax;
-                    } else if (diffMin > diffMax) {
-                        me.$activeBtn = me.$btnMax;
-                    } else if (diffMin < diffMax) {
-                        me.$activeBtn = me.$btnMin;
-                    } else if (me.$lastMovedBtn) {
-                        me.$activeBtn = me.$lastMovedBtn;
-                    } else {
-                        return;
-                    }
-
-                    me._move(left);
-                    me.$activeBtn = null;
-                });
-
-                // 드래그 시작
-                me.on('mousedown touchstart', 'div.last>div.sel, div.start>div.sel', function (e) {
-                    e.preventDefault();
-                    if (isTouch) {
-                        e.stopPropagation();
-                    }
-
-                    me._isMouseDown = true;
-                    me._currX = parseInt($(this).parent().css('width'), 10);
-                    me._downX = me._getX(e);
-                    me.$activeBtn = $(this).parent();
-
-                    return false;
-                }).on('keydown', 'div.yearlk_bar div.sel', function (e) {
-                    //좌우 버튼
-                    var $btn = $(this).parent(),
-                        left = parseInt($btn.css('width'), 10);
-
-                    switch (e.keyCode) {
-                    case 37: // left
-                        left -= me.options.distance;
-                        break;
-                    case 39: // right
-                        left += me.options.distance;
-                        break;
-                    }
-                    me.$activeBtn = $btn;
-                    me._move(left);
-                    me.$activeBtn = null;
-                });
-
-                // 드래그 종료
-                $doc.on('mouseup.artistfinder touchend.artistfinder mousemove.artistfinder touchmove.artistfinder', function (e) {
-                    if (!me._isMouseDown) {
-                        return;
-                    }
-
-                    switch (e.type) {
-                    case 'mouseup':
-                    case 'touchend':
-                        me._isMouseDown = false;
-                        me._moveX = 0;
-                        // 드래그가 끝났을 때, 해당 위치에서 가장 가까운 눈금으로 이동
-                        me._fixPos();
-
-                        me.$activeBtn = null;
-                        break;
-                    case 'mousemove':
-                    case 'touchmove':
-                        me._moveX = me._getX(e);
-                        me._move(me._currX - (me._downX - me._moveX));
-
-                        e.preventDefault();
-                        break
-                    }
-                });
-
-                me.init();
-            },
-
-            // 초기화 함수
-            init: function () {
-                var me = this;
-
-                me.moveByYear(me.options.startYear, me.options.endYear);
-            },
-
-            // 마우스 이벤트로부터 x좌표 추출
-            _getX: function (e) {
-                if (isTouch && e.originalEvent.touches) {
-                    e = e.originalEvent.touches[0];
-                }
-                return e.pageX;
-            },
-
-            // 현재 활성화된 버튼을 left위치로 이동
-            _move: function (left) {
-                var me = this,
-                    distance = me.options.distance;
-
-                if (!me.$activeBtn) {
-                    return;
-                }
-
-                if (me.$activeBtn.hasClass('last')) {
-                    if (left >= me._currEndLeft - distance) {
-                        left = me._currEndLeft - distance;
-                    } else if (left < 0) {
-                        left = 0;
-                    }
-                    me._currStartLeft = left;
+                var $currentTarget = $t.closest(me.selectors.list);
+                var $classTarget;
+                if (me.selectors.toggleClassTarget == me.selectors.list) {
+                    $classTarget = $currentTarget;
                 } else {
-                    if (left < me._currStartLeft + distance) {
-                        left = me._currStartLeft + distance;
-                    } else if (left > me._maxWidth) {
-                        left = me._maxWidth;
-                    }
-                    me._currEndLeft = left;
-                }
-                me.$lastMovedBtn = me.$activeBtn.css('width', left);
-            },
-
-            // 주어진 년대에 해당하는 위치에 버튼을 옮김
-            moveByYear: function (startYear, endYear) {
-                var me = this,
-                    distance = me.options.distance,
-                    startIdx = jsa.array.indexOf(me.options.items, startYear),
-                    endIdx = jsa.array.indexOf(me.options.items, endYear);
-
-                if (startIdx > 0) {
-                    me.$activeBtn = me.$btnMin;
-                    me._move(startIdx * distance);
-                }
-                if (endIdx > 0) {
-                    me.$activeBtn = me.$btnMax;
-                    me._move(endIdx * distance);
-                }
-                me.$activeBtn = null;
-            },
-
-            // 버튼이 놓여진 위치에서 가장 가까운 눈금의 위치로 이동
-            _fixPos: function () {
-                var me = this,
-                    distance = me.options.distance;
-                if (!me.$activeBtn) {
-                    return;
+                    $classTarget = $currentTarget.find(me.selectors.toggleClassTarget);
                 }
 
-                var left = parseInt(me.$activeBtn.css('width'), 10);
+                me.$contentList = me.$el.find(me.selectors.list);
+                var index = me.$contentList.index($currentTarget);
 
-                left = (Math.round(left / distance) * distance);
-                me._move(left);
-            },
-
-            // 년대값을 조합해서 반환
-            getValue: function () {
-                var me = this,
-                    distance = me.options.distance,
-                    items = me.options.items,
-                    startIndex = Math.round(me._currStartLeft / distance),
-                    endIndex = Math.round(me._currEndLeft / distance),
-                    startTitle = '',
-                    endTitle = '',
-                    value = [],
-                    isSelected = false;
-
-                if (startIndex !== 0 || endIndex !== items.length - 1) {
-                    isSelected = true;
-                    startTitle = startIndex === 0 ? items[1] + ' 이전' : items[startIndex];
-                    endTitle = endIndex === items.length - 1 ? items[items.length - 2] + ' 이후' : items[endIndex];
-
-                    for (var i = startIndex; i <= endIndex; i++) {
-                        value.push(items[i]);
-                    }
+                if ($currentTarget.find(me.selectors.content).length) {
+                    e.preventDefault();
                 }
 
-                return {
-                    'isYearSelected': isSelected, // 년대가 변경되었는가...(두 버튼이 양쪽끝에 위치해 있으면 변경이 없었던 걸로 판단)
-                    'startYear': startTitle,
-                    'endYear': endTitle,
-                    'startTitle': startTitle,
-                    'endTitle': endTitle,
-                    'years': value // 시작년대와 마지막년대 사이의 년대를 배열로 조합
+                if ($classTarget.hasClass(me.options.selectedClass)) {
+                    me.fold(index);
+                } else {
+                    me.expand(index);
                 }
-            }
-        });
+            });
+        },
 
         /**
-         * 아티스트파인더 검색영역 담당클래스
-         * @class
-         * @name jsa.ui.ArtistFinder
-         * @extends jsa.ui.View
+         * 거리에 따른 duration 계산
+         * @return { Integer }
          */
-        var ArtistFinder = Class( /** @lends jsa.ui.ArtistFinder# */ {
-            $extend: jsa.ui.View,
-            $statics: {
-                ON_SEARCH: 'artistfindersearch'
-            },
-            name: 'ArtistFinder',
-            defaults: {
+        _getDuration: function (dist, value) {
+            var time = (dist / value) * this.options.slideTime;
+            if (time < 200) {
+                time = 200
+            };
+            if (time > 700) {
+                time = 700
+            };
+            return time;
+        },
 
-            },
-            selectors: {
+        /**
+         * slide effect expand handler
+         * @private
+         * @param { Integer } target index
+         */
+        _slideExpand: function (index) {
+            var targetData = this._getTargetData(index);
+            if (!targetData.isExe) {
+                return;
+            }
 
-            },
-            events: {
-                // 성별, 활동유현, 국적 선택시
-                'click dl:not(.gnr) input:radio:not(:disabled)': function (e) {
-                    var me = this,
-                        $radio = $(e.target);
+            var $targetCont = targetData.$targetCont,
+                $scaleTarget = targetData.$scaleTarget,
+                $classTarget = targetData.$classTarget;
 
-                    $radio.parent().activeRow('on');
-                    me.triggerHandler(ArtistFinder.ON_SEARCH, [me.getValue(), me.getPeriodValue()]);
-                },
-                // 장르 선택시 세부장르 표시
-                'click dl.gnr input:radio:not(:disabled)': function (e) {
-                    var me = this,
-                        $radio = $(e.target),
-                        $dd = me.$el.find('dl.gnr_dtl>dd'), // 리스트 영역
-                        html = '',
-                        key = '',
-                        name = '';;
+            this.isAniComplete = false;
+            $scaleTarget.removeClass(this.options.noneClass);
+            $classTarget.addClass(this.options.selectedClass);
 
-                    $dd.find('>label').remove();
-                    if (genres[$radio.val()]) {
-                        // 세부장르가 있느냐
-                        $dd.find('>div.finder_wrong').hide();
+            var duration = this.options.slideTime;
+            if (this.options.foldOthers && index != this.currentIndex) {
+                this.isAniComplete = true;
+                this._slideFold(this.currentIndex, duration);
+            }
 
-                        html += ['<label class="on"><input type="radio" name="genreCd" value="' + $radio.val() + '" class="input_radio" checked="checked" />',
-                            '<span class="text">전체</span></label>'
-                        ].join('');
+            $scaleTarget.stop().height(0).animate({
+                "height": $scaleTarget.children().outerHeight()
+            }, duration, $.proxy(function () {
+                this.isAniComplete = true;
+                this.trigger(ui.AccordionListEvent.EXPANDED);
+                $scaleTarget.height("");
+            }, this));
 
-                        $.each(genres[$radio.val()], function (i, item) {
-                            html += ['<label><input type="radio" name="genreCd" value="' + item.cd + '" class="input_radio" />',
-                                '<span class="text">' + item.name + '</span></label>'
-                            ].join('');
+            this.currentIndex = index;
+        },
 
+        _getTargetData: function (index) {
+            var $targetCont;
+            if (this.$contentList) {
+                $targetCont = this.$contentList.eq(index);
+            } else {
+                $targetCont = this.$el.find(this.selectors.list).eq(index);
+            }
+
+            var $scaleTarget = $targetCont.find(this.selectors.content);
+
+            var isExe = true;
+            if (!this.isAniComplete || $scaleTarget.length == 0) {
+                isExe = false
+            }
+
+            var $classTarget;
+            if (this.selectors.toggleClassTarget == this.selectors.list) {
+                $classTarget = $targetCont;
+            } else {
+                $classTarget = $targetCont.find(me.selectors.toggleClassTarget);
+            }
+
+            return {
+                $targetCont: $targetCont,
+                $scaleTarget: $scaleTarget,
+                $classTarget: $classTarget,
+                isExe: isExe
+            }
+        },
+
+
+        /**
+         * slide effect fold handler
+         * @private
+         * @param { Integer } target index
+         */
+        _slideFold: function (index, duration) {
+
+            var targetData = this._getTargetData(index);
+            if (!targetData.isExe) {
+                return;
+            }
+
+            var $targetCont = targetData.$targetCont,
+                $scaleTarget = targetData.$scaleTarget,
+                $classTarget = targetData.$classTarget;
+
+            this.isAniComplete = false;
+
+            $classTarget.removeClass(this.options.selectedClass);
+            if (duration == undefined) {
+                duration = this.options.slideTime;
+                //duration = this._getDuration( $scaleTarget.height(), 500);
+            }
+
+            $scaleTarget.stop().animate({
+                "height": 0
+            }, duration, $.proxy(function () {
+                $scaleTarget.addClass(this.options.noneClass);
+                this.trigger(ui.AccordionListEvent.FOLDED);
+                this.isAniComplete = true;
+            }, this));
+        },
+
+        /**
+         * expand handler
+         * @private
+         * @param { Integer } target index
+         */
+        _visibleExpand: function (index) {
+            var targetData = this._getTargetData(index);
+            if (!targetData.isExe) {
+                return;
+            }
+
+            var $targetCont = targetData.$targetCont,
+                $scaleTarget = targetData.$scaleTarget,
+                $classTarget = targetData.$classTarget;
+
+            $scaleTarget.removeClass(this.options.noneClass);
+            $classTarget.addClass(this.options.selectedClass);
+
+            if (this.options.foldOthers && index != this.currentIndex) {
+                this._visibleFold(this.currentIndex);
+            }
+            $scaleTarget.removeClass(this.options.noneClass);
+
+            this.currentIndex = index;
+        },
+
+        /**
+         * fold handler
+         * @private
+         * @param { Integer } target index
+         */
+        _visibleFold: function (index) {
+            var targetData = this._getTargetData(index);
+            if (!targetData.isExe) {
+                return;
+            }
+
+            var $targetCont = targetData.$targetCont,
+                $scaleTarget = targetData.$scaleTarget,
+                $classTarget = targetData.$classTarget;
+
+            $classTarget.removeClass(this.options.selectedClass);
+            $scaleTarget.addClass(this.options.noneClass);
+        },
+
+        release: function () {
+
+        }
+    });
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    // 글로벌 기능들 구현 부분
+    // modal, selectbox
+
+    var $doc = core.$doc,
+        win = window,
+        _isInit = false;
+
+    /**
+     * 주어진 엘리먼트 하위에 속한 공통 UI들을 빌드
+     * @function
+     * @name $#buildUIControls
+     * @param {String} types (Optional) "tab,selectbox,calendar,placeholder"
+     */
+    $.fn.buildUIControls = function () {
+        this.find('.d-selectbox').selectbox(); // 셀렉트박스 스킨모드로 변경
+        this.find('.d-tab').tab(); // 탭
+        this.find('.d-calendar').calendar(); // 달력
+        this.find('.d-accordion').accordion(); // 아코디온
+        if (!('placeholder' in core.tmpInput)) { // placeholder
+            this.find('input[placeholder], textarea[placeholder]').placeholder();
+        }
+    };
+
+    // 공통 UI와 관련하여 이벤트 정의
+    core.GlobalUI = {
+        init: function () {
+            if (_isInit) {
+                return;
+            }
+
+            this.base();
+            // TODO : 체크박스, 라디오박스가 스킨형을 사용하지 않음
+            //this.checkbox();
+            //this.radiobox();
+            this.hover();
+            this.modal();
+            this.windowPopup();
+            this.print();
+        },
+
+
+        base: function () {
+            // tab, selectbox, calendar, placeholder
+            $doc.buildUIControls();
+        },
+
+        hover: function () {
+            // 호버 효과
+            $doc.on('mouseenter.globalui', '.d-hover', function (e) {
+                $(this).addClass('hover');
+            });
+
+            $doc.on('mouseleave.globalui', '.d-hover', function (e) {
+                $(this).removeClass('hover');
+            });
+        },
+
+        checkbox: function () {
+            // 체크박스
+            $doc.on('click.globalui', 'input:checkbox', function (e) {
+                $(this).parent().toggleClass('on', this.checked);
+            });
+        },
+
+        radiobox: function () {
+            // 라디오박스
+            $doc.on('click.globalui', 'input:radio', function (e) {
+                $(this).closest('form')
+                    .find('input[name=' + this.name + ']')
+                    .parent().removeClass('on');
+                $(this).parent().addClass('on');
+            });
+        },
+
+
+        windowPopup: function () {
+            //윈도우 창 닫기 기능
+            $doc.on("click.globalui", ".d-win-close", function () {
+                win.open('', '_self').close();
+            });
+        },
+
+        print: function () {
+            //인쇄 기능
+            $doc.on("click.globalui", ".d-print", function (e) {
+                e.preventDefault();
+                win.print();
+            });
+        },
+
+        modal: function () {
+            // 모달 띄우기
+            $.fn.modal && $doc.on('click.globalui', '[data-control=modal]', function (e) {
+                e.preventDefault();
+                var $el = $(this),
+                    target = $el.attr('href') || $el.attr('data-target'),
+                    $modal;
+                if (target) {
+                    // ajax형 모달인 경우
+                    if (!/^#/.test(target)) {
+                        $.ajax({
+                            url: target
+                        }).done(function (html) {
+                            $modal = $('<div class="d-modal-ajax d-modal-new" style="display:none"></div>').html(html).insertAfter($el);
+                            $modal.modal({
+                                removeOnClose: true
+                            });
                         });
-                        $dd.append(html);
-                    } else {
-                        // 세부장르가 없느냐
-
-                        $dd.find('>div.finder_wrong').show();
-                        html += ['<label style="display:none;"><input type="radio" name="genreCd" value="' + $radio.val() + '" class="input_radio" checked="checked" /></label>'].join('');
-                        $dd.append(html);
-                    }
-
-                    $radio.parent().activeRow('on');
-                    me.triggerHandler(ArtistFinder.ON_SEARCH, [me.getValue()]);
-                }
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
-             * @param {Object} options 옵션값
-             */
-            initialize: function (el, options) {
-                var me = this;
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                // 연대 슬라이더 생성
-                me.periodSlider = new PeriodSlider(me.options.periodSelector);
-
-                // 연대적용 버튼 클릭시
-                me.$el.find('button.btn_big.calendar').on('click', function () {
-                    me.triggerHandler(ArtistFinder.ON_SEARCH, [me.getValue(), me.getPeriodValue()]);
-                });
-            },
-
-            /**
-             * 선택된 라디오들의 값을 조합해서 반환
-             * @return {JSON}
-             */
-            getValue: function () {
-                var me = this,
-                    data = {};
-
-                me.$el.find('input:radio:checked:not(:disabled)').each(function () {
-                    var $radio = $(this);
-                    data[$radio.attr('name')] = $radio.val();
-                });
-                return data;
-            },
-
-            /**
-             * 연대값 반환
-             * @return {JSON}
-             */
-            getPeriodValue: function () {
-                var me = this;
-
-                return me.periodSlider.getValue()
-            },
-
-            /**
-             * 선택된 값들의 텍스트를 배열에 담아 반환, 연대는 시작연대~마지막연대 로 담겨짐
-             * @return {Array}
-             */
-            getSearchTitles: function () {
-                var me = this,
-                    titles = [],
-                    periodValue = me.periodSlider.getValue();
-
-                me.$el.find('input:radio:checked:not(:disabled)').each(function () {
-                    if (this.value === '') {
                         return;
+                    } else {
+                        $modal = $(target);
                     }
-
-                    var $radio = $(this),
-                        title = $radio.next().text();
-                    title && titles.push(title);
-                });
-
-                if (periodValue.isYearSelected) {
-                    titles.push(periodValue.startTitle + '~' + periodValue.endTitle)
+                } else {
+                    $modal = $(this).next('div.d-layerpop');
                 }
-                return titles;
-            },
 
-            /**
-             * 소멸자
-             */
-            destroy: function () {
-                var me = this;
+                if ($modal && $modal.length > 0) {
+                    $modal.modal();
+                }
+            });
 
-                me.periodSlider.destroy();
-                me.periodSlider = null;
-                me.supr();
-            }
-        });
+            // ajax로 생성된 레이어팝업이면 표시때, 내부에 속한 공통 UI 들을 빌드
+            $doc.on('modalshown.globalui', '.d-modal-new', function (e) {
+                $(this).buildUIControls().removeClass('d-modal-new');
+            });
+        },
 
-        jsa.bindjQuery(ArtistFinder, 'artistFinder');
+        selectAjax: function () {
+            // 단계 셀렉트박스 : 테스트임
+            $doc.on('change', 'select[data-next-target]', function (e) {
+                var $next = $(this.getAttribute('data-next-target')),
+                    el = this,
+                    url;
+                if ($next.length === 0 || !(url = $next.attr('data-url'))) {
+                    return;
+                }
 
-        return ArtistFinder;
+                $.ajax({
+                    url: url.replace(/\{0\}/g, el.value),
+                    contentType: 'json'
+                }).done(function (res) {
+                    if (res.success) {
+                        $(el).selectbox('update', res.list);
+                    }
+                });
+            });
+        }
+    };
+
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+(function ($, core, ui, undefined) {
+    "use strict";
+
+    var $doc = core.$doc,
+        $win = core.$win;
+
+    // ui를 글로벌에 설정
+    window.ui = ui;
+    window.strUtil = core.string; // 문자열 유틸함수
+    window.numUtil = core.number; // 숫자 유틸함수
+    window.dateUtil = core.date; // 날짜 유틸함수
+    window.arrUtil = core.array; // 배열 유틸함수
+    window.objUtil = core.object; // 오브젝트 유틸함수
+
+
+    // placeholder 암호 백그라운드 class
+    ui.Placeholder.prototype.defaults.placeholderClass = 'user_pw';
+
+    $(function () {
+        core.GlobalUI.init();
     });
 
-    // 년월일 셀렉트 박스
-    jsa.define('ui.DatePulldown', function () {
-        var dateUtil = jsa.date;
-
-        /**
-         * 년월일 셀렉트박스
-         * @class
-         * @name jsa.ui.DatePulldown
-         * @extends jsa.ui.View
-         * @example
-         * $('select.d_name').datePulldown({year: 'select.d_year', month: 'select.d_month'});
-         */
-        var DatePulldown = Class( /** @lends jsa.ui.DatePulldown# */ {
-            name: 'DatePulldown',
-            $extends: jsa.ui.View,
-            $statics: {
-                ON_CHANGE: 'change'
-            },
-            /**
-             * 생성자
-             * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
-             * @param {Object} options 옵션값
-             */
-            initialize: function (el, options) {
-                options || (options = {});
-                if (!options.year || !options.month) {
-                    return;
-                }
-
-                var me = this,
-                    $year, $month;
-
-                $year = $(options.year);
-                if ($year.length === 0) {
-                    return;
-                }
-
-                $month = $(options.month);
-                if ($month.length === 0) {
-                    return;
-                }
-
-                if (me.supr(el, options) === false) {
-                    return;
-                }
-
-                $year.add($month).on('change', function () {
-                    me.$el[0].options.length = 1;
-
-                    var year = $year.val(),
-                        month = $month.val(),
-                        days = 0;
-
-                    if (year && month) {
-                        days = dateUtil.daysInMonth(year, month);
-                        for (var i = 1; i <= days; i++) {
-                            me.$el[0].options[i] = new Option(i, i);
-                        }
-                    }
-
-                    me.$el.selectbox('update');
-                });
-                $year.triggerHandler('change');
-            }
-        });
-
-        jsa.bindjQuery(DatePulldown, 'datePulldown');
-
-        return DatePulldown;
-    });
-
-})(window, jQuery, jsa);
+})(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
