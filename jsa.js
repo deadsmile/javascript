@@ -126,24 +126,27 @@
             if (!obj) {
                 return obj;
             }
-            var i, len;
-            if (obj && obj.push) {
+            var i = 0,
+                len = 0,
+                isArray = obj.push && ('length' in obj);
+
+            if (isArray) {
                 if (obj.forEach) {
-                    if (obj.forEach(cb, ctx) === false) {
-                        return;
+                    if (obj.forEach(cb, ctx || obj) === false) {
+
                     }
                 } else {
-                    for (i = 0, len = obj.length; i < obj.length; i++) {
+                    for (i = 0, len = obj.length; i < len; i++) {
                         if (cb.call(ctx || obj, obj[i], i, obj) === false) {
-                            return;
+                            break;
                         }
                     }
                 }
             } else {
                 for (i in obj) {
                     if (hasOwn.call(obj, i)) {
-                        if (cb.call(obj, obj[i], i, obj) === false) {
-                            return;
+                        if (cb.call(ctx || obj, obj[i], i, obj) === false) {
+                            break;
                         }
                     }
                 }
@@ -157,10 +160,25 @@
          * @param {JSON} obj...
          * @returns {*}
          */
-        extend = function (obj) {
-            each(arraySlice.call(arguments, 1), function (source) {
+        extend = function (deep, obj) {
+            var args;
+            if(deep === true) {
+                args = arraySlice.call(arguments, 2);
+            } else {
+                obj = deep;
+                deep = false;
+                args = arraySlice.call(arguments, 1);
+            }
+            each(args, function (source) {
+                if(!source) { return; }
+
                 each(source, function (val, key) {
-                    obj[key] = source[key];
+                    if(deep && (_core.isArray(val) || _core.isPlainObject(val))) {
+                        obj[key] || (obj[key] = _core.isArray(val) ? [] : {});
+                        obj[key] = extend(deep, obj[key], val);
+                    } else {
+                        obj[key] = val;
+                    }
                 });
             });
             return obj;
@@ -795,10 +813,43 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isObject: (toString.call(null) === '[object Object]') ? function (value) {
-            return value !== null && value !== undefined && toString.call(value) === '[object Object]' && value.ownerDocument === undefined;
-        } : function (value) {
-            return toString.call(value) === '[object Object]';
+        isPlainObject: function (obj) {
+            if (!obj
+                || !_core.is(obj, 'object')
+                || obj.nodeType
+                || /*jshint eqeqeq:false*/obj.window == obj) {
+                return false;
+            }
+
+            var key, objConstructor;
+
+            try {
+                if ((objConstructor = obj.constructor)
+                    && !hasOwn.call(obj, 'constructor')
+                    && !hasOwn.call(objConstructor.prototype, 'isPrototypeOf')) {
+                    return false;
+                }
+            } catch (e) {
+                return false;
+            }
+
+            /*jshint noempty:false*/
+            for (key in obj) {
+            }
+
+            return ((key === undefined) || hasOwn.call(obj, key));
+        },
+
+        toType: function(val) {
+           switch(true) {
+               case val === "false":
+                   return false;
+               case val === "true":
+                   return true;
+               case _core.is(val, 'number'):
+                   return val|0;
+           }
+           return val;
         },
 
         /**
@@ -970,12 +1021,12 @@
      */
     _core.define('string', function () {
         var escapeChars = {
-            '&': '&amp;',
-            '>': '&gt;',
-            '<': '&lt;',
-            '"': '&quot;',
-            "'": '&#39;'
-        },
+                '&': '&amp;',
+                '>': '&gt;',
+                '<': '&lt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            },
             unescapeChars = (function (escapeChars) {
                 var results = {};
                 each(escapeChars, function (v, k) {
@@ -2367,9 +2418,9 @@
              * @param {String} str
              * @return {Boolean}
              */
-            dateYMD: function (str) {
+            date: function (str) {
                 isString(str) || (isElement(str) && (str = str.value));
-                return (str = trim(str)) ? (/^\d{4}-\d{2}-\d{2}$/).test(str) : false;
+                return (str = trim(str)) ? (/^\d{4}-?\d{2}-?\d{2}$/).test(str) : false;
             },
             /**
              * 유효한 yyyy-MM-dd hh:mm:ss형식인지 체크
@@ -2384,8 +2435,8 @@
             /**
              * 유효한 주민번호인지 체크
              *
-             * @param {String} strSsn1 앞주민번호.
-             * @param {String} strSsn2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
+             * @param {String} sid1 앞주민번호.
+             * @param {String} sid2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
              * @return {Boolean}
              */
             SSN: function (sid1, sid2) {
@@ -2414,11 +2465,11 @@
             /**
              * 유효한 외국인주민번호인지 체크
              *
-             * @param {String} strSsn1 앞주민번호.
-             * @param {String} strSsn2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
+             * @param {String} sid1 앞주민번호.
+             * @param {String} sid2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
              * @return {Boolean}
              */
-            FgnSSN: function (sid1, sid2) {
+            fgnSSN: function (sid1, sid2) {
                 var num = sid1 + (sid2 ? sid2 : ""),
                     pattern = /^(\d{6})-?(\d{7})$/,
                     sum = 0,
@@ -2462,13 +2513,176 @@
                 return true;
             },
 
+            _getRules: function(el) {
+                var res = {},
+                    rules,
+                    strUtil = _core.string;
 
-            run: function (frm, validators) {
-                var isValid = true;
-                each(validators, function (v, k) {
-
+                rules = res[el.name] = {};
+                each(el.attributes, function(attr) {
+                    if(attr.name && attr.name.indexOf('data-rule-') > -1) {
+                        rules[ strUtil.camelize(attr.name.substr(10)) ] = _core.toType(attr.value);
+                    }
                 });
-                return isValid;
+                return res;
+            },
+
+            _rules: {
+                required: function(el, ruleName, ruleValue){
+                    var isValid = false;
+
+                    if(el.type === 'checkbox' || el.type === 'radio') {
+                        for(var i = 0; i < el.length; i++) {
+                            if(el[i].checked) {
+                                isValid = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        if ($.trim(el.value) != '') {
+                            isValid = true;
+                        }
+                    }
+
+                    if(!isValid) {
+                        throw this._error.apply(arguments);
+                    }
+                },
+                minLength: function(el, ruleName, ruleValue) {
+                    var isValid = false,
+                        val = $.trim(el.value);
+                    if(val.length >= parseInt(ruleValue, 10)) {
+                        isValid = true;
+                    }
+
+                    if(!isValid) {
+                        throw this._error.apply(arguments);
+                    }
+                },
+                maxLength: function(el, ruleName, ruleValue) {
+                    var isValid = false,
+                        val = $.trim(el.value);
+
+                    if(val.length <= parseInt(ruleValue, 10)) {
+                        isValid = true;
+                    }
+
+                    if(!isValid) {
+                        throw this._error.apply(arguments);
+                    }
+                },
+                type: function(el, ruleName, ruleValue) {
+                    var valid = _core.valid,
+                        val = valid._joins(el);
+
+                    if(!valid[ruleName === 'type' ? ruleValue : el.type]($.trim(val))) {
+                        throw valid._error(el, ruleName, ruleValue);
+                    }
+                },
+                pattern: function(el, ruleName, ruleValue) {
+                    var valid = _core.valid,
+                        val = valid._joins(el);
+
+                    var regexp = new RegExp(ruleValue);
+                    if(!val.test(regexp)) {
+                        throw valid._error(el, ruleName, ruleValue);
+                    }
+                },
+                custom: function(el, ruleName, ruleValue) {
+                    var valid = _core.valid,
+                        val = valid._joins(el);
+
+                }
+            },
+
+            _error: function(el, ruleName, ruleValue, rules) {
+                var ne = new Error(_core.valid._messages[ruleName]);
+                ne.getElement = function() { return el; };
+                ne.getRule = function(){ return {name: ruleName, value: ruleValue}; }
+                return ne;
+            },
+
+            _messages: {
+                require: '',
+                email: '',
+                minChecked: '',
+                maxChecked: '',
+                same: '',
+                number: '',
+                date: ''
+            },
+            /*
+                run(frm, {
+                    'name': {
+                        reuired: true,
+                        minLength: 5,
+                        maxLength: 10
+                    }
+                });
+            */
+            _joins: (function(){
+                var ptn = /[a-z0-9]+/ig;
+                return function(el) {
+                    var frm = el.form,
+                        joins = el.getAttribute('data-joins');
+
+                    if(!joins) {
+                        return el.value;
+                    }
+
+                    joins = joins.replace(ptn, function(n){
+                        return $.trim(frm[n].value);
+                    });
+
+                }
+            })(),
+            _type: function(el){
+                var t = (el.type || el.tagName || "").toLowerCase();
+                switch(t){
+                    case "email":
+                    case "number":
+                    case "tel":
+                    case "email":
+                    case "url":
+                    case "date":
+                        return "text";
+                    default:
+                        return t;
+                }
+            },
+            run: function (frm, validators) {
+                var valid = _core.valid;
+                validators || (validators = {});
+
+                each(frm.elements, function (el, i) {
+                    if(!el.name) return;
+                    extend(true, validators, valid._getRules(el));
+                });
+
+                try {
+                    each(validators, function (rules, name) {
+                        var el = frm[name],
+                            val;
+
+                        each(rules, function(ruleValue, ruleName) {
+                            /*val = valid._joins(el);
+                            if(valid._type(el) === 'text' || ruleName === 'type'){  // email, url, number, tel, eng, kor, date
+                                if(!valid[ruleName === 'type' ? ruleValue : el.type]($.trim(val))) {
+                                    throw valid._error(el, ruleName, ruleValue);
+                                }
+                            } else if(ruleName === 'regexp') {
+                                var regexp = new RegExp(ruleValue);
+                                if(!val.test(regexp)) {
+                                    throw valid._error(el, ruleName, ruleValue);
+                                }
+                            } else if(ruleName === )*/
+                        });
+                    });
+                } catch(e) {
+                    alert(e);
+                    return false;
+                }
+                return true;
             }
         };
     });
@@ -3809,24 +4023,24 @@
 
                     $doc.on('mousemove.modaldrag mouseup.modaldrag touchmove.modaldrag touchend.modaldrag touchcancel.modaldrag', function (e) {
                         switch (e.type) {
-                        case 'mousemove':
-                        case 'touchmove':
-                            if (!isMouseDown) {
-                                return;
-                            }
-                            if (e.pageX + size.width > docSize.width || e.pageY + size.height > docSize.height || e.pageX - oriPos.left < 0 || e.pageY - oriPos.top < 0) {
-                                return;
-                            }
+                            case 'mousemove':
+                            case 'touchmove':
+                                if (!isMouseDown) {
+                                    return;
+                                }
+                                if (e.pageX + size.width > docSize.width || e.pageY + size.height > docSize.height || e.pageX - oriPos.left < 0 || e.pageY - oriPos.top < 0) {
+                                    return;
+                                }
 
-                            me.$el.css({
-                                left: e.pageX - oriPos.left,
-                                top: e.pageY - oriPos.top
-                            });
-                            break;
-                        case 'mouseup':
-                            isMouseDown = false;
-                            $doc.off('.modaldrag');
-                            break;
+                                me.$el.css({
+                                    left: e.pageX - oriPos.left,
+                                    top: e.pageY - oriPos.top
+                                });
+                                break;
+                            case 'mouseup':
+                                isMouseDown = false;
+                                $doc.off('.modaldrag');
+                                break;
                         }
                     });
                 });
@@ -4158,21 +4372,21 @@
                     isPrev = $el.hasClass('d-calendar-prev');
 
                 switch (e.type) {
-                case 'click':
-                    me[isPrev ? 'prev' : 'next']();
-                    break;
-                case 'mousedown':
-                    clearInterval(timer);
-                    timer = null;
-                    timer = setInterval(function () {
+                    case 'click':
                         me[isPrev ? 'prev' : 'next']();
-                    }, 300);
-                    $doc.on('mouseup.calendar', function () {
+                        break;
+                    case 'mousedown':
                         clearInterval(timer);
                         timer = null;
-                        $doc.off('mouseup.calendar');
-                    });
-                    break;
+                        timer = setInterval(function () {
+                            me[isPrev ? 'prev' : 'next']();
+                        }, 300);
+                        $doc.on('mouseup.calendar', function () {
+                            clearInterval(timer);
+                            timer = null;
+                            $doc.off('mouseup.calendar');
+                        });
+                        break;
                 }
             }).on('click', 'button.d-calendar-day', function (e) {
                 // 날짜 클릭
@@ -4504,8 +4718,8 @@
             }
 
             /*if(!me.options.ajax){
-                throw new Error('ajax 옵션을 지정해 주세요.');
-            }*/
+             throw new Error('ajax 옵션을 지정해 주세요.');
+             }*/
 
             me.rowTmpl = me.$('.d-paginate-list').first().html();
             me.$('.d-paginate-list').empty();
@@ -4941,17 +5155,17 @@
                 var touchY = oe.touches[0].pageY;
 
                 switch (e.type) {
-                case 'touchstart':
-                    scrollTop = $con.scrollTop();
-                    startY = touchY;
-                    break;
-                case 'touchmove':
-                    e.preventDefault();
-                    e.stopPropagation();
-                    $con.scrollTop(scrollTop + (startY - touchY));
-                    break;
-                default:
-                    break;
+                    case 'touchstart':
+                        scrollTop = $con.scrollTop();
+                        startY = touchY;
+                        break;
+                    case 'touchmove':
+                        e.preventDefault();
+                        e.stopPropagation();
+                        $con.scrollTop(scrollTop + (startY - touchY));
+                        break;
+                    default:
+                        break;
                 }
             });
         },
@@ -4965,25 +5179,25 @@
 
             $doc.off('.scrollview').on('mouseup.scrollview touchend.scrollview mousemove.scrollview touchmove.scrollview', function (e) {
                 switch (e.type) {
-                case 'mouseup':
-                case 'touchend':
-                    // 드래그 끝
-                    me._isMouseDown = false;
-                    me._moveY = 0;
+                    case 'mouseup':
+                    case 'touchend':
+                        // 드래그 끝
+                        me._isMouseDown = false;
+                        me._moveY = 0;
 
-                    $doc.off('.scrollview');
-                    if (!me._isMouseEnter) {
-                        me._toggleScrollbar(false);
-                    }
-                    break;
-                case 'mousemove':
-                case 'touchmove':
-                    // 드래그 중
-                    me._moveY = me._getY(e);
-                    me._move(me._currY - (me._downY - me._moveY));
+                        $doc.off('.scrollview');
+                        if (!me._isMouseEnter) {
+                            me._toggleScrollbar(false);
+                        }
+                        break;
+                    case 'mousemove':
+                    case 'touchmove':
+                        // 드래그 중
+                        me._moveY = me._getY(e);
+                        me._move(me._currY - (me._downY - me._moveY));
 
-                    e.preventDefault();
-                    break
+                        e.preventDefault();
+                        break
                 }
             });
         },
@@ -5263,16 +5477,16 @@
                     count = items.length;
 
                 switch (e.keyCode) {
-                case core.keyCode.UP:
-                    e.stopPropagation();
-                    e.preventDefault();
-                    items.eq(Math.max(0, index - 1)).children().focus();
-                    break;
-                case core.keyCode.DOWN:
-                    e.stopPropagation();
-                    e.preventDefault();
-                    items.eq(Math.min(count - 1, index + 1)).children().focus();
-                    break;
+                    case core.keyCode.UP:
+                        e.stopPropagation();
+                        e.preventDefault();
+                        items.eq(Math.max(0, index - 1)).children().focus();
+                        break;
+                    case core.keyCode.DOWN:
+                        e.stopPropagation();
+                        e.preventDefault();
+                        items.eq(Math.min(count - 1, index + 1)).children().focus();
+                        break;
                 }
             });
             me.$selectbox.append(me.$list);
