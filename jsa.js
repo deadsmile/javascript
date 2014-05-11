@@ -2545,7 +2545,7 @@
                     }
 
                     if(!isValid) {
-                        throw this._error.apply(arguments);
+                        throw _core.valid._error.apply(null, arguments);
                     }
                 },
                 minLength: function(el, ruleName, ruleValue) {
@@ -2556,7 +2556,7 @@
                     }
 
                     if(!isValid) {
-                        throw this._error.apply(arguments);
+                        throw _core.valid._error.apply(null, arguments);
                     }
                 },
                 maxLength: function(el, ruleName, ruleValue) {
@@ -2568,7 +2568,7 @@
                     }
 
                     if(!isValid) {
-                        throw this._error.apply(arguments);
+                        throw _core.valid._error.apply(null, arguments);
                     }
                 },
                 type: function(el, ruleName, ruleValue) {
@@ -2603,11 +2603,11 @@
             },
 
             _messages: {
-                require: '',
-                email: '',
+                required: '필수입력',
+                email: '이메일',
                 minChecked: '',
                 maxChecked: '',
-                same: '',
+                same: '동',
                 number: '',
                 date: ''
             },
@@ -2661,10 +2661,12 @@
 
                 try {
                     each(validators, function (rules, name) {
-                        var el = frm[name],
-                            val;
+                        var el = frm[name];
 
                         each(rules, function(ruleValue, ruleName) {
+                            if(valid._rules[ruleName]){
+                                valid._rules[ruleName](el, ruleName, ruleValue);
+                            }
                             /*val = valid._joins(el);
                             if(valid._type(el) === 'text' || ruleName === 'type'){  // email, url, number, tel, eng, kor, date
                                 if(!valid[ruleName === 'type' ? ruleValue : el.type]($.trim(val))) {
