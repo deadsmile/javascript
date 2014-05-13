@@ -1,11 +1,4 @@
 /**
- * <pre>
- * 공통 스크립트 모듈
- * </pre>
- * 
- * @namespace
- * @author 김왕기
- * @version 1.0(2013. 03. 07) 최초 생성
  */
 var Common = {
 	/**
