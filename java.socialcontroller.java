@@ -1,5 +1,3 @@
-package com.skt.lte.sns.controller;
-
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.skt.lte.social.FacebookAPI;
-import com.skt.lte.social.TwitterAPI;
+import com.FacebookAPI;
+import com.TwitterAPI;
 
 /**
  * 
