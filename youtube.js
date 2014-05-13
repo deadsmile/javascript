@@ -1,8 +1,6 @@
 /*!
  * YouTube Player
  * 
- * @author 김왕기
- * @version 1.0(2013-04-06) 최초 생성
  */
 (function( $ ) {
 	"use strict";
