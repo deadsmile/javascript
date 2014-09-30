@@ -1,10 +1,11 @@
-/*
+/*!
  * @author 김승일
  * @email comahead@vi-nyl.com
- * @description 코어 라이브러리
+ * @description 이마트 코어 라이브러리
  * @license MIT License
- *
- *
+ */
+
+/*
  * @Searching List
  * @jQuery
  *  $.fn
@@ -18,19 +19,19 @@
  *      .trimVal() : 폼요소의 값에서 앞뒤 스페이스를 제거한 값을 반환
  *      .buildUIControls() : 요소에 포함된 공통 UI모듈을 빌드
  *		.toggleLayer()
- *	    .noop() : empty fn
+ *	    .noop() : 빈 메소드 ex) $(this)[isRemove ? 'remove' : 'noop']();
  *
  *
  *
  * @Core : 코어 함수
- * core
+ * emart
  *          .$win : $(window)
  *          .$doc : $(document)
  *          .$body : $(document.body)
  *          .each() : 반복자
  *          .extend() :  속성 복사
  *          .namespace() : 네임스페이스 생성
- *          .define() : core를 루트로 한 네임스페이스 생성
+ *          .define() : emart를 루트로 한 네임스페이스 생성
  *          .hasOwn() : Object.prototype.hasOwnProperty 단축명
  *          .is() : 타입 체크
  *          .require() : 동적 js 로더
@@ -53,7 +54,7 @@
  *
  *
  * @Browser : 브라우저 정보
- * core.browser
+ * emart.browser
  *          .isMobile   : 모바일여부
  *          .isRetina   : 레티나 여부
  *          .isAndroid  : 안드로이드 여부
@@ -79,7 +80,7 @@
  *          .isNotSupport3DTransform
  *
  * @date
- * core.date
+ * emart.date
  *			.diffTime(...)
  *			.compare(...)
  *			.between(...)
@@ -100,7 +101,7 @@
  *
  *
  * @string
- * core.string
+ * emart.string
  *			.trim(...)
  *			.replaceAll(...)
  *			.byteLength(...)
@@ -120,14 +121,14 @@
  *			.stripSctipts(...)
  *
  * @uri
- * core.uri
- *			.urlAppend(...)
+ * emart.uri
+ *			.addParam(...)
  *			.parseQuery(...)
  *			.parseUrl(...)
  *			.removeHash(...)
  *			
  * @number
- * core.number
+ * emart.number
  *			.zeroPad(...)
  *			.pad(...)
  *			.addComma(...)
@@ -135,7 +136,7 @@
  *			.limit(...)
  *
  * @array
- * core.array
+ * emart.array
  *			.append(...)
  *			.map(...)
  *			.every(...)
@@ -150,7 +151,7 @@
  *			.min(...)
  *
  * @json
- * core.json
+ * emart.json
  *			.keys(...)
  *			.values(...)
  *			.map(...)
@@ -162,7 +163,7 @@
  *
  *
  * @Util : Util함수 모음
- * core.util
+ * emart.util
  *          .png24(...)              : png 투명 처리
  *          .openPopup(...)          : 팝업 띄우기
  *          .resizePopup(...)        : 팝업 리사이즈
@@ -177,7 +178,7 @@
  *
  *
  * @UI : UI 모듈
- * core.ui
+ * emart.ui
  * 		 .AccordionList             : 아코디언 리스트
  * 		 .Calendar                  : 달력
  * 	     .Modal                     : 모달
@@ -191,17 +192,17 @@
  *          .Tab                       : 탭컨트롤
  *			 .AjaxList				   : ajax 리스트
  *	
- */
-(function (context, $, undefined) {
+ */ (function(context, $, undefined) {
     "use strict";
     /* jshint expr: true, validthis: true */
-    /* global core, alert, escape, unescape */
+    /* global emart, alert, escape, unescape */
 
-    if(!$) {
+    if (!$) {
         throw new Error("This library requires jQuery");
     }
 
-    var LIB_NAME = window.LIB_NAME = 'core';
+    // 프레임웍 이름
+    var LIB_NAME = window.LIB_NAME = 'emart';
 
     var $root = $(document.documentElement).addClass('js');
     ('ontouchstart' in context) && $root.addClass('touch');
@@ -209,10 +210,10 @@
 
     /**
      * @namespace
-     * @name core
+     * @name emart
      * @description root namespace of hib site
      */
-    var core = context[ LIB_NAME ] || (context[ LIB_NAME ] = {});
+    var core = context[LIB_NAME] || (context[LIB_NAME] = {});
     var arrayProto = Array.prototype,
         objectProto = Object.prototype,
         toString = objectProto.toString,
@@ -221,39 +222,39 @@
         doc = document,
         tmpInput = doc.createElement('input'),
         tmpNode = doc.createElement('div'),
-        emptyFn = function () {},
+        emptyFn = function() {},
         /**
          * 주어진 값이 배열형인가
          */
-        isArray = Array.isArray || function (value) {
+        isArray = Array.isArray || function(value) {
             return value && (typeof value === '[object Array]');
         },
         /**
          * 주어진 값이 함수형인가
          */
-        isFunction = (typeof document !== 'undefined' && typeof document.getElementsByTagName('body') === 'function') ? function (value) {
+        isFunction = (typeof doc !== 'undefined' && typeof doc.getElementsByTagName('body') === 'function') ? function(value) {
             return toString.call(value) === '[object Function]';
-        } : function (value) {
+        } : function(value) {
             return typeof value === 'function';
         },
         /**
          * 주어진 값이 json형인가
          */
-        isPlainObject = (toString.call(null) === '[object Object]') ? function (value) {
+        isPlainObject = (toString.call(null) === '[object Object]') ? function(value) {
             return value !== null && value !== undefined && toString.call(value) === '[object Object]' && value.ownerDocument === undefined;
-        } : function (value) {
+        } : function(value) {
             return toString.call(value) === '[object Object]';
         },
         /**
          * 반복 함수
          * @function
-         * @name core.each
+         * @name emart.each
          * @param {Array|JSON} obj 배열 및 json객체
          * @param {function(this:Array|Object, value, index)} cb
          * @param {Object} ctx
          * @returns {*}
          */
-        each = function (obj, cb, ctx) {
+        each = function(obj, cb, ctx) {
             if (!obj) {
                 return obj;
             }
@@ -287,25 +288,27 @@
         /**
          * 확장 함수
          * @function
-         * @name core.extend
+         * @name emart.extend
          * @param {JSON} obj...
          * @returns {*}
          */
         extend = function(deep, obj) {
             var args;
-            if(deep === true) {
+            if (deep === true) {
                 args = arraySlice.call(arguments, 2);
             } else {
                 args = arraySlice.call(arguments, 1);
                 obj = deep;
                 deep = false;
             }
-            each(args, function (source) {
-                if(!source) { return; }
+            each(args, function(source) {
+                if (!source) {
+                    return;
+                }
 
-                each(source, function (val, key) {
+                each(source, function(val, key) {
                     var isArr = isArray(val);
-                    if(deep && (isArr || isPlainObject(val))) {
+                    if (deep && (isArr || isPlainObject(val))) {
                         obj[key] || (obj[key] = isArr ? [] : {});
                         obj[key] = extend(deep, obj[key], val);
                     } else {
@@ -318,7 +321,7 @@
         /**
          * 복제 함수
          * @function
-         * @name core.clone
+         * @name emart.clone
          * @param {JSON} obj 배열 및 json객체
          * @returns {*}
          */
@@ -351,8 +354,8 @@
 
 
     extend(core, {
-    	name: LIB_NAME,
-    	debug: false,
+        name: LIB_NAME,
+        debug: false,
         /**
          * document jQuery wrapper
          */
@@ -366,7 +369,7 @@
          * body jQuery wrapper
          */
         getBody: function(isNative) {
-            if(!this.$body) {
+            if (!this.$body) {
                 this.$body = $('body');
             }
             return isNative === true ? this.$body[0] : this.$body;
@@ -376,7 +379,7 @@
          * 빈 함수
          * @function
          * @example
-         * var func = core.emptyFn
+         * var func = emart.emptyFn
          */
         emptyFn: emptyFn,
 
@@ -393,14 +396,14 @@
         /**
          * html5 속성의 지원여부를 체크할 때 사용
          * @example
-         * is = 'placeholder' in core.tmpInput;  // placeholder를 지원하는가
+         * is = 'placeholder' in emart.tmpInput;  // placeholder를 지원하는가
          */
         tmpInput: tmpInput,
 
         /**
          * 터치기반 디바이스 여부
          */
-        isTouch: !!('ontouchstart' in window),
+        isTouch: !! ('ontouchstart' in window),
 
         /**
          * 키 코드
@@ -434,21 +437,23 @@
          * @param {Mixed} ... 두번째 인자부터는 실제로 싱행될 함수로 전달된다.
          * @example
          * function Test() {
-		 *		alert(this.name);
-		 * }.bind({name: 'axl rose'});
+         *		alert(this.name);
+         * }.bind({name: 'axl rose'});
          *
          * Test(); -> alert('axl rose');
          */
-        Function.prototype.bind = function () {
-            var __method = this,
+        Function.prototype.bind = function() {
+            var fn = this,
                 args = arraySlice.call(arguments),
                 object = args.shift();
 
-            return function (context) {
+            return function(context) {
                 // bind로 넘어오는 인자와 원본함수의 인자를 병합하여 넘겨줌.
                 var local_args = args.concat(arraySlice.call(arguments));
-                if (this !== window) { local_args.push(this); }
-                return __method.apply(object, local_args);
+                if (this !== window) {
+                    local_args.push(this);
+                }
+                return fn.apply(object, local_args);
             };
         };
     }
@@ -456,9 +461,10 @@
     if (!window.console) {
         window.console = {};
         each(['log', 'info', 'warn', 'error', 'assert', 'dir', 'clear', 'profile', 'profileEnd'],
-            function(method) {
-                console[method] = function(){};
-            });
+
+        function(method) {
+            console[method] = function() {};
+        });
     }
 
     /**
@@ -468,29 +474,28 @@
      */
 
     $.extend(jQuery.expr[':'], {
-        focusable: function(el, index, selector){
-            return $(el).is('a, button, :input, [tabindex]');
+        focusable: function(el, index, selector) {
+            return $(el).is('a, button, input[type=text], input[type=file], input[type=checkbox], input[type=radio], select, textarea, [tabindex]');
         }
     });
 
     // TODO: 뺄 것
     var oldOff = $.fn.off;
     $.fn.unbind = $.fn.off = function(name) {
-        if((this[0] === window || this[0] === document)
-            && name !== 'ready' && name.indexOf('.') < 0) {
-            throw new Error('['+name+'] window, document에서 이벤트를 off할 때는 네임스페이스를 꼭 넣어주셔야 합니다.');
+        if ((this[0] === window || this[0] === document) && name !== 'ready' && name.indexOf('.') < 0) {
+            throw new Error('[' + name + '] window, document에서 이벤트를 off할 때는 네임스페이스를 꼭 넣어주셔야 합니다.');
         }
         return oldOff.apply(this, arguments);
     };
-    if(core.debug === true) {
-    var oldOn = $.fn.on;
-		$.fn.on = function() {
-			if(arguments.length === 3) {
-				console.log('Bubble binding...', this[0].tagName, arguments[0], arguments[1]);
-				console.trace();				
-			}
-			return oldOn.apply(this, arguments);
-		};
+    if (core.debug === true) {
+        var oldOn = $.fn.on;
+        $.fn.on = function() {
+            if (arguments.length === 3) {
+                console.log('Bubble binding...', this[0].tagName, arguments[0], arguments[1]);
+                console.trace();
+            }
+            return oldOn.apply(this, arguments);
+        };
     }
 
     /**
@@ -507,15 +512,15 @@
         }
     };
 
-	$.fn.getPlaceholder = function(){
-		var val = '';
-		if(this.attr('ori-placeholder')){
-			val = this.attr('ori-placeholder').replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
-		} else {
-			val = ('placeholder' in tmpInput ? this.attr('placeholder') : '');
-		}
-		return val;
-	}
+    $.fn.getPlaceholder = function() {
+        var val = '';
+        if (this.attr('ori-placeholder')) {
+            val = this.attr('ori-placeholder').replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+        } else {
+            val = ('placeholder' in tmpInput ? this.attr('placeholder') : '');
+        }
+        return val;
+    }
 
     /**
      * value값의 앞뒤 스페이스문자 또는 old ie인경우에 placeholder를 제거하여 실제 값만 반환
@@ -526,10 +531,13 @@
     $.fn.trimVal = (function() {
         var supportPlaceholder = ('placeholder' in tmpInput);
 
-        return  function(value) {
-            if(supportPlaceholder && !this.attr('ori-placeholder')){
-                if (arguments.length === 0) { return $.trim(this.val()); }
-                else { return this.val($.trim(value)); }
+        return function(value) {
+            if (supportPlaceholder && !this.attr('ori-placeholder')) {
+                if (arguments.length === 0) {
+                    return $.trim(this.val());
+                } else {
+                    return this.val($.trim(value));
+                }
             } else {
                 var txtPlaceholder = this.getPlaceholder();
                 if (arguments.length === 0) {
@@ -564,7 +572,7 @@
     $.fn.toggleLayer = function() {
         return this.each(function() {
             var $el = $(this),
-                $target = $( $el.attr('data-target') || $el.attr('href') );
+                $target = $($el.attr('data-target') || $el.attr('href'));
 
             $el.on('click', function(e) {
                 e.preventDefault();
@@ -592,7 +600,9 @@
      */
     $.fn.checked = function(checked, isBubble) {
         return this.each(function() {
-            if (this.type !== 'checkbox' && this.type !== 'radio') { return; }
+            if (this.type !== 'checkbox' && this.type !== 'radio') {
+                return;
+            }
             /**
              * @event $#changed
              * @type {object}
@@ -638,11 +648,16 @@
                 evt;
             if (options.opener) {
                 $this.data('opener', options.opener);
-                $(options.opener).attr({'aria-pressed': 'true', 'aria-expand': 'true'});
+                $(options.opener).attr({
+                    'aria-pressed': 'true',
+                    'aria-expand': 'true'
+                });
             }
 
             $this[trigger](evt = $.Event($.fn.showLayer.ON_BEFORESHOW));
-            if (evt.isDefaultPrevented()) { return; }
+            if (evt.isDefaultPrevented()) {
+                return;
+            }
 
             // 표시될 때 d_open 클래스 추가
             $this.addClass($.fn.showLayer.openClass).show()[trigger]($.fn.showLayer.ON_SHOWN);
@@ -674,8 +689,11 @@
 
             // 숨겨진 후에 열었던 원래버튼에 포커스를 강제로 준다.
             if ($this.data('opener')) {
-                var $btn = $( $this.data('opener') );
-                $btn.attr({'aria-pressed': 'false', 'aria-expand': 'false'});
+                var $btn = $($this.data('opener'));
+                $btn.attr({
+                    'aria-pressed': 'false',
+                    'aria-expand': 'false'
+                });
                 if (options.focusOpener === true) {
                     $btn.focus();
                 }
@@ -720,7 +738,7 @@
      */
     $.fn.activeItem = function(cls, isReverse) {
         cls = cls || 'on';
-        return this[isReverse?'removeClass':'addClass'](cls).siblings()[isReverse?'addClass':'removeClass'](cls).end();
+        return this[isReverse ? 'removeClass' : 'addClass'](cls).siblings()[isReverse ? 'addClass' : 'removeClass'](cls).end();
     };
 
     /**
@@ -732,12 +750,12 @@
      * @returns {*}
      */
     $.fn.disabled = function(name, flag) {
-        if(arguments.length === 0){
+        if (arguments.length === 0) {
             name = 'disabled';
             flag = true;
         }
-        if(typeof name !== 'string') {
-            flag = !!name;
+        if (typeof name !== 'string') {
+            flag = !! name;
             name = 'disabled';
         }
         return this.prop('disabled', flag).toggleClass(name, flag);
@@ -746,21 +764,21 @@
     /**
      * 커스텀 체크/라디오박스 빌드
      * @function
-     * @name $#disabled
+     * @name $#customCheckbox
      * @param {String} (Optional) name
      * @param {Boolean} flag
      * @returns {*}
      */
-    $.fn.customCheckbox = function(){
+    $.fn.customCheckbox = function() {
         this.find(':checkbox, :radio').off('.custominput').on('focusin.custominput focusout.custominput click.custominput', function(e) {
             var $el = $(this);
 
-            switch(e.type) {
+            switch (e.type) {
                 case 'click':
                     var isChecked = $el.prop('checked'),
                         id;
                     $el.siblings('label').toggleClass('on', isChecked);
-                    if($el.is(':radio')) {
+                    if ($el.is(':radio')) {
                         $($el[0].form[$el.attr('name')]).not(this).removeClass('on');
                     }
                     break;
@@ -776,7 +794,21 @@
         return this;
     };
 
-    extend(core, /** @lends core */{
+    extend(core, /** @lends emart */ {
+        confirm: function(e, msg) {
+            e = e || window.event;
+
+            if (confirm(msg)) {
+                return true;
+            }
+
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            } else {
+                e.cancelBubble = true;
+            }
+            return false;
+        },
         /**
          * timeStart("name")로 name값을 키로하는 타이머가 시작되며, timeEnd("name")로 해당 name값의 지난 시간을 로그에 출력해준다.
          *
@@ -784,11 +816,11 @@
          * @param {Boolean} reset 리셋(초기화) 여부
          *
          * @example
-         * core.timeStart('animate');
+         * emart.timeStart('animate');
          * ...
-         * core.timeEnd('animate'); -> animate: 10203ms
+         * emart.timeEnd('animate'); -> animate: 10203ms
          */
-        timeStart: function (name, reset) {
+        timeStart: function(name, reset) {
             if (!name) {
                 return;
             }
@@ -809,11 +841,11 @@
          * @return {Number} 걸린 시간
          *
          * @example
-         * core.timeStart('animate');
+         * emart.timeStart('animate');
          * ...
-         * core.timeEnd('animate'); -> animate: 10203ms
+         * emart.timeEnd('animate'); -> animate: 10203ms
          */
-        timeEnd: function (name) {
+        timeEnd: function(name) {
             if (!this.timeCounters) {
                 return null;
             }
@@ -839,22 +871,22 @@
      * 객체리터럴을 이용하여 여타 컴파일 언어의 네임스페이스처럼 쓸 수 있다.
      *
      * @function
-     * @name core.namespace
+     * @name emart.namespace
      *
      * @param {String} name 네임스페이스명
      * @param {Object} obj {Optional) 지정된 네임스페이스에 등록할 객체, 함수 등
      * @return {Object} 생성된 네임스페이스
      *
      * @example
-     * core.namesapce('core.widget.Tabcontrol', TabControl)
+     * emart.namesapce('emart.widget.Tabcontrol', TabControl)
      *
-     * ex) core.namespace('core.widget.Control', function() {}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
+     * ex) emart.namespace('emart.widget.Control', function() {}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
      *
-     * var core = core || {};
-     * core.ui = core.ui || {};
-     * core.widget.Control = core.widget.Control || function() {};
+     * var emart = emart || {};
+     * emart.ui = emart.ui || {};
+     * emart.widget.Control = emart.widget.Control || function() {};
      */
-    core.namespace = function (name, obj) {
+    core.namespace = function(name, obj) {
         if (typeof name !== 'string') {
             obj && (name = obj);
             return name;
@@ -865,7 +897,7 @@
             i, item;
 
         // if (isSet) {
-        for(i = -1; item = names[++i]; ) {
+        for (i = -1; item = names[++i];) {
             root = root[item] || (root[item] = (i === names.length - 1 ? obj : {}));
         }
         /* } else { // isGet
@@ -884,19 +916,20 @@
      * common를 루트로 하여 네임스페이스를 생성하여 새로운 속성을 추가하는 함수
      *
      * @function
-     * @name core.define
+     * @name emart.define
      *
      * @param {String} name .를 구분자로 해서 common를 시작으로 하위 네임스페이스를 생성. 없으면 common에 추가된다.
      * @param {Object|Function} object
      * @param {Boolean} isExecFn (Optional) object값이 함수형일 때 실행한 값을 설정할 것인가 여부
      *
      * @example
-     * core.define('', [], {});
-     * core.
+     * emart.define('', [], {});
+     * emart.
      */
-    core.define = function (name, object, isExecFn) {
+    core.define = function(name, object, isExecFn) {
         if (typeof name !== 'string') {
-            object = name; name = '';
+            object = name;
+            name = '';
         }
 
         var root = core,
@@ -917,16 +950,18 @@
 
     core._prefix = LIB_NAME + '.';
 
-    core.define(/** @lends core */ {
-		getHost: function() {
-			return document.location.protocol+'//'+document.location.host;
-		},
+    core.define( /** @lends emart */ {
+        getHost: function() {
+            var loc = document.location;
+            return loc.protocol + '//' + loc.host;
+        },
         /**
          * 현재 url 반환(쿼리스트링, # 제외)
          * @returns {string}
          */
         getPageUrl: function() {
-            return document.location.protocol+'//'+document.location.host+document.location.pathname;
+            var loc = document.location;
+            return loc.protocol + '//' + loc.host + loc.pathname;
         },
 
         /**
@@ -936,7 +971,7 @@
          * @param {String} name 키 이름
          * @return {Boolean} 키의 존재 여부
          */
-        hasOwn: function (obj, name) {
+        hasOwn: function(obj, name) {
             return hasOwn.call(obj, name);
         },
 
@@ -944,27 +979,28 @@
          * 브라우저의 Detect 정보: 되도록이면 Modernizr 라이브러리를 사용할 것을 권함
          *
          * @example
-         * core.browser.isOpera // 오페라
-         * core.browser.isWebKit // 웹킷
-         * core.browser.isIE // IE
-         * core.browser.isIE6 // IE56
-         * core.browser.isIE7 // IE567
-         * core.browser.isOldIE // IE5678
-         * core.browser.version // IE의 브라우저
-         * core.browser.isChrome // 크롬
-         * core.browser.isGecko // 파이어폭스
-         * core.browser.isMac // 맥OS
-         * core.browser.isAir // 어도비 에어
-         * core.browser.isIDevice // 아이폰, 아이패드
-         * core.browser.isSafari // 사파리
-         * core.browser.isIETri4 // IE엔진
-         * core.browser.isNotSupporte3DTransform // 안드로이드 3.0이하 3d transform지원X
-         * core.browser.isGingerbread // 안드로이드 Gingerbread
-         * core.browser.isIcecreamsandwith // 안드로이드 Icecreamsandwith
+         * emart.browser.isOpera // 오페라
+         * emart.browser.isWebKit // 웹킷
+         * emart.browser.isIE // IE
+         * emart.browser.isIE6 // IE56
+         * emart.browser.isIE7 // IE567
+         * emart.browser.isOldIE // IE5678
+         * emart.browser.version // IE의 브라우저
+         * emart.browser.isChrome // 크롬
+         * emart.browser.isGecko // 파이어폭스
+         * emart.browser.isMac // 맥OS
+         * emart.browser.isAir // 어도비 에어
+         * emart.browser.isIDevice // 아이폰, 아이패드
+         * emart.browser.isSafari // 사파리
+         * emart.browser.isIETri4 // IE엔진
+         * emart.browser.isNotSupporte3DTransform // 안드로이드 3.0이하 3d transform지원X
+         * emart.browser.isGingerbread // 안드로이드 Gingerbread
+         * emart.browser.isIcecreamsandwith // 안드로이드 Icecreamsandwith
          */
-        browser: (function () {
+        browser: (function() {
+            // 아 정리하고 싶당..
             var detect = {},
-                win = context,
+            win = context,
                 na = win.navigator,
                 ua = na.userAgent,
                 lua = ua.toLowerCase(),
@@ -975,22 +1011,22 @@
             detect.isAndroid = lua.indexOf('android') !== -1;
             detect.isOpera = win.opera && win.opera.buildNumber;
             detect.isWebKit = /WebKit/.test(ua);
-            detect.isTouch = !!('ontouchstart' in window);
+            detect.isTouch = !! ('ontouchstart' in window);
 
-            match = /(msie) ([\w.]+)/.exec(lua) || /(trident)(?:.*rv.?([\w.]+))?/.exec(lua) || ['',null,-1];
-            detect.isIE = !detect.isWebKit && !detect.isOpera && match[1] !== null;		//(/MSIE/gi).test(ua) && (/Explorer/gi).test(na.appName);
+            match = /(msie) ([\w.]+)/.exec(lua) || /(trident)(?:.*rv.?([\w.]+))?/.exec(lua) || ['', null, - 1];
+            detect.isIE = !detect.isWebKit && !detect.isOpera && match[1] !== null; //(/MSIE/gi).test(ua) && (/Explorer/gi).test(na.appName);
             detect.isIE6 = detect.isIE && /MSIE [56]/i.test(ua);
             detect.isIE7 = detect.isIE && /MSIE [567]/i.test(ua);
             detect.isOldIE = detect.isIE && /MSIE [5678]/i.test(ua);
-            detect.version = parseInt(match[2], 10);		// 사용법: if (browser.isIE && browser.version > 8) { // 9이상인 ie브라우저
+            detect.version = parseInt(match[2], 10); // 사용법: if (browser.isIE && browser.version > 8) { // 9이상인 ie브라우저
 
-			detect.isWin = (na.appVersion.indexOf("Win")!=-1);
+            detect.isWin = (na.appVersion.indexOf("Win") != -1);
             detect.isMac = (ua.indexOf('Mac') !== -1);
-			detect.isLinux = (na.appVersion.indexOf("Linux")!=-1);
-			detect.is64Bit = (lua.indexOf('wow64') > -1 || (na.platform==='Win64' && lua.indexOf('x64') > -1));
+            detect.isLinux = (na.appVersion.indexOf("Linux") != -1);
+            detect.is64Bit = (lua.indexOf('wow64') > -1 || (na.platform === 'Win64' && lua.indexOf('x64') > -1));
 
             detect.isChrome = (ua.indexOf('Chrome') !== -1);
-            detect.isGecko = (ua.indexOf('Firefox') !==-1);
+            detect.isGecko = (ua.indexOf('Firefox') !== -1);
             detect.isAir = ((/adobeair/i).test(ua));
             detect.isIOS = /(iPad|iPhone)/.test(ua);
             detect.isSafari = !detect.isChrome && (/Safari/).test(ua);
@@ -1003,16 +1039,28 @@
             detect.isGingerbread = /android 2.3/i.test(lua);
             detect.isIcecreamsandwith = /android 4.0/i.test(lua);
 
-			if(detect.isAndroid) {
-				detect.androidVersion = (function(match){ if(match){ return match[1]|0; } else { return 0; } })(lua.match(/android ([\w.]+)/));
-			} else if(detect.isIOS) {
-				detect.iosVersion = (function(match){ if(match){ return match[1]|0; } else { return 0; } })(ua.match(/OS ([[0-9]+)/));
-			}
+            if (detect.isAndroid) {
+                detect.androidVersion = (function(match) {
+                    if (match) {
+                        return match[1] | 0;
+                    } else {
+                        return 0;
+                    }
+                })(lua.match(/android ([\w.]+)/));
+            } else if (detect.isIOS) {
+                detect.iosVersion = (function(match) {
+                    if (match) {
+                        return match[1] | 0;
+                    } else {
+                        return 0;
+                    }
+                })(ua.match(/OS ([[0-9]+)/));
+            }
 
             return detect;
         }()),
 
-        is: function (o, typeName) {
+        is: function(o, typeName) {
             if (o === null) {
                 return typeName === 'null';
             }
@@ -1043,7 +1091,7 @@
          * @param {Boolean} allowEmptyString (Optional: false) 빈문자를 허용할 것인지 여부
          * @return {Boolean}
          */
-        isEmpty: function (value, allowEmptyString) {
+        isEmpty: function(value, allowEmptyString) {
             return (value === null) || (value === undefined) || (!allowEmptyString ? value === '' : false) || (core.is(value, 'array') && value.length === 0);
         },
 
@@ -1063,16 +1111,16 @@
          * @param {Mixin} scope 컨텍스트
          * @returns {Function}
          */
-        delayRun: function (fn, time, scope) {
+        delayRun: function(fn, time, scope) {
             time || (time = 250);
             var timeout = null;
-            return function () {
+            return function() {
                 if (timeout) {
                     clearTimeout(timeout);
                 }
                 var args = arguments,
                     me = this;
-                timeout = setTimeout(function () {
+                timeout = setTimeout(function() {
                     fn.apply(scope || me, args);
                     timeout = null;
                 }, time);
@@ -1084,7 +1132,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isDate: function (value) {
+        isDate: function(value) {
             return toString.call(value) === '[object Date]';
         },
 
@@ -1092,7 +1140,7 @@
          * JSON 객체인지 체크
          *
          * @function
-         * @name core.isPlainObject
+         * @name emart.isPlainObject
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -1102,7 +1150,7 @@
          * 함수형인지 체크
          *
          * @function
-         * @name core.isFunction
+         * @name emart.isFunction
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -1114,7 +1162,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isNumber: function (value) {
+        isNumber: function(value) {
             return typeof value === 'number' && isFinite(value);
         },
 
@@ -1123,7 +1171,7 @@
          * @param {Object} value 예: 1, '1', '2.34'
          * @return {Boolean}
          */
-        isNumeric: function (value) {
+        isNumeric: function(value) {
             return !isNaN(parseFloat(value)) && isFinite(value);
         },
 
@@ -1132,7 +1180,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isString: function (value) {
+        isString: function(value) {
             return typeof value === 'string';
         },
 
@@ -1142,7 +1190,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isBoolean: function (value) {
+        isBoolean: function(value) {
             return typeof value === 'boolean';
         },
 
@@ -1151,7 +1199,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isElement: function (value) {
+        isElement: function(value) {
             return value ? value.nodeType === 1 : false;
         },
 
@@ -1160,7 +1208,7 @@
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
-        isTextNode: function (value) {
+        isTextNode: function(value) {
             return value ? value.nodeName === "#text" : false;
         },
 
@@ -1171,13 +1219,13 @@
          * @return {Array}
          *
          * @example
-         * core.toArray('abcd"); => ["a", "b", "c", "d"]
-         * core.toArray(arguments);  => arguments를 객체를 array로 변환하여 Array에서 지원하는 유틸함수(slice, reverse ...)를 쓸수 있다.
+         * emart.toArray('abcd"); => ["a", "b", "c", "d"]
+         * emart.toArray(arguments);  => arguments를 객체를 array로 변환하여 Array에서 지원하는 유틸함수(slice, reverse ...)를 쓸수 있다.
          */
-        toArray: function (value) {
+        toArray: function(value) {
             try {
                 return arraySlice.apply(value, arraySlice.call(arguments, 1));
-            } catch (e){}
+            } catch (e) {}
 
             var ret = [];
             try {
@@ -1193,11 +1241,11 @@
          *
          * @return {String}
          */
-        getUniqId: function (len) {
+        getUniqId: function(len) {
             len = len || 32;
             var rdmString = "";
-            for( ; rdmString.length < len; rdmString  += Math.random().toString(36).substr(2));
-            return  rdmString.substr(0, len);
+            for (; rdmString.length < len; rdmString += Math.random().toString(36).substr(2));
+            return rdmString.substr(0, len);
         },
 
         /**
@@ -1221,28 +1269,34 @@
          * @return {Function} tempalte 함수
          *
          * @example
-         * var tmpl = core.template('&lt;span>&lt;$=name$>&lt;/span>');
-         * var html = tmpl({name: 'Axl rose'}); => &lt;span>Axl rose&lt;/span>
+         * var tmpl = emart.template('<span><$=name$></span>');
+         * var html = tmpl({name: 'Axl rose'}); => <span>Axl rose</span>
          * $('div').html(html);
          */
-        template: function (str, data) {
+        template: function(str, data) {
             var m,
-                src = 'var __src = [], each='+LIB_NAME+'.each, escapeHTML='+LIB_NAME+'.string.escapeHTML; with(value||{}) { __src.push("';
+            src = 'var __src = [], each=' + LIB_NAME + '.each, escapeHTML=' + LIB_NAME + '.string.escapeHTML; with(value||{}) { __src.push("';
             str = $.trim(str);
             src += str.replace(/\r|\n|\t/g, " ")
-                .replace(/<\$(.*?)\$>/g, function(a, b) { return '<$' + b.replace(/"/g, '\t') + '$>'; })
+                .replace(/<\$(.*?)\$>/g, function(a, b) {
+                return '<$' + b.replace(/"/g, '\t') + '$>';
+            })
                 .replace(/"/g, '\\"')
-                .replace(/<\$(.*?)\$>/g, function(a, b) { return '<$' + b.replace(/\t/g, '"') + '$>'; })
-				//.replace(/<\$each\(([a-z0-9]+)\:([a-z0-9]+)\)\$>([^<]+?)<\$\/each\$>/ig, '", (function(){ var __ret = \'\'; each($1, function($2, $2_i) { __ret += $3; }); return __ret; })(), "')
-                .replace(/<\$=(.+?)\$>/g, '", $1, "')
+                .replace(/<\$(.*?)\$>/g, function(a, b) {
+                return '<$' + b.replace(/\t/g, '"') + '$>';
+            })
+            //.replace(/<\$each\(([a-z0-9]+)\:([a-z0-9]+)\)\$>([^<]+?)<\$\/each\$>/ig, '", (function(){ var __ret = \'\'; each($1, function($2, $2_i) { __ret += $3; }); return __ret; })(), "')
+            .replace(/<\$=(.+?)\$>/g, '", $1, "')
                 .replace(/<\$-(.+?)\$>/g, '", escapeHTML($1), "')
-                .replace(/(<\$|\$>)/g, function(a, b) { return b === '<$' ? '");' : '__src.push("'});
+                .replace(/(<\$|\$>)/g, function(a, b) {
+                return b === '<$' ? '");' : '__src.push("'
+            });
 
-            src+='"); }; return __src.join("")';
+            src += '"); }; return __src.join("")';
 
             var f = new Function('value', 'data', src);
-            if ( data ) {
-                return f( data );
+            if (data) {
+                return f(data);
             }
             return f;
         },
@@ -1254,11 +1308,11 @@
          * @param {Array} scriptList 로딩할 js파일 리스트
          * @param {Function} callback 주어진 js파일들의 로딩이 모두 완료가 되었을 때 실행할 콜백함수
          */
-        loadScript: (function () {
+        loadScript: (function() {
             // benchmark: https://github.com/eancc/seque-loadjs/blob/master/seque-loadjs.js
 
             var loadedjs = {},
-                core = core;
+            core = core;
 
             return function(scriptList, cb) {
                 var args = arraySlice.call(arguments),
@@ -1273,7 +1327,7 @@
                 });
 
                 function callback() {
-                    if(cb) {
+                    if (cb) {
                         cb.apply(null, callbackArgs);
                     }
                     defer.resolve.apply(null, callbackArgs);
@@ -1333,7 +1387,7 @@
 
                 if (scriptList instanceof Array) {
                     loadScripts();
-                } else if (typeof (scriptList) == "string") {
+                } else if (typeof(scriptList) == "string") {
                     loadScript(scriptList, function() {
                         callback.apply(null, callbackArgs);
                     });
@@ -1349,30 +1403,31 @@
      * 문자열 관련 유틸 함수 모음
      *
      * @namespace
-     * @name core.string
+     * @name emart.string
      * @description
      */
-    core.define('string', function () {
+    core.define('string', function() {
         var escapeChars = {
-                '&': '&amp;',
-                '>': '&gt;',
-                '<': '&lt;',
-                '"': '&quot;',
-                "'": '&#39;'
-            },
-            unescapeChars = (function (escapeChars) {
-                var results = {};
-                each(escapeChars, function (v, k) {
-                    results[v] = k;
-                });
-                return results;
-            })(escapeChars),
+            '&': '&',
+            '>': '>',
+            '<': '<',
+            '"': '"',
+            "'": '''
+        },
+        unescapeChars = (function(escapeChars) {
+            var results = {};
+            each(escapeChars, function(v, k) {
+                results[v] = k;
+            });
+            return results;
+        })(escapeChars),
             escapeRegexp = /[&><'"]/g,
-            unescapeRegexp = /(&amp;|&gt;|&lt;|&quot;|&#39;|&#[0-9]{1,5};)/g,
+            unescapeRegexp = /(&|>|<|"|'|&#[0-9]{1,5};)/g,
             tagRegexp = /<\/?[^>]+>/gi,
             scriptRegexp = /<script[^>]*>([\\S\\s]*?)<\/script>/img;
 
-        return /** @lends core.string */{
+        return /** @lends emart.string */
+        {
             trim: function(value) {
                 return value ? value.replace(/^\s+|\s+$/g, "") : value;
             },
@@ -1385,9 +1440,9 @@
              * @return {String} 대체된 결과 문자열
              *
              * @example
-             * core.replaceAll("a1b2c3d", /[0-9]/g, ''); => "abcd"
+             * emart.replaceAll("a1b2c3d", /[0-9]/g, ''); => "abcd"
              */
-            replaceAll: function (value, find, rep) {
+            replaceAll: function(value, find, rep) {
                 if (find.constructor === RegExp) {
                     return value.replace(new RegExp(find.toString().replace(/^\/|\/$/gi, ""), "gi"), rep);
                 }
@@ -1401,14 +1456,19 @@
              * @return {Number}
              *
              * @example
-             * core.byteLength("동해물과"); => 8
+             * emart.byteLength("동해물과"); => 8
              */
-            byteLength: function (value) {
+            byteLength: function(value) {
                 var l = 0;
-                for (var i=0, len = value.length; i < len; i++) {
+                for (var i = 0, len = value.length; i < len; i++) {
                     l += (value.charCodeAt(i) > 255) ? 2 : 1;
                 }
                 return l;
+            },
+
+            getFileExt: function(fname) {
+                fname || (fname = '');
+                return fname.substr((~ - fname.lastIndexOf(".") >>> 0) + 2);
             },
 
             /**
@@ -1420,9 +1480,9 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.cutByByte("동해물과", 3, "..."); => "동..."
+             * emart.string.cutByByte("동해물과", 3, "..."); => "동..."
              */
-            cutByByte: function (value, length, truncation) {
+            cutByByte: function(value, length, truncation) {
                 var str = value,
                     chars = this.charsByByte(value, length);
 
@@ -1440,12 +1500,16 @@
              * @param {Number} length 제한 문자수
              * @return {Number} chars count
              */
-            charsByByte: function (value, length) {
+            charsByByte: function(value, length) {
                 var str = value,
-                    l = 0, len = 0, i = 0;
-                for (i=0, len = str.length; i < len; i++) {
+                    l = 0,
+                    len = 0,
+                    i = 0;
+                for (i = 0, len = str.length; i < len; i++) {
                     l += (str.charCodeAt(i) > 255) ? 2 : 1;
-                    if (l > length) { return i; }
+                    if (l > length) {
+                        return i;
+                    }
                 }
                 return i;
             },
@@ -1457,9 +1521,9 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.capitalize("abCdEfg"); => "Abcdefg"
+             * emart.string.capitalize("abCdEfg"); => "Abcdefg"
              */
-            capitalize: function (value) {
+            capitalize: function(value) {
                 return value ? value.charAt(0).toUpperCase() + value.substring(1) : value;
             },
 
@@ -1470,9 +1534,9 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.capitalize("ab-cd-efg"); => "abCdEfg"
+             * emart.string.capitalize("ab-cd-efg"); => "abCdEfg"
              */
-            camelize: function (value) {
+            camelize: function(value) {
                 return value ? value.replace(/(\-|_|\s)+(.)?/g, function(a, b, c) {
                     return (c ? c.toUpperCase() : '');
                 }) : value
@@ -1485,9 +1549,9 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.dasherize("abCdEfg"); => "ab-cd-efg"
+             * emart.string.dasherize("abCdEfg"); => "ab-cd-efg"
              */
-            dasherize: function (value) {
+            dasherize: function(value) {
                 return value ? value.replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').toLowerCase() : value;
             },
 
@@ -1496,8 +1560,10 @@
              * @param {String} value
              * @returns {string}
              */
-            toFirstLower: function (value) {
-                return value ? value.replace(/^[A-Z]/, function(s) { return s.toLowerCase(); }) : value;
+            toFirstLower: function(value) {
+                return value ? value.replace(/^[A-Z]/, function(s) {
+                    return s.toLowerCase();
+                }) : value;
             },
 
             /**
@@ -1508,9 +1574,9 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.repeat("ab", 4); => "abababab"
+             * emart.string.repeat("ab", 4); => "abababab"
              */
-            repeat: function (value, cnt, sep) {
+            repeat: function(value, cnt, sep) {
                 sep || (sep = '');
                 var result = [];
 
@@ -1527,10 +1593,10 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.escapeHTML('<div><a href="#">링크</a></div>'); => "&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;"
+             * emart.string.escapeHTML('<div><a href="#">링크</a></div>'); => "<div><a href="#">링크</a></div>"
              */
-            escapeHTML: function (value) {
-                return value ? (value+"").replace(escapeRegexp, function (m) {
+            escapeHTML: function(value) {
+                return value ? (value + "").replace(escapeRegexp, function(m) {
                     return escapeChars[m];
                 }) : value;
             },
@@ -1542,10 +1608,10 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.unescapeHTML('&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;');  => '<div><a href="#">링크</a></div>'
+             * emart.string.unescapeHTML('<div><a href="#">링크</a></div>');  => '<div><a href="#">링크</a></div>'
              */
-            unescapeHTML: function (value) {
-                return value ? (value+"").replace(unescapeRegexp, function (m) {
+            unescapeHTML: function(value) {
+                return value ? (value + "").replace(unescapeRegexp, function(m) {
                     return unescapeChars[m];
                 }) : value;
             },
@@ -1559,10 +1625,10 @@
              * @return {String}
              *
              * @example
-             * core.string.toggle('ASC", "ASC", "DESC"); => "DESC"
-             * core.string.toggle('DESC", "ASC", "DESC"); => "ASC"
+             * emart.string.toggle('ASC", "ASC", "DESC"); => "DESC"
+             * emart.string.toggle('DESC", "ASC", "DESC"); => "ASC"
              */
-            toggle: function (value, these, other) {
+            toggle: function(value, these, other) {
                 return these === value ? other : value;
             },
 
@@ -1574,13 +1640,13 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.string.format("{0}:{1}:{2} {0}", "a", "b", "c");  => "a:b:c a"
+             * emart.string.format("{0}:{1}:{2} {0}", "a", "b", "c");  => "a:b:c a"
              */
-            format: function (format, val) {
+            format: function(format, val) {
                 var args = core.toArray(arguments).slice(1),
                     isJson = core.isPlainObject(val);
 
-                return format.replace(/\{([0-9a-z]+)\}/ig, function (m, i) {
+                return format.replace(/\{([0-9a-z]+)\}/ig, function(m, i) {
                     return isJson ? val[i] : args[i] || '';
                 });
             },
@@ -1597,7 +1663,7 @@
                     var x;
                     var ins;
 
-                    return val.replace(re, function () {
+                    return val.replace(re, function() {
                         if (arguments[0] == "%%") {
                             return "%";
                         }
@@ -1614,7 +1680,7 @@
                     });
                 };
 
-                s.d = s.u = function(ins, x){
+                s.d = s.u = function(ins, x) {
                     return core.number.zeroPad(Number(ins).toString(0x0A), x[2] + x[4], x[3]);
                 };
 
@@ -1633,8 +1699,7 @@
                     return core.number.zeroPad(ins, x[2] + x[4], x[3]);
                 };
 
-                s.s = function(ins, x)
-                {
+                s.s = function(ins, x) {
                     return core.number.zeroPad(ins, x[2] + x[4], x[3]);
                 };
 
@@ -1647,7 +1712,7 @@
              * @param {String} value 문자열
              * @return {String}
              */
-            stripTags: function (value) {
+            stripTags: function(value) {
                 return value.replace(tagRegexp, '');
             },
 
@@ -1657,7 +1722,7 @@
              * @param {String} value 문자열
              * @return {String}
              */
-            stripScripts: function (value) {
+            stripScripts: function(value) {
                 return value.replace(scriptRegexp, '');
             }
 
@@ -1667,10 +1732,10 @@
 
     /**
      * @namespace
-     * @name core.uri
+     * @name emart.uri
      * @description
      */
-    core.define('uri', /** @lends core.uri */{
+    core.define('uri', /** @lends emart.uri */ {
 
         /**
          * 주어진 url에 쿼리스츠링을 조합
@@ -1680,10 +1745,10 @@
          * @return {String}
          *
          * @example
-         * core.uri.urlAppend("board.do", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?a=1&b=2&c[d]=4"
-         * core.uri.urlAppend("board.do?id=123", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?id=123&a=1&b=2&c[d]=4"
+         * emart.uri.addParam("board.do", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?a=1&b=2&c[d]=4"
+         * emart.uri.addParam("board.do?id=123", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?id=123&a=1&b=2&c[d]=4"
          */
-        urlAppend: function (url, string) {
+        addParam: function(url, string) {
             if (core.is(string, 'object')) {
                 string = core.object.toQueryString(string);
             }
@@ -1701,13 +1766,15 @@
          * @return {Object}
          *
          * @example
-         * core.uri.parseQuery("a=1&b=2"); => {"a": 1, "b": 2}
+         * emart.uri.parseQuery("a=1&b=2"); => {"a": 1, "b": 2}
          */
-        parseQuery: function (query) {
+        parseQuery: function(query) {
             if (!query) {
                 return {};
             }
-            if (query.length > 0 && query.charAt(0) === '?') { query = query.substr(1); }
+            if (query.length > 0 && query.charAt(0) === '?') {
+                query = query.substr(1);
+            }
 
             var params = (query + '').split('&'),
                 obj = {},
@@ -1730,8 +1797,8 @@
          * @return {Object}
          *
          * @example
-         * core.uri.parseUrl("http://www.core.com:8080/list.do?a=1&b=2#comment");
-         * => {scheme: "http", host: "www.core.com", port: "8080", path: "/list.do", query: "a=1&b=2"…}
+         * emart.uri.parseUrl("http://www.emart.com:8080/list.do?a=1&b=2#comment");
+         * => {scheme: "http", host: "www.emart.com", port: "8080", path: "/list.do", query: "a=1&b=2"…}
          */
         parseUrl: (function() {
             var o = {
@@ -1747,13 +1814,15 @@
                 }
             };
 
-            return function (str) {
+            return function(str) {
                 if (str.length > 2 && str[0] === '/' && str[1] === '/') {
                     str = window.location.protocol + str;
                 }
                 var m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
                     uri = {}, i = 14;
-                while (i--) { uri[o.key[i]] = m[i] || ""; }
+                while (i--) {
+                    uri[o.key[i]] = m[i] || "";
+                }
                 return uri;
             };
         })(),
@@ -1765,9 +1834,9 @@
          * @return {String} 결과 문자열
          *
          * @example
-         * core.uri.removeHash("list.do#comment"); => "list.do"
+         * emart.uri.removeHash("list.do#comment"); => "list.do"
          */
-        removeHash: function (url) {
+        removeHash: function(url) {
             return url ? url.replace(/#.*$/, '') : url;
         }
     });
@@ -1776,10 +1845,10 @@
      * 숫자관련 유틸함수 모음
      *
      * @namespace
-     * @name core.number
+     * @name emart.number
      * @description
      */
-    core.define('number', /** @lends core.number */{
+    core.define('number', /** @lends emart.number */ {
         /**
          * 주어진 수를 자릿수만큼 앞자리에 0을 채워서 반환
          *
@@ -1789,16 +1858,16 @@
          * @return {String}
          *
          * @example
-         * core.number.zeroPad(2, 3); => "002"
+         * emart.number.zeroPad(2, 3); => "002"
          */
-        zeroPad: function (value, size, ch) {
+        zeroPad: function(value, size, ch) {
             var sign = value < 0 ? '-' : '',
                 result = String(Math.abs(value));
 
             ch || (ch = "0");
             size || (size = 2);
 
-            if(result.length >= size) {
+            if (result.length >= size) {
                 return sign + result.slice(-size);
             }
 
@@ -1815,9 +1884,9 @@
          * @return {String}
          *
          * @example
-         * core.number.addComma(21342); => "21,342"
+         * emart.number.addComma(21342); => "21,342"
          */
-        addComma: function (value) {
+        addComma: function(value) {
             value += '';
             var x = value.split('.'),
                 x1 = x[0],
@@ -1837,7 +1906,7 @@
          * @param {Number} max 최대값
          * @return {Number} 랜덤값
          */
-        random: function (min, max) {
+        random: function(min, max) {
             if (max === null) {
                 max = min;
                 min = 0;
@@ -1853,9 +1922,12 @@
          * @param {Number} max 최대값
          * @return {Number}
          */
-        limit: function (value, min, max) {
-            if (value < min) { return min; }
-            else if (value > max) { return max; }
+        limit: function(value, min, max) {
+            if (value < min) {
+                return min;
+            } else if (value > max) {
+                return max;
+            }
             return value;
         }
     });
@@ -1869,15 +1941,15 @@
     /**
      * 배열관련 유틸함수
      * @namespace
-     * @name core.array
+     * @name emart.array
      */
-    core.define('array', /** @lends core.array */{
+    core.define('array', /** @lends emart.array */ {
         /**
          * 배열 병합
          * @param {Array, Array, ...} arr
          * @returns {*}
          */
-        append: function (arr) {
+        append: function(arr) {
             var args = arraySlice.call(arguments);
             arrayProto.push.apply.apply(args);
             return args[0];
@@ -1886,24 +1958,26 @@
          * 콜백함수로 하여금 요소를 가공하는 함수
          *
          * @function
-         * @name core.array.map
+         * @name emart.array.map
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @param {Object} (optional) 컨텍스트
          * @return {Array}
          *
          * @example
-         * core.array.map([1, 2, 3], function(item, index) {
-		 *		return item * 10;
-		 * });
+         * emart.array.map([1, 2, 3], function(item, index) {
+         *		return item * 10;
+         * });
          * => [10, 20, 30]
          */
-        map: nativeCall(arrayProto.map) || function (obj, cb, ctx) {
+        map: nativeCall(arrayProto.map) || function(obj, cb, ctx) {
             var results = [];
-            if (!core.is(obj, 'array') || !core.is(cb, 'function')) { return results; }
+            if (!core.is(obj, 'array') || !core.is(cb, 'function')) {
+                return results;
+            }
             // vanilla js~
-            for(var i =0, len = obj.length; i < len; i++) {
-                results[results.length] = cb.call(ctx||obj, obj[i], i, obj);
+            for (var i = 0, len = obj.length; i < len; i++) {
+                results[results.length] = cb.call(ctx || obj, obj[i], i, obj);
             }
             return results;
         },
@@ -1911,14 +1985,16 @@
         /**
          * 반복자함수의 반환값이 true가 아닐 때까지 반복
          * @function
-         * @name core.array.every
+         * @name emart.array.every
          * @return {Boolean} 최종 결과
          */
         every: nativeCall(arrayProto.every) || function(arr, cb, ctx) {
             var isTrue = true;
-            if (!core.is(arr, 'array') || !core.is(cb, 'function')) { return isTrue; }
+            if (!core.is(arr, 'array') || !core.is(cb, 'function')) {
+                return isTrue;
+            }
             each(arr, function(v, k) {
-                if (cb.call(ctx||this, v, k) !== true) {
+                if (cb.call(ctx || this, v, k) !== true) {
                     return isTrue = false, false;
                 }
             });
@@ -1928,13 +2004,15 @@
         /**
          * 반복자함수의 반환값이 true일 때까지 반복
          * @function
-         * @name core.array.any
+         * @name emart.array.any
          */
         any: nativeCall(arrayProto.any) || function(arr, cb, ctx) {
             var isTrue = false;
-            if (!core.is(arr, 'array') || !core.is(cb, 'function')) { return isTrue; }
+            if (!core.is(arr, 'array') || !core.is(cb, 'function')) {
+                return isTrue;
+            }
             each(arr, function(v, k) {
-                if (cb.call(ctx||this, v, k) === true) {
+                if (cb.call(ctx || this, v, k) === true) {
                     return isTrue = true, false;
                 }
             });
@@ -1947,13 +2025,13 @@
          * @param {Array} obj 배열
          * @return {Array} 순서가 섞인 새로운 배열
          */
-        shuffle: function (obj) {
+        shuffle: function(obj) {
             var rand,
-                index = 0,
+            index = 0,
                 shuffled = [],
                 number = core.number;
 
-            each(obj, function (value, k) {
+            each(obj, function(value, k) {
                 rand = number.random(index++);
                 shuffled[index - 1] = shuffled[rand], shuffled[rand] = value;
             });
@@ -1963,23 +2041,25 @@
         /**
          * 콜백함수로 하여금 요소를 걸려내는 함수
          * @function
-         * @name core.array.filter
+         * @name emart.array.filter
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @param {Object} (optional) 컨텍스트
          * @returns {Array}
          *
          * @example
-         * core.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index) {
-		 *		return typeof item === 'string';
-		 * });
+         * emart.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index) {
+         *		return typeof item === 'string';
+         * });
          * => ['일','이','삼']
          */
-        filter: nativeCall(arrayProto.filter) || function (obj, cb, ctx) {
+        filter: nativeCall(arrayProto.filter) || function(obj, cb, ctx) {
             var results = [];
-            if (!core.is(obj, 'array') || !core.is(cb, 'function')) { return results; }
-            for(var i =0, len = obj.length; i < len; i++) {
-                cb.call(ctx||obj, obj[i], i, obj) && (results[results.length] = obj[i]);
+            if (!core.is(obj, 'array') || !core.is(cb, 'function')) {
+                return results;
+            }
+            for (var i = 0, len = obj.length; i < len; i++) {
+                cb.call(ctx || obj, obj[i], i, obj) && (results[results.length] = obj[i]);
             }
             return results;
         },
@@ -1992,13 +2072,15 @@
          * @return {Array}
          *
          * @example
-         * core.array.include([1, '일', 2, '이', 3, '삼'], '삼');  => true
+         * emart.array.include([1, '일', 2, '이', 3, '삼'], '삼');  => true
          */
-        include: function (arr, value, b) {
-            if (!core.is(arr, 'array')) { return value; }
-            if(typeof value === 'function') {
-                for(var i = 0; i<arr.length; i++) {
-                    if(value(arr[i], i) === true){
+        include: function(arr, value, b) {
+            if (!core.is(arr, 'array')) {
+                return value;
+            }
+            if (typeof value === 'function') {
+                for (var i = 0; i < arr.length; i++) {
+                    if (value(arr[i], i) === true) {
                         return true;
                     }
                 }
@@ -2010,17 +2092,19 @@
         /**
          * 주어진 인덱스의 요소를 반환
          * @function
-         * @name core.array.indexOf
+         * @name emart.array.indexOf
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @return {Array}
          *
          * @example
-         * core.array.indexOf([1, '일', 2, '이', 3, '삼'], '일');  => 1
+         * emart.array.indexOf([1, '일', 2, '이', 3, '삼'], '일');  => 1
          */
-        indexOf: nativeCall(arrayProto.indexOf) || function (arr, value, b) {
+        indexOf: nativeCall(arrayProto.indexOf) || function(arr, value, b) {
             for (var i = 0, len = arr.length; i < len; i++) {
-                if ( (b !== false && arr[i] === value) || (b === false && arr[i] == value) ) { return i; }
+                if ((b !== false && arr[i] === value) || (b === false && arr[i] == value)) {
+                    return i;
+                }
             }
             return -1;
         },
@@ -2032,9 +2116,12 @@
          * @param {Number} index 삭제할 인덱스 or 요소
          * @return {Array} 지정한 요소가 삭제된 배열
          */
-        removeAt: function (value, index) {
-            if (!core.is(value, 'array')) { return value; }
+        removeAt: function(value, index, cb) {
+            if (!core.is(value, 'array')) {
+                return value;
+            }
             value.splice(index, 1);
+            cb && cb.call(value, index);
             return value;
         },
 
@@ -2046,19 +2133,23 @@
          * @param {Mixed} item 요소
          * @return {Array} 지정한 요소가 삭제된 배열
          */
-        remove: function (value, iter) {
-            if (!core.is(value, 'array')) { return value; }
-            if(typeof iter === 'function'){
-                for(var i = value.length, item; item = value[--i]; ){
-                    if(iter(item, i) === true){
-                        value = this.removeAt(value, i);
+        remove: function(value, iter, cb) {
+            if (!core.is(value, 'array')) {
+                return value;
+            }
+            if (typeof iter === 'function') {
+                for (var i = value.length, item; item = value[--i];) {
+                    if (iter(item, i) === true) {
+                        value = this.removeAt(value, i, cb);
                     }
                 }
                 return value;
             } else {
                 var index = this.indexOf(value, iter);
-                if(index < 0) { return value; }
-                return this.removeAt(value, index);
+                if (index < 0) {
+                    return value;
+                }
+                return this.removeAt(value, index, cb);
             }
         },
 
@@ -2068,8 +2159,8 @@
          * @param {Array} array 배열
          * @return {Mix}
          */
-        max: function( array ) {
-            return Math.max.apply( Math, array );
+        max: function(array) {
+            return Math.max.apply(Math, array);
         },
 
         /**
@@ -2078,8 +2169,8 @@
          * @param {Array} array 배열
          * @return {Mix}
          */
-        min: function( array ) {
-            return Math.min.apply( Math, array );
+        min: function(array) {
+            return Math.min.apply(Math, array);
         },
 
         reverse: nativeCall(arrayProto.reverse) || function(array) {
@@ -2101,23 +2192,23 @@
     /**
      * JSON객체 관련 유틸함수
      * @namespace
-     * @name core.object
+     * @name emart.object
      */
-    core.define('object', /** @lends core.object */{
+    core.define('object', /** @lends emart.object */ {
 
         /**
          * 개체의 열거가능한 속성 및 메서드 이름을 배열로 반환
          * @function
-         * @name core.object.keys
+         * @name emart.object.keys
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 이름이 포함된 배열
          *
          * @example
-         * core.object.keys({"name": "Axl rose", "age": 50}); => ["name", "age"]
+         * emart.object.keys({"name": "Axl rose", "age": 50}); => ["name", "age"]
          */
-        keys: Object.keys || function (obj) {
+        keys: Object.keys || function(obj) {
             var results = [];
-            each(obj, function (v, k) {
+            each(obj, function(v, k) {
                 results.push(k);
             });
             return results;
@@ -2126,16 +2217,16 @@
         /**
          * 개체의 열거가능한 속성의 값을 배열로 반환
          * @function
-         * @name core.object.values
+         * @name emart.object.values
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 값들이 포함된 배열
          *
          * @example
-         * core.object.values({"name": "Axl rose", "age": 50}); => ["Axl rose", 50]
+         * emart.object.values({"name": "Axl rose", "age": 50}); => ["Axl rose", 50]
          */
-        values: Object.values || function (obj) {
+        values: Object.values || function(obj) {
             var results = [];
-            each(obj, function (v) {
+            each(obj, function(v) {
                 results.push(v);
             });
             return results;
@@ -2149,13 +2240,15 @@
          * @return {JSON}
          *
          * @example
-         * core.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key) {
-		 *		return item + '__';
-		 * });
+         * emart.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key) {
+         *		return item + '__';
+         * });
          * => {1: 'one__', 2: 'two__', 3: 'three__'}
          */
         map: function(obj, cb) {
-            if (!core.is(obj, 'object') || !core.is(cb, 'function')) { return obj; }
+            if (!core.is(obj, 'object') || !core.is(cb, 'function')) {
+                return obj;
+            }
             var results = {};
             each(obj, function(v, k) {
                 results[k] = cb(obj[k], k, obj);
@@ -2170,7 +2263,7 @@
          * @param {Object} obj json객체
          * @return {Boolean} 요소가 하나라도 있는지 여부
          */
-        hasItems: function (obj) {
+        hasItems: function(obj) {
             if (!core.is(obj, 'object')) {
                 return false;
             }
@@ -2191,26 +2284,26 @@
          * @return {String} 결과 문자열
          *
          * @example
-         * core.object.toQueryString({"a":1, "b": 2, "c": {"d": 4}}); => "a=1&b=2&c[d]=4"
+         * emart.object.toQueryString({"a":1, "b": 2, "c": {"d": 4}}); => "a=1&b=2&c[d]=4"
          */
-        toQueryString: function (params, isEncode) {
+        toQueryString: function(params, isEncode) {
             if (typeof params === 'string') {
                 return params;
             }
             var queryString = '',
-                encode = isEncode === false ? function (v) {
+                encode = isEncode === false ? function(v) {
                     return v;
                 } : encodeURIComponent;
 
-            each(params, function (value, key) {
-                if (typeof (value) === 'object') {
-                    each(value, function (innerValue, innerKey) {
+            each(params, function(value, key) {
+                if (typeof(value) === 'object') {
+                    each(value, function(innerValue, innerKey) {
                         if (queryString !== '') {
                             queryString += '&';
                         }
                         queryString += encode(key) + '[' + encode(innerKey) + ']=' + encode(innerValue);
                     });
-                } else if (typeof (value) !== 'undefined') {
+                } else if (typeof(value) !== 'undefined') {
                     if (queryString !== '') {
                         queryString += '&';
                     }
@@ -2227,12 +2320,12 @@
          * @return {Object}
          *
          * @example
-         * core.object.travere({1:a, 2:b, 3:c, 4:d]);
-		 * => {a:1, b:2, c:3, d:4}
-		 */
-        traverse: function (obj) {
+         * emart.object.travere({1:a, 2:b, 3:c, 4:d]);
+         * => {a:1, b:2, c:3, d:4}
+         */
+        traverse: function(obj) {
             var result = {};
-            each(obj, function (item, index) {
+            each(obj, function(item, index) {
                 result[item] = index;
             });
             return result;
@@ -2245,14 +2338,16 @@
          * @param {Number} key 삭제할 키
          * @return 지정한 요소가 삭제된 리터럴
          */
-        remove: function (value, key) {
-            if (!core.is(value, 'object')) { return value; }
+        remove: function(value, key) {
+            if (!core.is(value, 'object')) {
+                return value;
+            }
             value[key] = null;
             delete value[key];
             return value;
         },
 
-        stringify: function (val, opts, pad) {
+        stringify: function(val, opts, pad) {
             var cache = [];
 
             return (function stringify(val, opts, pad) {
@@ -2264,15 +2359,12 @@
                 }, opts);
                 pad = pad || '';
 
-                if (typeof val === 'number' ||
-                    typeof val === 'boolean' ||
-                    val === null ||
-                    val === undefined) {
+                if (typeof val === 'number' || typeof val === 'boolean' || val === null || val === undefined) {
                     return val;
                 }
 
-                if(typeof val === 'string') {
-                    return '"' + val +'"';
+                if (typeof val === 'string') {
+                    return '"' + val + '"';
                 }
 
                 if (val instanceof Date) {
@@ -2284,8 +2376,8 @@
                         return '[]';
                     }
 
-                    return '[' + opts.nr + core.array.map(val, function (el, i) {
-                        var eol = val.length - 1 === i ? opts.nr : ', '+opts.nr;
+                    return '[' + opts.nr + core.array.map(val, function(el, i) {
+                        var eol = val.length - 1 === i ? opts.nr : ', ' + opts.nr;
                         return pad + opts.indent + stringify(el, opts, pad + opts.indent) + eol;
                     }).join('') + pad + ']';
                 }
@@ -2303,17 +2395,17 @@
 
                     objKeys = core.object.keys(val);
 
-                    return '{'+opts.nr + core.array.map(objKeys, function (el, i) {
-                        var eol = objKeys.length - 1 === i ? opts.nr : ', '+opts.nr;
+                    return '{' + opts.nr + core.array.map(objKeys, function(el, i) {
+                        var eol = objKeys.length - 1 === i ? opts.nr : ', ' + opts.nr;
                         var key = /^[^a-z_]|\W+/ig.test(el) && el[0] !== '$' ? stringify(el, opts) : el;
                         return pad + opts.indent + '"' + key + '": ' + stringify(val[el], opts, pad + opts.indent) + eol;
                     }).join('') + pad + '}';
                 }
 
                 if (opts.singleQuotes === false) {
-                    return '"' + (val+'').replace(/"/g, '\\\"') + '"';
+                    return '"' + (val + '').replace(/"/g, '\\\"') + '"';
                 } else {
-                    return "'" + (val+'').replace(/'/g, "\\\'") + "'";
+                    return "'" + (val + '').replace(/'/g, "\\\'") + "'";
                 }
             })(val, opts, pad);
         }
@@ -2325,21 +2417,26 @@
     /**
      * 날짜관련 유틸함수
      * @namespace
-     * @name core.date
+     * @name emart.date
      */
-    core.define('date', function () {
+    core.define('date', function() {
         var months = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(","),
             fullMonths = "January,Febrary,March,April,May,June,July,Augst,September,October,November,December".split(",");
 
 
         function compare(d1, d2) {
-            if(!(d1 instanceof Date)){ d1 = core.date.parse(d1); }
-            if(!(d2 instanceof Date)){ d2 = core.date.parse(d2); }
+            if (!(d1 instanceof Date)) {
+                d1 = core.date.parse(d1);
+            }
+            if (!(d2 instanceof Date)) {
+                d2 = core.date.parse(d2);
+            }
 
             return d1.getTime() > d2.getTime() ? -1 : (d1.getTime() === d2.getTime() ? 0 : 1);
         }
 
-        return /** @lends core.date */{
+        return /** @lends emart.date */
+        {
             MONTHS_NAME: months,
             MONTHS_FULLNAME: fullMonths,
 
@@ -2351,10 +2448,10 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * core.date.format(new Date(), "yy:MM:dd");
+             * emart.date.format(new Date(), "yy:MM:dd");
              * =>
              */
-            format: function (formatDate, formatString) {
+            format: function(formatDate, formatString) {
                 formatString || (formatString = 'yyyy-MM-dd');
                 if (formatDate instanceof Date) {
                     var yyyy = formatDate.getFullYear(),
@@ -2385,8 +2482,8 @@
 
             isValid: function(date) {
                 try {
-                    return !isNaN( this.parse(date).getTime() );
-                } catch(e){
+                    return !isNaN(this.parse(date).getTime());
+                } catch (e) {
                     return false;
                 }
             },
@@ -2399,7 +2496,7 @@
              * @param {Date} end 만료일시
              * @return {Boolean}
              */
-            between: function (date, start, end) {
+            between: function(date, start, end) {
                 return date.getTime() >= start.getTime() && date.getTime() <= end.getTime();
             },
 
@@ -2407,7 +2504,7 @@
              * 날짜 비교
              *
              * @function
-             * @name core.date.compare
+             * @name emart.date.compare
              * @param {Date} date1 날짜1
              * @param {Date} date2 날짜2
              * @return {Number} -1: date1가 이후, 0: 동일, 1:date2가 이후
@@ -2423,10 +2520,14 @@
              */
             equalsYMH: function(a, b) {
                 var ret = true;
-                if (!a || !a.getDate || !b || !b.getDate) { return false; }
+                if (!a || !a.getDate || !b || !b.getDate) {
+                    return false;
+                }
                 each(['getFullYear', 'getMonth', 'getDate'], function(fn) {
                     ret = ret && (a[fn]() === b[fn]());
-                    if (!ret) { return false; }
+                    if (!ret) {
+                        return false;
+                    }
                 });
                 return ret;
             },
@@ -2438,7 +2539,7 @@
              * @param {Date} date
              * @return {Boolean}
              */
-            isAfter: function (value, date) {
+            isAfter: function(value, date) {
                 return compare(value, date || new Date()) === 1;
             },
 
@@ -2449,7 +2550,7 @@
              * @param {Date} date
              * @return {Boolean}
              */
-            isBefore: function (value, date) {
+            isBefore: function(value, date) {
                 return compare(value, date || new Date()) === -1;
             },
 
@@ -2464,9 +2565,9 @@
                 date = this.parse(date);
                 var m = type.match(/([-+]*)([0-9]*)([a-z]+)/i),
                     g = m[1] === '-' ? -1 : 1,
-                    d = (m[2]|0) * g;
+                    d = (m[2] | 0) * g;
 
-                switch(m[3]) {
+                switch (m[3]) {
                     case 'd':
                         date.setDate(date.getDate() + d);
                         break;
@@ -2480,7 +2581,7 @@
                         date.setFullYear(date.getFullYear() + d);
                         break;
                 }
-                if(format) {
+                if (format) {
                     return this.format(date, format);
                 }
                 return date;
@@ -2490,20 +2591,20 @@
              * 주어진 날짜 형식의 문자열을 Date객체로 변환
              *
              * @function
-             * @name core.date.parse
+             * @name emart.date.parse
              * @param {String} dateStringInRange 날짜 형식의 문자열
              * @return {Date}
              */
             parse: (function() {
                 var isoExp = /^\s*(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?\s*$/;
-                return function (dateStringInRange) {
+                return function(dateStringInRange) {
                     var date, month, parts;
 
                     if (dateStringInRange instanceof Date) {
                         return dateStringInRange;
                     }
 
-                    dateStringInRange = (dateStringInRange+'').replace(/[^\d]+/g, '');
+                    dateStringInRange = (dateStringInRange + '').replace(/[^\d]+/g, '');
                     date = new Date(dateStringInRange);
                     if (!isNaN(date)) {
                         return date;
@@ -2514,10 +2615,10 @@
 
                     if (parts) {
                         month = +parts[2];
-                        date.setFullYear(parts[1]|0, month - 1, parts[3]|0);
-                        date.setHours(parts[4]|0);
-                        date.setMinutes(parts[5]|0);
-                        date.setSeconds(parts[6]|0);
+                        date.setFullYear(parts[1] | 0, month - 1, parts[3] | 0);
+                        date.setHours(parts[4] | 0);
+                        date.setMinutes(parts[5] | 0);
+                        date.setSeconds(parts[6] | 0);
                         if (month != date.getMonth() + 1) {
                             date.setTime(NaN);
                         }
@@ -2546,7 +2647,7 @@
              * @return {Date}
              */
             daysInMonth: function(year, month) {
-                var dd = new Date(year|0, month|0, 0);
+                var dd = new Date(year | 0, month | 0, 0);
                 return dd.getDate();
             },
 
@@ -2554,13 +2655,13 @@
              * 주어진 시간이 현재부터 몇시간 이전인지 표현(예: -54000 -> 54초 이전)
              *
              * @function
-             * @name core.date.prettyDuration
+             * @name emart.date.prettyDuration
              * @param {Date|Interval} time 시간
              * @param {Date|Interval} time (Optional) 기준시간
              * @return {JSON}
              *
              * @example
-             * core.date.prettyDuration(new Date() - 51811); -> "52초 이전"
+             * emart.date.prettyDuration(new Date() - 51811); -> "52초 이전"
              */
             prettyDuration: (function() {
                 var ints = {
@@ -2577,7 +2678,7 @@
                     std || (std = +new Date);
                     tailWord || (tailWord = '이전');
 
-                    if(time instanceof Date) {
+                    if (time instanceof Date) {
                         time = time.getTime();
                     }
                     // time = +new Date(time);
@@ -2586,7 +2687,9 @@
                         amount, measure;
 
                     for (var i in ints) {
-                        if (gap > ints[i]) { measure = i; }
+                        if (gap > ints[i]) {
+                            measure = i;
+                        }
                     }
 
                     amount = gap / ints[measure];
@@ -2631,11 +2734,15 @@
              * @return {String}
              *
              * @example
-             * core.date.timeDiff(new Date, new Date(new Date() - 51811));
+             * emart.date.timeDiff(new Date, new Date(new Date() - 51811));
              */
             diffTime: function(t1, t2) {
-                if(!core.is(t1, 'date')) { t1 = new Date(t1); };
-                if(!core.is(t2, 'date')) { t2 = new Date(t2); };
+                if (!core.is(t1, 'date')) {
+                    t1 = new Date(t1);
+                };
+                if (!core.is(t2, 'date')) {
+                    t2 = new Date(t2);
+                };
 
                 var diff = t1.getTime() - t2.getTime(),
                     ddiff = diff;
@@ -2675,7 +2782,7 @@
              * @param {Date} date 날짜
              * @returns {Number}
              */
-            weekOfYear : (function() {
+            weekOfYear: (function() {
                 var ms1d = 1000 * 60 * 60 * 24,
                     ms7d = 7 * ms1d;
 
@@ -2693,9 +2800,11 @@
              * @param {Number} y 년도
              * @returns {boolean}
              */
-            isLeapYear: function ( y ) {
-                if ( toString.call( y ) === '[object Date]' ) { y = y.getUTCFullYear(); }
-                return (( y % 4 === 0 ) && ( y % 100 !== 0 )) || ( y % 400 === 0 );
+            isLeapYear: function(y) {
+                if (toString.call(y) === '[object Date]') {
+                    y = y.getUTCFullYear();
+                }
+                return ((y % 4 === 0) && (y % 100 !== 0)) || (y % 400 === 0);
             },
 
             /**
@@ -2711,7 +2820,7 @@
                     return d;
                 }
 
-                switch(interval) {
+                switch (interval) {
                     case "ms":
                         d.setMilliseconds(d.getMilliseconds() + value);
                         break;
@@ -2753,22 +2862,22 @@
 
                 var d = 0;
 
-                if(ms > 1000) {
+                if (ms > 1000) {
                     s += Math.floor(ms / 1000);
                     ms = ms % 1000;
                 }
 
-                if(s > 60) {
+                if (s > 60) {
                     M += Math.floor(s / 60);
                     s = s % 60;
                 }
 
-                if(M > 60) {
+                if (M > 60) {
                     h += Math.floor(M / 60);
                     M = M % 60;
                 }
 
-                if(h > 24) {
+                if (h > 24) {
                     d += Math.floor(h / 24);
                     h = h % 24;
                 }
@@ -2786,11 +2895,11 @@
 
 
     /**
-     * prototype 을 이용한 클래스 생성
+     * Root Class
      * @namespace
-     * @name core.Base
+     * @name emart.Base
      * @example
-     * var Person = Base.extend({
+     * var Person = emart.Base.extend({
 	*	$singleton: true, // 싱글톤 여부
 	*	$statics: { // 클래스 속성 및 함수
 	*		live: function() {} // Person.live(); 으로 호출
@@ -2809,12 +2918,12 @@
      *
      * var Man = Person.extend({
 	*	initialize: function(name, age) {
-	*		this.callParent(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.suprMethod('initialize', name);
+	*		this.supr(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.parentMethod('initialize', name);
 	*		this.age = age;
 	*	},
 	*	// say를 오버라이딩함
 	*	say: function(job) {
-	*		this.suprMethod('say', 'programer'); // 부모클래스의 say 메소드 호출 - 첫번째인자는 메소드명, 두번째부터는 해당 메소드로 전달될 인자
+	*		this.parentMethod('say', 'programer'); // 부모클래스의 say 메소드 호출 - 첫번째인자는 메소드명, 두번째부터는 해당 메소드로 전달될 인자
 
 	*		alert("I'm Man: "+ job);
 	*	}
@@ -2823,18 +2932,19 @@
      * man.say('freeman');  // 결과: alert("I'm Person: programer"); alert("I'm Man: freeman");
      * man.run(); // 결과: alert("i'm running...");
      */
-    var Base = (function () {
+    var Base = (function() {
         var isFn = core.isFunction,
             emptyFn = core.emptyFn,
             include = core.array.include,
-            F = function(){},
+            F = function() {},
             ignoreNames = ['superclass', 'members', 'statics'];
 
 
-        // 부모클래스의 함수에 접근할 수 있도록 .callParent 속성에 부모함수를 래핑하여 설정
+        // 부모클래스의 함수에 접근할 수 있도록 .supr 속성에 부모함수를 래핑하여 설정
         function wrap(k, fn, supr) {
-            return function () {
-                var tmp = this.callParent, ret;
+            return function() {
+                var tmp = this.callParent,
+                    ret;
 
                 this.callParent = supr.prototype[k];
                 ret = undefined;
@@ -2849,9 +2959,9 @@
 
         // 속성 중에 부모클래스에 똑같은 이름의 함수가 있을 경우 래핑처리
         function inherits(what, o, supr) {
-			each(o, function(v, k) {
-				what[k] = isFn(v) && isFn(supr.prototype[k]) ? wrap(k, v, supr) : v;
-			});
+            each(o, function(v, k) {
+                what[k] = isFn(v) && isFn(supr.prototype[k]) ? wrap(k, v, supr) : v;
+            });
         }
 
         function classExtend(attr, c) {
@@ -2868,11 +2978,13 @@
 
 
             function ctor() {
-                if (singleton && instance) {
-                    return instance;
-                } else {
-                    instance = this;
-                }
+                if (singleton){
+					if (instance) {
+						return instance;
+					} else {
+						instance = this;
+					}
+				}
 
                 var args = arraySlice.call(arguments),
                     me = this;
@@ -2897,33 +3009,42 @@
             Class.superclass = supr.prototype;
             Class.extend = classExtend;
             Class.hooks = extend({
-                init:[]
+                init: []
             }, supr.hooks);
 
 
             if (singleton) {
-                Class.getInstance = function () {
+                Class.getInstance = function() {
+					var arg = arguments,
+						len = arg.length;
                     if (!instance) {
-                        instance = new Class();
+						switch(true){
+							case !len: instance = new Class; break;
+							case len === 1: instance = new Class(arg[0]); break;
+							case len === 2: instance = new Class(arg[0], arg[1]); break;
+							default: instance = new Class(arg[0], arg[1], arg[2]); break;
+						}
                     }
                     return instance;
                 };
             }
 
-            Class.prototype.suprMethod = function (name) {
+			Class.prototype.suprMethod = Class.prototype.parentMethod = function(name) {
                 var args = arraySlice.call(arguments, 1);
                 return supr.prototype[name].apply(this, args);
             };
 
-            Class.mixins = function (o) {
+            Class.mixins = function(o) {
                 if (!o.push) {
                     o = [o];
                 }
                 var proto = this.prototype;
-                each(o, function (mixObj, i) {
-					if(!mixObj){ return; }
-                    each(mixObj, function (fn, key) {
-                        if(key === 'init' && Class.hooks) {
+                each(o, function(mixObj, i) {
+                    if (!mixObj) {
+                        return;
+                    }
+                    each(mixObj, function(fn, key) {
+                        if (key === 'init' && Class.hooks) {
                             Class.hooks.init.push(fn)
                         } else {
                             proto[key] = fn;
@@ -2933,12 +3054,12 @@
             };
             mixins && Class.mixins.call(Class, mixins);
 
-            Class.members = function (o) {
+            Class.members = function(o) {
                 inherits(this.prototype, o, supr);
             };
             attr && Class.members.call(Class, attr);
 
-            Class.statics = function (o) {
+            Class.statics = function(o) {
                 o = o || {};
                 for (var k in o) {
                     if (!core.array.include(ignoreNames, k)) {
@@ -2953,16 +3074,18 @@
             return Class;
         }
 
-        var Base = function(){ };
-        Base.prototype.initialize = function(){};
-        Base.prototype.release = function(){};
+        var Base = function() {};
+        Base.prototype.initialize = function() {};
+        Base.prototype.release = function() {};
         Base.extend = classExtend;
 
-        core.Class = function(attr){ return classExtend.apply(this, [attr, true]); };
+        core.Class = function(attr) {
+            return classExtend.apply(this, [attr, true]);
+        };
         return core.Base = Base;
     })();
 
-    core.define('Env', /** @lends core */{
+    core.define('Env', /** @lends emart */ {
         /**
          * 설정 값들이 들어갈 리터럴
          *
@@ -2978,7 +3101,7 @@
          * @param {Object} def (Optional) 설정된 값이 없을 경우 사용할 기본값
          * @return {Object} 설정값
          */
-        get: function (name, def) {
+        get: function(name, def) {
             var root = this.configs,
                 names = name.split('.'),
                 pair = root;
@@ -2998,7 +3121,7 @@
          * @param {Object} value 설정값
          * @return {Object} 설정값
          */
-        set: function (name, value) {
+        set: function(name, value) {
             var root = this.configs,
                 names = name.split('.'),
                 len = names.length,
@@ -3015,23 +3138,28 @@
 
     /**
      * @namespace
-     * @name core.valid
+     * @name emart.valid
      * @description 밸리데이션 함수 모음
      */
-    core.define('valid', function () {
+    core.define('valid', function() {
         var trim = $.trim,
             isString = core.isString,
             isNumber = core.isNumber,
             isNumeric = core.isNumeric,
             isElement = core.isElement,
             inRange = function(v, s, e) {
-                if(typeof v == 'undefined') { return false; }
+                if (typeof v == 'undefined') {
+                    return false;
+                }
                 v = v | 0;
-                if(v >= s && v <= e){ return true; }
+                if (v >= s && v <= e) {
+                    return true;
+                }
                 return false;
             };
 
-        return /** @lends core.valid */{
+        return /** @lends emart.valid */
+        {
             empty: core.isEmpty,
             /**
              * 필수입력 체크
@@ -3039,7 +3167,7 @@
              * @param {String} str
              * @return {Boolean} 빈값이면 false 반환
              */
-            require: function (str) {
+            require: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return !!str;
             },
@@ -3049,7 +3177,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            email: function (str) {
+            email: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/\w+([-+.]\w+)*@\w+([-.]\w+)*\.[a-zA-Z]{2,4}$/).test(str) : false;
             },
@@ -3059,7 +3187,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            kor: function (str) {
+            kor: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^[가-힝]+$/).test(str) : false;
             },
@@ -3069,7 +3197,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            eng: function (str) {
+            eng: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^[a-zA-Z]+$/).test(str) : false;
             },
@@ -3079,7 +3207,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            rawNum: function (str) {
+            rawNum: function(str) {
                 isElement(str) && (str = str.value); // 엘리먼인 경우 .value에서 꺼내온다.
                 return isNumber(str);
             },
@@ -3091,10 +3219,12 @@
              * @param {Boolean} allowSign (optional)  없으면 -, +기호를 허용안함, true이면 -, + 허용함
              * @return {Boolean}
              */
-            num: function (str, allowSign) {
+            num: function(str, allowSign) {
                 isElement(str) && (str = str.value); // 엘리먼인 경우 .value에서 꺼내온다.
-				str = trim(str);
-				if(allowSign !== true && !/^[0-9]*$/g.test(str)) { return false; }
+                str = trim(str);
+                if (allowSign !== true && !/^[0-9]*$/g.test(str)) {
+                    return false;
+                }
                 return isNumeric(str);
             },
 
@@ -3104,7 +3234,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            url: function (str) {
+            url: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^https?:\/\/([\w\-]+\.)+/).test(str) : false;
             },
@@ -3114,7 +3244,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            special: function (str) {
+            special: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]+$/).test(str) : false;
             },
@@ -3124,9 +3254,20 @@
              * @param {String} str
              * @return {Boolean}
              */
-            phone: function (str) {
+            phone: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^\d{1,3}-\d{3,4}-\d{4}$/).test(str) : false;
+            },
+
+            allowFile: function(path, exts) {
+                if (!core.isArray(exts)) {
+                    exts = [exts];
+                }
+                var ext = core.string.getFileExt(path);
+                if (!ext) {
+                    return false;
+                }
+                return core.array.include(exts, ext);
             },
 
             /**
@@ -3138,16 +3279,26 @@
              */
             date: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
-                if(!str){ return false; }
-                var s ='',
-                    m = str.match(/^(\d{4})[- ]*(\d{2})[- ]*(\d{2})[ ]*(\d{0,2})[:]*(\d{0,2})[:]*(\d{0,2})[:]*$/);
-                if(!m || m.length < 4){ return false; }
-                if(m.length > 4){
-                    if(!inRange(m[4], 0, 23)) { return false; }
-                    if(!inRange(m[5], 0, 59)) { return false; }
-                    if(!inRange(m[6], 0, 59)) { return false; }
+                if (!str) {
+                    return false;
                 }
-                return core.date.isValid(m[1]+'-'+m[2]+'-'+m[3]);
+                var s = '',
+                    m = str.match(/^(\d{4})[- ]*(\d{2})[- ]*(\d{2})[ ]*(\d{0,2})[:]*(\d{0,2})[:]*(\d{0,2})[:]*$/);
+                if (!m || m.length < 4) {
+                    return false;
+                }
+                if (m.length > 4) {
+                    if (!inRange(m[4], 0, 23)) {
+                        return false;
+                    }
+                    if (!inRange(m[5], 0, 59)) {
+                        return false;
+                    }
+                    if (!inRange(m[6], 0, 59)) {
+                        return false;
+                    }
+                }
+                return core.date.isValid(m[1] + '-' + m[2] + '-' + m[3]);
             },
             /**
              * 유효한 yyyy-MM-dd형식인지 체크(삭제 예정)
@@ -3156,7 +3307,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            dateYMD: function (str) {
+            dateYMD: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^\d{4}-\d{2}-\d{2}$/).test(str) : false;
             },
@@ -3167,7 +3318,7 @@
              * @param {String} str
              * @return {Boolean}
              */
-            dateYMDHMS: function (str) {
+            dateYMDHMS: function(str) {
                 isString(str) || (isElement(str) && (str = str.value));
                 return (str = trim(str)) ? (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/).test(str) : false;
             },
@@ -3178,20 +3329,24 @@
              * @param {String} strSsn2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
              * @return {Boolean}
              */
-            SSN: function (sid1, sid2) {
+            SSN: function(sid1, sid2) {
                 var num = sid1 + (sid2 ? sid2 : ""),
                     pattern = /^(\d{6})-?(\d{7})$/,
                     sum = 0,
                     last, mod,
                     bases = "234567892345";
 
-                if (!pattern.test(num)) { return false; }
+                if (!pattern.test(num)) {
+                    return false;
+                }
                 num = RegExp.$1 + RegExp.$2;
 
                 last = num.charCodeAt(12) - 0x30;
 
                 for (var i = 0; i < 12; i++) {
-                    if (isNaN(num.substring(i, i + 1))) { return false; }
+                    if (isNaN(num.substring(i, i + 1))) {
+                        return false;
+                    }
                     sum += (num.charCodeAt(i) - 0x30) * (bases.charCodeAt(i) - 0x30);
                 }
                 mod = sum % 11;
@@ -3204,32 +3359,46 @@
              * @param {String} strSsn2 (Optional) 뒷주민번호. 값이 없으면 strSsn1만으로 체크
              * @return {Boolean}
              */
-            FgnSSN: function (sid1, sid2) {
+            FgnSSN: function(sid1, sid2) {
                 var num = sid1 + (sid2 ? sid2 : ""),
                     pattern = /^(\d{6})-?(\d{7})$/,
                     sum = 0,
                     odd, buf,
                     multipliers = "234567892345".split("");
 
-                if (!pattern.test(num)) { return false; }
+                if (!pattern.test(num)) {
+                    return false;
+                }
                 num = RegExp.$1 + RegExp.$2;
 
                 buf = core.toArray(num);
                 odd = buf[7] * 10 + buf[8];
 
-                if (odd % 2 !== 0) { return false; }
+                if (odd % 2 !== 0) {
+                    return false;
+                }
 
-                if ((buf[11] !== 6) && (buf[11] !== 7) && (buf[11] !== 9)) { return false; }
+                if ((buf[11] !== 6) && (buf[11] !== 7) && (buf[11] !== 9)) {
+                    return false;
+                }
 
-                for (var i = 0; i < 12; i++) { sum += (buf[i] *= multipliers[i]); }
+                for (var i = 0; i < 12; i++) {
+                    sum += (buf[i] *= multipliers[i]);
+                }
 
                 sum = 11 - (sum % 11);
-                if (sum >= 10) { sum -= 10; }
+                if (sum >= 10) {
+                    sum -= 10;
+                }
 
                 sum += 2;
-                if (sum >= 10) { sum -= 10; }
+                if (sum >= 10) {
+                    sum -= 10;
+                }
 
-                if (sum !== buf[12]) { return false; }
+                if (sum !== buf[12]) {
+                    return false;
+                }
 
                 return true;
             },
@@ -3247,7 +3416,7 @@
 
     /**
      * @namespace
-     * @name core.css3
+     * @name emart.css3
      * @description
      */
     core.define('css3', function() {
@@ -3256,31 +3425,32 @@
             _prefixes = ['Webkit', 'Moz', 'O', 'ms', ''],
             _style = _tmpDiv.style,
             _noReg = /^([0-9]+)[px]+$/,
-            _vendor = (function () {
+            _vendor = (function() {
                 var vendors = ['t', 'webkitT', 'MozT', 'msT', 'OT'],
                     transform,
                     i = 0,
                     l = vendors.length;
 
-                for ( ; i < l; i++ ) {
+                for (; i < l; i++) {
                     transform = vendors[i] + 'ransform';
-                    if ( transform in _style ) return vendors[i].substr(0, vendors[i].length-1);
+                    if (transform in _style) return vendors[i].substr(0, vendors[i].length - 1);
                 }
 
                 return false;
             })(),
-            string  = core.string;
+            string = core.string;
 
         function prefixStyle(name, isHippen) {
-            if ( _vendor === false ) return name;
-            if ( _vendor === '' ) return name;
-            if(isHippen){
-                return '-' + _vendor.toLowerCase()+'-'+name[0].toLowerCase()+name.substr(1);
+            if (_vendor === false) return name;
+            if (_vendor === '') return name;
+            if (isHippen) {
+                return '-' + _vendor.toLowerCase() + '-' + name[0].toLowerCase() + name.substr(1);
             }
             return _vendor + string.capitalize(name);
         }
 
-        return /** @lends core.css3 */{
+        return /** @lends emart.css3 */
+        {
             support: _vendor !== false,
             support3D: (function() {
                 var body = document.body,
@@ -3329,9 +3499,11 @@
              * @param {String} cssName 체크하고자 하는 css명
              * @return {Boolean} 지원여부
              */
-            has: function (name) {
+            has: function(name) {
                 var a = _prefixes.length;
-                if (name in _style) { return true; }
+                if (name in _style) {
+                    return true;
+                }
                 name = string.capitalize(name);
                 while (a--) {
                     if (_prefixes[a] + name in _style) {
@@ -3348,18 +3520,20 @@
              * @param {String} cssName css명
              * @return {String}
              * @example
-             * core.css3.prefix('transition'); // => webkitTransition
+             * emart.css3.prefix('transition'); // => webkitTransition
              */
             prefix: prefixStyle,
             get: function(el, style) {
-                if (!el || !core.is(el, 'element')) { return null; }
+                if (!el || !core.is(el, 'element')) {
+                    return null;
+                }
                 var value;
                 if (el.currentStyle) {
-                    value = el.currentStyle[ string.camelize(style) ];
+                    value = el.currentStyle[string.camelize(style)];
                 } else {
-                    value = window.getComputedStyle(el, null)[ string.camelize(style) ];
+                    value = window.getComputedStyle(el, null)[string.camelize(style)];
                 }
-                if(_noReg.test(value)) {
+                if (_noReg.test(value)) {
                     return parseInt(RegExp.$1, 10);
                 }
                 return value;
@@ -3369,43 +3543,60 @@
 
     core.define('class', {
         has: function(el, c) {
-            if (!el || !core.is(el, 'element')) { return false; }
+            if (!el || !core.is(el, 'element')) {
+                return false;
+            }
             var classes = el.className;
-            if (!classes) { return false; }
-            if (classes == c){ return true; }
+            if (!classes) {
+                return false;
+            }
+            if (classes == c) {
+                return true;
+            }
             return classes.search("\\b" + c + "\\b") !== -1;
         },
         add: function(el, c) {
-            if (!el || !core.is(el, 'element')) { return; }
-            if (this.has(el, c)) { return; }
-            if (el.className) { c = " " + c; }
+            if (!el || !core.is(el, 'element')) {
+                return;
+            }
+            if (this.has(el, c)) {
+                return;
+            }
+            if (el.className) {
+                c = " " + c;
+            }
             return el.className += c, this;
         },
         remove: function(el, c) {
-            if (!el || !core.is(el, 'element')) { return; }
+            if (!el || !core.is(el, 'element')) {
+                return;
+            }
             return el.className = el.className.replace(new RegExp("\\b" + c + "\\b\\s*", "g"), ""), this;
         },
         replace: function(el, c, n) {
-            if (!el || !core.is(el, 'element')) { return null; }
+            if (!el || !core.is(el, 'element')) {
+                return null;
+            }
             return this.remove(el, c), this.add(el, n), this;
         }
     });
 
     /**
      * @namespace
-     * @name core.util
+     * @name emart.util
      */
     core.define('util', function() {
 
-        return /** @lends core.util */{
+        return /** @lends emart.util */
+        {
 
 
             /**
              * png
              */
-            png24: function ( selector ) {
+            png24: function(selector) {
                 var $target;
-                if ( typeof (selector) == 'string') {
+                if (typeof(selector) == 'string') {
                     $target = $(selector + ' img');
                 } else {
                     $target = selector.find(' img');
@@ -3414,21 +3605,20 @@
                 $target.each(function(j) {
                     c[j] = new Image();
                     c[j].src = this.src;
-                    if (navigator.userAgent.match(/msie/i))
-                        this.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled='true',sizingMethod='scale',src='" + this.src + "')";
+                    if (navigator.userAgent.match(/msie/i)) this.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(enabled='true',sizingMethod='scale',src='" + this.src + "')";
                 });
             },
 
             /**
              * png Fix
              */
-            pngFix: function () {
+            pngFix: function() {
                 var s, bg;
-                $('img[@src*=".png"]', document.body).each(function () {
+                $('img[@src*=".png"]', document.body).each(function() {
                     this.css('filter', 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'' + this.src + '\', sizingMethod=\'\')');
                     this.src = '/resource/images/core/blank.gif';
                 });
-                $('.pngfix', document.body).each(function () {
+                $('.pngfix', document.body).each(function() {
                     var $this = $(this);
 
                     s = $this.css('background-image');
@@ -3443,8 +3633,8 @@
             /**
              * 페이지에 존재하는 플래쉬의 wmode모드를 opaque로 변경
              */
-            wmode: function () {
-                $('object').each(function () {
+            wmode: function() {
+                $('object').each(function() {
                     var $this;
                     if (this.classid.toLowerCase() === 'clsid:d27cdb6e-ae6d-11cf-96b8-444553540000' || this.type.toLowerCase() === 'application/x-shockwave-flash') {
                         if (!this.wmode || this.wmode.toLowerCase() === 'window') {
@@ -3458,7 +3648,7 @@
                         }
                     }
                 });
-                $('embed[type="application/x-shockwave-flash"]').each(function () {
+                $('embed[type="application/x-shockwave-flash"]').each(function() {
                     var $this = $(this),
                         wm = $this.attr('wmode');
                     if (!wm || wm.toLowerCase() === 'window') {
@@ -3473,45 +3663,46 @@
             },
 
             /**
-             * 팝업. (core.openPopup으로도 사용가능)
+             * 팝업. (emart.openPopup으로도 사용가능)
              * @param {string} url 주소
              * @param {number=} width 너비.
              * @param {number=} height 높이.
              * @param {opts=} 팝업 창 모양 제어 옵션.
              */
-            openPopup: function (url, width, height, opts) {
+            openPopup: function(url, width, height, opts) {
                 opts = extend({
 
                 }, opts);
                 width = width || 600;
                 height = height || 400;
-                //var winCoords = core.util.popupCoords(width, height),
+                //var winCoords = emart.util.popupCoords(width, height),
                 var target = opts.target || '',
                     feature = 'app_, ',
                     tmp = [];
 
                 delete opts.name;
-                for(var key in opts) {
-                    tmp.push(key + '=' + opts[ key ]);
+                for (var key in opts) {
+                    tmp.push(key + '=' + opts[key]);
                 }
                 core.browser.isSafari && tmp.push('location=yes');
-                tmp.push('height='+height);
-                tmp.push('width='+width);
+                tmp.push('height=' + height);
+                tmp.push('width=' + width);
                 /* + ', top=' + winCoords.top + ', left=' + winCoords.left;*/
                 feature += tmp.join(', ');
 
                 window.open(
-                    url,
-                    target,
-                    feature
-                );
+                url,
+                target,
+                feature);
             },
 
             /**
              * 팝업의 사이즈를 $el 사이즈에 맞게 조절
              */
             resizePopup: function($el) {
-                if (!($el instanceof jQuery)) { $el = $($el); }
+                if (!($el instanceof jQuery)) {
+                    $el = $($el);
+                }
                 window.resizeTo($el.width(), $el.height());
             },
 
@@ -3521,7 +3712,7 @@
              * @param {number} h 높이.
              * @return {JSON} {left: 값, top: 값}
              */
-            popupCoords: function (w, h) {
+            popupCoords: function(w, h) {
                 var wLeft = window.screenLeft ? window.screenLeft : window.screenX,
                     wTop = window.screenTop ? window.screenTop : window.screenY,
                     wWidth = window.outerWidth ? window.outerWidth : document.documentElement.clientWidth,
@@ -3541,7 +3732,7 @@
              * @param {Function} [onError] (optional) 이미지를 불어오지 못했을 경우 실행할 콜백함수
              * @return {Boolean} true 불러들인 이미지가 있었는지 여부
              */
-            centeringImage: function ($imgs, wrapWidth, wrapHeight, onError) {
+            centeringImage: function($imgs, wrapWidth, wrapHeight, onError) {
                 var hasLazyImage = false;
                 var dataSrcAttr = 'data-src';
 
@@ -3552,14 +3743,17 @@
 
                     // 이미지가 로드되면, 실제 사이즈를 체크해서 가로이미지인지 세로이미지인지에 따라 기준이 되는 width, height에 지정한다.
                     $img.one('load', function() {
-                        $img.removeAttr('width height').css({'width':'auto', 'height':'auto'});
+                        $img.removeAttr('width height').css({
+                            'width': 'auto',
+                            'height': 'auto'
+                        });
                         if ($img.attr('data-no-height') === 'true' && this.width > wrapWidth) {
                             $img.css('width', wrapWidth);
                         } else if ($img.attr('data-no-width') === 'true' && this.height > wrapHeight) {
                             $img.css('height', wrapWidth);
                         } else {
                             var isHoriz = this.width > this.height;
-                            if ( isHoriz ) { // 가로로 긴 이미지
+                            if (isHoriz) { // 가로로 긴 이미지
                                 $img.css('width', Math.min(this.width, wrapWidth));
                             } else { // 세로로 긴 이미지
                                 $img.css('height', Math.min(this.height, wrapHeight));
@@ -3582,84 +3776,84 @@
                     len = $imgs.length,
                     def = $.Deferred();
 
-				function loaded(e) {
-					if (e.type === 'error') {
-						def.reject(e.target);
-						return;
-					}
-					var $target;
-					if($target = $(this).data('target')) {
-						$target.css('background', 'url('+this.src+')');
-					}
+                function loaded(e) {
+                    if (e.type === 'error') {
+                        def.reject(e.target);
+                        return;
+                    }
+                    var $target;
+                    if ($target = $(this).data('target')) {
+                        $target.css('background', 'url(' + this.src + ')');
+                    }
 
-					len--;
-					if (!len) {
-						if ($loading) {
-							$loading.addClass("none");
-						}
-						def.resolve();
-					}
-				}
+                    len--;
+                    if (!len) {
+                        if ($loading) {
+                            $loading.addClass("none");
+                        }
+                        def.resolve();
+                    }
+                }
 
-				if(!len){
-					$loading.addClass("none");
-					def.resolve();
-				} else {
+                if (!len) {
+                    $loading.addClass("none");
+                    def.resolve();
+                } else {
 
-					if ($loading) {
-						$loading.removeClass("none");
-					}
+                    if ($loading) {
+                        $loading.removeClass("none");
+                    }
 
-					$imgs.each(function(i) {
-						var $img = $imgs.eq(i);
-						if(!$img.is('img')) {
-							$img = $('<img>').data({
-								'target': $img[0],
-								'src': $img.attr('data-src')
-							});
-						}
+                    $imgs.each(function(i) {
+                        var $img = $imgs.eq(i);
+                        if (!$img.is('img')) {
+                            $img = $('<img>').data({
+                                'target': $img[0],
+                                'src': $img.attr('data-src')
+                            });
+                        }
 
-						$img.one("load.lazyload error.lazyload", loaded);
-						var src = $img.attr("data-src");
+                        $img.one("load.lazyload error.lazyload", loaded);
+                        var src = $img.attr("data-src");
 
-						if (src) {
-							$img.attr("src", src);
-						} else if (this.complete) {
-							$img.trigger("load");
-						}
-					});
+                        if (src) {
+                            $img.attr("src", src);
+                        } else if (this.complete) {
+                            $img.trigger("load");
+                        }
+                    });
 
-				}
+                }
 
                 return def.promise();
             },
 
-			// 정확한 사이즈계산을 위해 내부에 있는 이미지를 다 불러올 때까지 기다린다.
-			waitImageLoad: function($imgs, allowError){
-				var me = this,
-					defer = $.Deferred(),
-					count = $imgs.length,
-					loaded = function() {
-						count -= 1;
-						if(count <= 0){
-							defer.resolve();
-						}
-					};
+            // 정확한 사이즈계산을 위해 내부에 있는 이미지를 다 불러올 때까지 기다린다.
+            waitImageLoad: function($imgs, allowError) {
+                var me = this,
+                    defer = $.Deferred(),
+                    count = $imgs.length,
+                    loaded = function() {
+                        count -= 1;
+                        if (count <= 0) {
+                            defer.resolve();
+                        }
+                    };
 
-				if(count === 0) { 
-					defer.resolve();
-				} else {
-					$imgs.each(function(i) {
-						if(this.complete){
-							loaded();
-						} else {
-							$imgs.eq(i).one('load' + (allowError === false?'' : ' error'), loaded);
-						}
-					});
-				}
+                if (count === 0) {
+                    defer.resolve();
+                } else {
+                    $imgs.each(function(i) {
+                        if (this.complete) {
+                            loaded();
+                        } else {
+                            $imgs.eq(i).one('load' + (allowError === false ? '' : ' error'), loaded);
+                        }
+                    });
+                }
 
-				return defer.promise();
-			},
+                return defer.promise();
+            },
 
             /**
              * 도큐먼트의 높이를 반환
@@ -3671,10 +3865,9 @@
                     de = doc.documentElement;
 
                 return Math.max(
-                    Math.max(bd.scrollHeight, de.scrollHeight),
-                    Math.max(bd.offsetHeight, de.offsetHeight),
-                    Math.max(bd.clientHeight, de.clientHeight)
-                );
+                Math.max(bd.scrollHeight, de.scrollHeight),
+                Math.max(bd.offsetHeight, de.offsetHeight),
+                Math.max(bd.clientHeight, de.clientHeight));
             },
 
             /**
@@ -3686,17 +3879,16 @@
                     bd = doc.body,
                     de = doc.documentElement;
                 return Math.max(
-                    Math.max(bd.scrollWidth, de.scrollWidth),
-                    Math.max(bd.offsetWidth, de.offsetWidth),
-                    Math.max(bd.clientWidth, de.clientWidth)
-                );
+                Math.max(bd.scrollWidth, de.scrollWidth),
+                Math.max(bd.offsetWidth, de.offsetWidth),
+                Math.max(bd.clientWidth, de.clientWidth));
             },
 
             /**
              * 창의 너비를 반환
              * @return {Number}
              */
-            getWinWidth : function() {
+            getWinWidth: function() {
                 var w = 0;
                 if (self.innerWidth) {
                     w = self.innerWidth;
@@ -3712,7 +3904,7 @@
              * 창의 높이를 반환
              * @return {Number}
              */
-            getWinHeight : function() {
+            getWinHeight: function() {
                 var w = 0;
                 if (self.innerHeight) {
                     w = self.innerHeight;
@@ -3727,36 +3919,40 @@
 
             /**
              * @function scroll top animate
-             * @name util.common.scrollTopAnimate
              * @param { Integer } y target y
              * @param { Integer } data.triggerY
              * @param { Integer } data.duration
              * @param { function } data.triggerCallback
              * @param { function } data.completeCallback
              */
-            scrollTopAnimate: function( y, data ){
+            scrollTopAnimate: function(y, data) {
                 var $body = $("body");
-                var duration = ( data == undefined || data.duration == undefined  ) ? 200 : data.duration;
+                var duration = (data == undefined || data.duration == undefined) ? 200 : data.duration;
 
                 var isTrigger = false;
-                var triggerFuncExe = function(){
-                    if( data && data.triggerY != undefined && data.triggerY != "" && $body.scrollTop() < data.triggerY && !isTrigger){
+                var triggerFuncExe = function() {
+                    if (data && data.triggerY != undefined && data.triggerY != "" && $body.scrollTop() < data.triggerY && !isTrigger) {
                         isTrigger = true;
-                        if( data && data.triggerCallback ){
+                        if (data && data.triggerCallback) {
                             data.triggerCallback();
                         }
                     }
                 }
 
-                $body.stop().animate({scrollTop:y}, {duration:duration,
-                    step:function(){
+                $body.stop().animate({
+                    scrollTop: y
+                }, {
+                    duration: duration,
+                    step: function() {
                         triggerFuncExe();
-                    }, complete:function(){
+                    },
+                    complete: function() {
                         triggerFuncExe();
-                        if( data && data.completeCallback ){
+                        if (data && data.completeCallback) {
                             data.completeCallback();
                         }
-                    }, ease: "easeOutQuad"
+                    },
+                    ease: "easeOutQuad"
                 });
             },
 
@@ -3765,27 +3961,36 @@
              * @param elem
              * @returns {JSON} {width: 너비, height: 높이, offset: { top: 탑위치, left: 레프트위치}}
              */
-            getDimensions: function( elem ) {
+            getDimensions: function(elem) {
                 var el = elem[0];
-                if ( el.nodeType === 9 ) {
+                if (el.nodeType === 9) {
                     return {
                         width: elem.width(),
                         height: elem.height(),
-                        offset: { top: 0, left: 0 }
+                        offset: {
+                            top: 0,
+                            left: 0
+                        }
                     };
                 }
-                if ( $.isWindow( el ) ) {
+                if ($.isWindow(el)) {
                     return {
                         width: elem.width(),
                         height: elem.height(),
-                        offset: { top: elem.scrollTop(), left: elem.scrollLeft() }
+                        offset: {
+                            top: elem.scrollTop(),
+                            left: elem.scrollLeft()
+                        }
                     };
                 }
-                if ( el.preventDefault ) {
+                if (el.preventDefault) {
                     return {
                         width: 0,
                         height: 0,
-                        offset: { top: el.pageY, left: el.pageX }
+                        offset: {
+                            top: el.pageY,
+                            left: el.pageX
+                        }
                     };
                 }
                 return {
@@ -3799,18 +4004,18 @@
                 var $con = $(el);
 
                 // 전체 선택
-                $con.on('click.globalui', ' input:checkbox:enabled', function (e) {
+                $con.on('click.globalui', ' input:checkbox:enabled', function(e) {
                     var $el = $(this),
                         $checkes = $con.find('input:checkbox:enabled:not(.d-notcheck)'),
                         $checkAll = $checkes.filter('.d-checkall'),
                         $others = $checkes.not('.d-checkall');
 
-                    if($el.hasClass('d-checkall')) {
+                    if ($el.hasClass('d-checkall')) {
                         $others.prop('checked', this.checked);
                     } else {
                         $checkAll.prop('checked', $others.not(':checked').size() === 0);
                     }
-					$checkAll.triggerHandler('checkallchanged');
+                    $checkAll.triggerHandler('checkallchanged');
                 });
 
             },
@@ -3865,6 +4070,9 @@
              })()*/
         };
     });
+    /**
+     * @name emart.openPopup
+     */
     core.openPopup = core.util.openPopup;
 
     core.define('Cookie', {
@@ -3883,13 +4091,9 @@
          * @param {String} (Optional) options.domain 쿠키의 유효 도메인
          * @param {Boolean} (Optional) options.secure https에서만 쿠키 설정이 가능하도록 하는 속성
          */
-        set: function (name, value, options) {
+        set: function(name, value, options) {
             options || (options = {});
-            var curCookie = name + "=" + encodeURIComponent(value) +
-                ((options.expires) ? "; expires=" + (options.expires instanceof Date ? options.expires.toGMTString() : options.expires) : "") +
-                ((options.path) ? "; path=" + options.path : '') +
-                ((options.domain) ? "; domain=" + options.domain : '') +
-                ((options.secure) ? "; secure" : "");
+            var curCookie = name + "=" + encodeURIComponent(value) + ((options.expires) ? "; expires=" + (options.expires instanceof Date ? options.expires.toGMTString() : options.expires) : "") + ((options.path) ? "; path=" + options.path : '') + ((options.domain) ? "; domain=" + options.domain : '') + ((options.secure) ? "; secure" : "");
 
             document.cookie = curCookie;
         },
@@ -3900,7 +4104,7 @@
          * @param {String} name 쿠키명
          * @return  {String} 쿠키값
          */
-        get: function (name) {
+        get: function(name) {
             var j, g, h, f;
             j = ";" + document.cookie.replace(/ /g, "") + ";";
             g = ";" + name + "=";
@@ -3919,7 +4123,7 @@
          *
          * @param {String} name 쿠키명
          */
-        remove: function (name) {
+        remove: function(name) {
             document.cookie = name + "=;expires=Fri, 31 Dec 1987 23:59:59 GMT;";
         },
 
@@ -3929,8 +4133,8 @@
          * @param {String} val 값
          * @param {String} sep 구분자
          * @example
-         * core.cookie.addToArray('arr', 'a');
-         * core.cookie.addToArray('arr', 'b');  // arr:a|b
+         * emart.cookie.addToArray('arr', 'a');
+         * emart.cookie.addToArray('arr', 'b');  // arr:a|b
          */
         addToArray: function(name, val, sep) {
             sep = sep || '|';
@@ -3939,7 +4143,7 @@
             var value = this.get(name),
                 values = value ? value.split(sep) : [];
 
-            if(!core.array.include(values, val)) {
+            if (!core.array.include(values, val)) {
                 values.push(val);
             }
 
@@ -3952,8 +4156,8 @@
          * @param {String} val 값
          * @param {String} sep
          * @example
-         * core.cookie.addToArray('arr', 'a');
-         * core.cookie.addToArray('arr', 'b');  // arr:a|b
+         * emart.cookie.addToArray('arr', 'a');
+         * emart.cookie.addToArray('arr', 'b');  // arr:a|b
          */
         removeToArray: function(name, val, sep) {
             sep = sep || '|';
@@ -3971,9 +4175,9 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var $win = core.$win,
         $doc = core.$doc,
-        View;		// core.ui.View
+        View; // emart.ui.View
 
-    core.define( /** @lends core */{
+    core.define( /** @lends emart */ {
         /*cleanUIModules: function(el) {
          $('[data-ui-modules]', el).each(function(){
          var $el = $(this),
@@ -3998,21 +4202,21 @@
          *
          * @example
          * // 클래스 정의
-         * var Slider = core.ui.View({
-		 *   initialize: function(el, options) { // 생성자의 형식을 반드시 지킬 것..(첫번째 인수: 대상 엘리먼트, 두번째
-		 *   인수: 옵션값들)
-		 *   ...
-		 *   },
-		 *   ...
-		 * });
-         * core.bindjQuery(Slider, 'hibSlider');
+         * var Slider = emart.ui.View({
+         *   initialize: function(el, options) { // 생성자의 형식을 반드시 지킬 것..(첫번째 인수: 대상 엘리먼트, 두번째
+         *   인수: 옵션값들)
+         *   ...
+         *   },
+         *   ...
+         * });
+         * emart.bindjQuery(Slider, 'hibSlider');
          * // 실제 사용시
          * $('#slider').hibSlider({count: 10});
          */
-        bindjQuery: function (Klass, name) {
+        bindjQuery: function(Klass, name) {
             var old = $.fn[name];
 
-            $.fn[name] = function (options) {
+            $.fn[name] = function(options) {
                 var a = arguments,
                     args = arraySlice.call(a, 1),
                     me = this,
@@ -4021,26 +4225,28 @@
                 this.each(function() {
                     var $this = $(this),
                         methodValue,
-                        instance = $this.data('ui_'+name);
+                        instance = $this.data('ui_' + name);
 
-                    if(instance && options === 'release') {
-                        try { instance.release(); } catch(e){}
-                        $this.removeData('ui_'+name);
+                    if (instance && options === 'release') {
+                        try {
+                            instance.release();
+                        } catch (e) {}
+                        $this.removeData('ui_' + name);
                         return;
                     }
 
-                    if ( !instance || (a.length === 1 && typeof options !== 'string')) {
+                    if (!instance || (a.length === 1 && typeof options !== 'string')) {
                         instance && (instance.release(), instance = null);
-                        $this.data('ui_'+name, (instance = new Klass(this, extend({}, $this.data(), options), me)));
+                        $this.data('ui_' + name, (instance = new Klass(this, extend({}, $this.data(), options), me)));
                     }
 
-                    if(options === 'instance'){
+                    if (options === 'instance') {
                         returnValue = instance;
                         return false;
                     }
 
                     if (typeof options === 'string' && core.is(instance[options], 'function')) {
-                        if(options[0] === '_') {
+                        if (options[0] === '_') {
                             throw new Error('[bindjQuery] private 메소드는 호출할 수 없습니다.');
                         }
 
@@ -4068,17 +4274,18 @@
     });
 
 
-    core.define('Listener', function () {
+    core.define('Listener', function() {
         /**
          * 이벤트 리스너
          * @class
-         * @name core.Listener
+         * @name emart.Listener
          */
-        var Listener = /** @lends core.Listener# */ {
+        var Listener = /** @lends emart.Listener# */
+        {
             /**
              * 생성자
              */
-            init: function () {
+            init: function() {
                 this._listeners = $(this);
             },
 
@@ -4087,7 +4294,7 @@
              * @param {Object} name 이벤트명
              * @param {Object} cb 핸들러
              */
-            on: function () {
+            on: function() {
                 var lsn = this._listeners;
                 lsn.on.apply(lsn, arguments);
                 return this;
@@ -4098,7 +4305,7 @@
              * @param {Object} name 이벤트명
              * @param {Object} cb 핸들러
              */
-            once: function () {
+            once: function() {
                 var lsn = this._listeners;
                 lsn.once.apply(lsn, arguments);
                 return this;
@@ -4109,7 +4316,7 @@
              * @param {Object} name 삭제할 이벤트명
              * @param {Object} cb (Optional) 삭제할 핸들러. 이 인자가 없을 경우 name에 등록된 모든 핸들러를 삭제.
              */
-            off: function () {
+            off: function() {
                 var lsn = this._listeners;
                 lsn.off.apply(lsn, arguments);
                 return this;
@@ -4119,7 +4326,7 @@
              * 이벤트 발생
              * @param {Object} name 발생시킬 이벤트명
              */
-            trigger: function () {
+            trigger: function() {
                 var lsn = this._listeners;
                 lsn.trigger.apply(lsn, arguments);
                 return this;
@@ -4131,19 +4338,19 @@
 
     /**
      * @namespace
-     * @name core.PubSub
+     * @name emart.PubSub
      * @description 발행/구독 객체: 상태변화를 관찰하는 옵저버(핸들러)를 등록하여, 상태변화가 있을 때마다 옵저버를 발행(실행)
      * 하도록 하는 객체이다.
      * @example
      * // 옵저버 등록
-     * core.PubSub.on('customevent', function() {
-	 *	 alert('안녕하세요');
-	 * });
+     * emart.PubSub.on('customevent', function() {
+     *	 alert('안녕하세요');
+     * });
      *
      * // 등록된 옵저버 실행
-     * core.PubSub.trigger('customevent');
+     * emart.PubSub.trigger('customevent');
      */
-    core.define('PubSub', function () {
+    core.define('PubSub', function() {
 
         var PubSub = $(window);
         PubSub.attach = PubSub.on;
@@ -4153,30 +4360,30 @@
     });
 
     /**
-     * @name core.ui
+     * @name emart.ui
      * @param name
      * @param attr
      * @returns {*}
      */
-    core.ui = function(/*String*/name, supr, /*Object*/attr) {
+    core.ui = function( /*String*/ name, supr, /*Object*/ attr) {
         var bindName, Klass, isFn = core.isFunction;
 
-        if(!attr) {
+        if (!attr) {
             attr = supr;
             supr = null;
         }
-        if(typeof supr === 'string'){ 
-        	supr = core.ui[supr];
-        } else if(attr.$extend) {
-	        supr = attr.$extend
-	    } else if(supr && supr.superclass) {
-	    	// supr = supr;
-	    } else {
-	    	supr = core.ui.View;
-	    }
+        if (typeof supr === 'string') {
+            supr = core.ui[supr];
+        } else if (attr.$extend) {
+            supr = attr.$extend
+        } else if (supr && supr.superclass) {
+            // supr = supr;
+        } else {
+            supr = core.ui.View;
+        }
 
-        if(isFn(attr)) {
-            if(!isFn(attr = attr(supr))) {
+        if (isFn(attr)) {
+            if (!isFn(attr = attr(supr))) {
                 bindName = attr.bindjQuery;
                 Klass = supr.extend(attr);
             } else {
@@ -4199,7 +4406,7 @@
         $.extend(true, core.ui[name].prototype.defaults, opts);
     };
 
-    View = core.define('ui.View', function () {
+    View = core.define('ui.View', function() {
         var isFn = core.isFunction,
             execObject = function(obj, ctx) {
                 return isFn(obj) ? obj.call(ctx) : obj;
@@ -4208,7 +4415,7 @@
         function setUIName($el, name) {
             $el.attr('ui-modules', (function(modules) {
                 var arr;
-                if(modules) {
+                if (modules) {
                     arr = modules.split(',');
                 } else {
                     arr = [];
@@ -4221,38 +4428,38 @@
         /**
          * 모든 UI요소 클래스의 최상위 클래스로써, UI클래스를 작성함에 있어서 편리한 기능을 제공해준다.
          * @class
-         * @name core.ui.View
+         * @name emart.ui.View
          *
          * @example
          *
          * var Slider = Class({
-		 *		$extend: core.ui.View,
-		 *		// 기능1) events 속성을 통해 이벤트핸들러를 일괄 등록할 수 있다. ('이벤트명 selector': '핸들러함수명')
-		 *	events: {
-		 *		click ul>li.item': 'onItemClick',		// this.$el.on('click', 'ul>li.item', this.onItemClick.bind(this)); 를 자동 수행
-		 *		'mouseenter ul>li.item>a': 'onMouseEnter'	// this.$el.on('mouseenter', 'ul>li.item>a', this.onMouseEnter.bind(this)); 를 자동 수행
-		 *	},
-		 *	// 기능2) selectors 속성을 통해 지정한 selector에 해당하는 노드를 주어진 이름의 멤버변수에 자동으로 설정해 준다.
-		 *	selectors: {
-		 *		box: 'ul',			// this.$box = this.$el.find('ul') 를 자동수행
-		 *		items: 'ul>li.item',	// this.$items = this.$el.find('ul>li.item') 를 자동수행
-		 *		prevBtn: 'button.prev', // this.$prevBtn = this.$el.find('button.prev') 를 자동 수행
-		 *		nextBtn: 'button..next' // this.$nextBtn = this.$el.find('button.next') 를 자동 수행
-		 *	},
-		 *	initialize: function(el, options) {
-		 *	this.supr(el, options);	// 기능4) this.$el, this.options가 자동으로 설정된다.
-		 *	},
-		 *	onItemClick: function(e) {
-		 *		...
-		 *	},
-		 *	onMouseEnter: function(e) {
-		 *		...
-		 *	}
-		 * });
+         *		$extend: emart.ui.View,
+         *		// 기능1) events 속성을 통해 이벤트핸들러를 일괄 등록할 수 있다. ('이벤트명 selector': '핸들러함수명')
+         *	events: {
+         *		click ul>li.item': 'onItemClick',		// this.$el.on('click', 'ul>li.item', this.onItemClick.bind(this)); 를 자동 수행
+         *		'mouseenter ul>li.item>a': 'onMouseEnter'	// this.$el.on('mouseenter', 'ul>li.item>a', this.onMouseEnter.bind(this)); 를 자동 수행
+         *	},
+         *	// 기능2) selectors 속성을 통해 지정한 selector에 해당하는 노드를 주어진 이름의 멤버변수에 자동으로 설정해 준다.
+         *	selectors: {
+         *		box: 'ul',			// this.$box = this.$el.find('ul') 를 자동수행
+         *		items: 'ul>li.item',	// this.$items = this.$el.find('ul>li.item') 를 자동수행
+         *		prevBtn: 'button.prev', // this.$prevBtn = this.$el.find('button.prev') 를 자동 수행
+         *		nextBtn: 'button..next' // this.$nextBtn = this.$el.find('button.next') 를 자동 수행
+         *	},
+         *	initialize: function(el, options) {
+         *	this.supr(el, options);	// 기능4) this.$el, this.options가 자동으로 설정된다.
+         *	},
+         *	onItemClick: function(e) {
+         *		...
+         *	},
+         *	onMouseEnter: function(e) {
+         *		...
+         *	}
+         * });
          *
-         * new core.ui.Slider('#slider', {count: 10});
+         * new emart.ui.Slider('#slider', {count: 10});
          */
-        var View = core.Base.extend(/** @lends core.ui.View# */{
+        var View = core.Base.extend( /** @lends emart.ui.View# */ {
             $statics: {
                 _instances: [] // 모든 인스턴스를 갖고 있는다..
             },
@@ -4262,14 +4469,14 @@
              * @param {Object} options 옵션값
              * @return {Mixes} false 가 반환되면, 이미 해당 엘리먼트에 해당 모듈이 빌드되어 있거나 disabled 상태임을 의미한다.
              */
-            initialize: function (el, options) {
+            initialize: function(el, options) {
                 options || (options = {});
 
                 var me = this,
                     eventPattern = /^([a-z]+) ?([^$]*)$/i,
                     moduleName, superClass;
 
-                if(!el) {
+                if (!el) {
                     throw new Error('[ui.View] el객체가 없습니다.');
                 }
 
@@ -4282,14 +4489,16 @@
 
                 // 강제로 리빌드 시킬 것인가 ///////////////////////////////////////////////////////////////
                 if (options.rebuild === true) {
-                    try { me.$el.data('ui_'+moduleName).release(); } catch(e) {}
-                    me.$el.removeData('ui_'+moduleName);
+                    try {
+                        me.$el.data('ui_' + moduleName).release();
+                    } catch (e) {}
+                    me.$el.removeData('ui_' + moduleName);
                 } else {
                     // 이미 빌드된거면 false 반환 - 중복 빌드 방지
-                    if (me.$el.data('ui_'+moduleName) ) {
+                    if (me.$el.data('ui_' + moduleName)) {
                         return false;
                     }
-                    me.$el.data('ui_'+moduleName, this);
+                    me.$el.data('ui_' + moduleName, this);
                 }
 
 
@@ -4301,11 +4510,12 @@
                 superClass = me.constructor.superclass;
                 // TODO
                 View._instances.push(me);
-                me.el = me.$el[0];  // 원래 엘리먼트도 변수에 설정
-                me.options = $.extend(true, {}, superClass.defaults, me.defaults, me.$el.data(), options);			// 옵션 병합
-                me.cid = moduleName + '_' + core.nextSeq();    // 객체 고유 키
-                me.subViews = {};   // 하위 컨트롤를 관리하기 위함
-                me._eventNamespace = '.' + /*moduleName*/ me.cid;	// 객체 고유 이벤트 네임스페이스명
+                me.el = me.$el[0]; // 원래 엘리먼트도 변수에 설정
+                me.options = $.extend(true, {}, superClass.defaults, me.defaults, me.$el.data(), options); // 옵션 병합
+                me.cid = moduleName + '_' + core.nextSeq(); // 객체 고유 키
+                me.subViews = {}; // 하위 컨트롤를 관리하기 위함
+                me._eventNamespace = '.' + /*moduleName*/
+                me.cid; // 객체 고유 이벤트 네임스페이스명
 
                 setUIName(me.$el, me.name);
                 me.updateSelectors();
@@ -4315,26 +4525,30 @@
                 //	'click ul>li.item': 'onItemClick', //=> this.$el.on('click', 'ul>li.item', this.onItemClick); 으로 변환
                 // }
                 me.options.events = core.extend({},
-                    execObject(me.events, me),
-                    execObject(me.options.events, me));
-                core.each(me.options.events, function (value, key) {
-                    if (!eventPattern.test(key)) { return false; }
+                execObject(me.events, me),
+                execObject(me.options.events, me));
+                core.each(me.options.events, function(value, key) {
+                    if (!eventPattern.test(key)) {
+                        return false;
+                    }
 
                     var name = RegExp.$1,
                         selector = RegExp.$2,
                         args = [name],
                         func = isFn(value) ? value : (isFn(me[value]) ? me[value] : core.emptyFn);
 
-                    if (selector) { args[args.length] = $.trim(selector); }
+                    if (selector) {
+                        args[args.length] = $.trim(selector);
+                    }
 
-                    args[args.length] = function () {
+                    args[args.length] = function() {
                         func.apply(me, arguments);
                     };
                     me.on.apply(me, args);
                 });
 
                 // options.on에 지정한 이벤트들을 클래스에 바인딩
-                me.options.on && core.each(me.options.on, function (value, key) {
+                me.options.on && core.each(me.options.on, function(value, key) {
                     me.on(key, value);
                 });
 
@@ -4342,9 +4556,9 @@
 
             /**
              * this.selectors를 기반으로 엘리먼트를 조회해서 멤버변수에 셋팅
-             * @returns {core.ui.View}
+             * @returns {emart.ui.View}
              */
-            updateSelectors: function () {
+            updateSelectors: function() {
                 var me = this;
                 // selectors 속성 처리
                 // selectors: {
@@ -4352,10 +4566,10 @@
                 //  items: 'ul>li.item'  // => this.$items = this.$el.find('ul>li.item');
                 // }
                 me.selectors = core.extend({},
-                    execObject(me.constructor.superclass.selectors, me),
-                    execObject(me.selectors, me),
-                    execObject(me.options.selectors, me));
-                core.each(me.selectors, function (value, key) {
+                execObject(me.constructor.superclass.selectors, me),
+                execObject(me.selectors, me),
+                execObject(me.options.selectors, me));
+                core.each(me.selectors, function(value, key) {
                     if (typeof value === 'string') {
                         me['$' + key] = me.$el.find(value);
                     } else if (value instanceof jQuery) {
@@ -4374,14 +4588,14 @@
              * @param {String} selector 셀렉터
              * @returns {jQuery}
              */
-            $: function (selector) {
+            $: function(selector) {
                 return this.$el.find(selector);
             },
 
             /**
              * 파괴자
              */
-            release: function () {
+            release: function() {
                 var me = this;
 
                 me.$el.off(me._eventNamespace);
@@ -4451,13 +4665,14 @@
                 }
 
                 var me = this,
-                    m = (eventNames || "").split( /\s/ );
+                    m = (eventNames || "").split(/\s/);
                 if (!m || !m.length) {
                     return eventNames;
                 }
 
-                var name, tmp = [], i;
-                for(i = -1; name = m[++i]; ) {
+                var name, tmp = [],
+                    i;
+                for (i = -1; name = m[++i];) {
                     if (name.indexOf('.') === -1) {
                         tmp.push(name + me._eventNamespace);
                     } else {
@@ -4475,9 +4690,9 @@
                 return this._eventNamespace;
             },
 
-            proxy: function(fn){
+            proxy: function(fn) {
                 var me = this;
-                return function(){
+                return function() {
                     return fn.apply(me, arguments);
                 };
             },
@@ -4550,9 +4765,9 @@
                 return this.$el;
             },
 
-            show: function(){},
-            hide: function(){},
-            setDisabled: function(){}
+            show: function() {},
+            hide: function() {},
+            setDisabled: function() {}
         });
 
         return View;
@@ -4575,7 +4790,7 @@
     // Modal ////////////////////////////////////////////////////////////////////////////
     /**
      * 모달 클래스<br />
-     * // 옵션 <br />
+     * // 기본 옵션 <br />
      * options.overlay:true 오버레이를 깔것인가<br />
      * options.clone: true  복제해서 띄울 것인가<br />
      * options.closeByEscape: true  // esc키를 눌렀을 때 닫히게 할 것인가<br />
@@ -4585,13 +4800,14 @@
      * options.show: true                   // 호출할 때 바로 표시할 것인가...
      *
      * @class
-     * @name core.ui.Modal
-     * @extends core.ui.View
+     * @name emart.ui.Modal
+     * @extends emart.ui.View
      * @example
      */
-    var Modal = ui('Modal', /** @lends core.ui.Modal# */{
+    var Modal = ui('Modal', /** @lends emart.ui.Modal# */ {
         bindjQuery: 'modal',
-        $statics: /** @lends core.ui.Modal */{
+        $statics: /** @lends emart.ui.Modal */
+        {
             /**
              * 모달 생성시 발생되는 이벤트
              * @static
@@ -4601,22 +4817,22 @@
              * 모달 표시 전에 발생되는 이벤트
              * @static
              */
-            ON_SHOW:'modalshow',
+            ON_SHOW: 'modalshow',
             /**
              * 모달 표시 후에 발생되는 이벤트
              * @static
              */
-            ON_SHOWN:'modalshown',    // 표시 후
+            ON_SHOWN: 'modalshown', // 표시 후
             /**
              * 모달이 숨기기 전에 발생되는 이벤트
              * @static
              */
-            ON_HIDE:'modalhide',          // 숨기기 전
+            ON_HIDE: 'modalhide', // 숨기기 전
             /**
              * 모달이 숨겨진 후에 발생되는 이벤트
              * @static
              */
-            ON_HIDDEN: 'modalhidden'  // 숨긴 후
+            ON_HIDDEN: 'modalhidden' // 숨긴 후
         },
         defaults: {
             overlay: true,
@@ -4631,7 +4847,7 @@
         },
 
         events: {
-            'click button[data-role]': function (e) {
+            'click button[data-role]': function(e) {
                 var me = this,
                     $btn = $(e.currentTarget),
                     role = ($btn.attr('data-role') || ''),
@@ -4639,7 +4855,7 @@
 
                 if (role) {
                     me.triggerHandler(e = $.Event(role), [me]);
-                    if(e.isDefaultPrevented()){
+                    if (e.isDefaultPrevented()) {
                         return;
                     }
                 }
@@ -4668,7 +4884,7 @@
          */
         initialize: function(el, options) {
             var me = this;
-            if(me.callParent(el, options) === false) {
+            if (me.callParent(el, options) === false) {
                 return me.release();
             }
 
@@ -4678,27 +4894,28 @@
             me.isShown = false;
             me._originalDisplay = me.$el.css('display');
 
-            if(me.options.remote) {
-                me.$el.load(me.options.remote).done(function(){
+            if (me.options.remote) {
+                me.$el.load(me.options.remote).done(function() {
                     me.options.show && core.util.waitImageLoad(me.$el.find('img')).done(function() {
-						me.show();
-					});
+                        me.show();
+                    });
                 });
             } else {
                 me.options.show && core.util.waitImageLoad(me.$el.find('img')).done(function() {
-					me.show();
-				});
+                    me.show();
+                });
             }
 
 
             // TODO
             me.$el.attr({
                 'role': 'dialog',
-                'aria-describedby': '',
-                'aria-labelledby': ''
+                'aria-hidden': 'false',
+                'aria-describedby': me.$('section').attr('id') || me.$('section').attr('id', me.cid + '_content').attr('id'),
+                'aria-labelledby': me.$('h1').attr('id') || me.$('h1').attr('id', me.cid + '_title').attr('id')
             });
 
-			me.on('mousewheel.modal', function(e) {
+            me.on('mousewheel.modal', function(e) {
                 e.stopPropagation();
             });
         },
@@ -4711,7 +4928,9 @@
         _createHolder: function() {
             var me = this;
 
-            if(me.$el.parent().is('body')){ return; }
+            if (me.$el.parent().is('body')) {
+                return;
+            }
 
             me.$holder = $('<span class="d-modal-area" style="display:none;"></span>').insertAfter(me.$el);
             me.$el.appendTo('body');
@@ -4723,7 +4942,7 @@
         _replaceHolder: function() {
             var me = this;
 
-            if(me.$holder){
+            if (me.$holder) {
                 me.$el.insertBefore(me.$holder);
                 me.$holder.remove();
             }
@@ -4735,14 +4954,16 @@
         toggle: function() {
             var me = this;
 
-            me[ me.isShown ? 'hide' : 'show' ]();
+            me[me.isShown ? 'hide' : 'show']();
         },
 
         /**
          * 표시
          */
         show: function() {
-            if(this.isShown && Modal.active === this) { return; }
+            if (this.isShown && Modal.active === this) {
+                return;
+            }
 
             Modal.active = this;
 
@@ -4751,48 +4972,67 @@
                 e = $.Event(Modal.ON_SHOW);
 
             me.trigger(e);
-            if(me.isShown || e.isDefaultPrevented()) { return; }
+            if (me.isShown || e.isDefaultPrevented()) {
+                return;
+            }
 
             me.isShown = true;
-            if(opts.overlay !== false){
+            if (opts.overlay !== false) {
+                // 오버레이 생성
                 me._overlay();
             }
+            // 위치 배치
             me.layout();
+            // 드래그 기능 빌드
             me._draggabled();
-            if(!core.browser.isTouch){
+            if (!core.browser.isTouch) {
+                // esc키이벤트 바인딩
                 me._escape();
+                // 탭키로 포커스를 이동시킬 때 포커스가 레이어팝업 안에서만 돌도록 빌드
                 me._enforceFocus();
             }
 
-            if(opts.title) {
+            if (opts.title) {
                 me.$el.find(opts.cssTitle).html(opts.title || '알림');
             }
 
             me.$el.stop().addClass('d-modal-container')
                 .css({
-                    position: 'fixed',
-                    left: '50%',
-                    top: '50%',
-                    zIndex: 9900,
-                    backgroundColor: '#ffffff',
-                    outline: 'none',
-                    backgroundClip: 'padding-box'
-                }).fadeIn('fast', function() {
-                    me.trigger(Modal.ON_SHOWN, {module: this});
-                    me.layout();
-                    me.$el.attr('tabindex', 1).focus();
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                zIndex: 9900,
+                backgroundColor: '#ffffff',
+                outline: 'none',
+                backgroundClip: 'padding-box'
+            }).fadeIn('fast', function() {
+                me.trigger(Modal.ON_SHOWN, {
+                    module: this
                 });
+                me.layout();
 
+                var $focusEl = me.$el.find('[data-autofocus=true]');
+                // 레이어내에 data-autofocus를 가진 엘리먼트에 포커스를 준다.
+                if ($focusEl.size() > 0) {
+                    $focusEl.eq(0).focus();
+                } else {
+                    // 레이어에 포커싱
+                    me.$el.attr('tabindex', 0).focus();
+                }
+            });
+
+            // body를 비활성화(aria)
             $('body').attr('aria-hidden', 'true');
 
-			if(me.options.opener) {
-				var modalid = '';
-				if(!(modalid = me.$el.attr('id'))){
-					modalid = 'modal_' + core.getUniqId(16);
-					me.$el.attr('id', modalid);
-				}
-				$(me.options.opener).attr('aria-controls', modalid);
-			}
+            // 버튼
+            if (me.options.opener) {
+                var modalid = '';
+                if (!(modalid = me.$el.attr('id'))) {
+                    modalid = 'modal_' + core.getUniqId(16);
+                    me.$el.attr('id', modalid);
+                }
+                $(me.options.opener).attr('aria-controls', modalid);
+            }
 
             core.PubSub.trigger('hide:modal');
         },
@@ -4801,108 +5041,102 @@
          * 숨김
          */
         hide: function(e) {
-            if(e) {
+            if (e) {
                 e.preventDefault();
             }
 
             var me = this;
             e = $.Event(Modal.ON_HIDE);
             me.trigger(e);
-            if(!me.isShown || e.isDefaultPrevented()) { return; }
+            if (!me.isShown || e.isDefaultPrevented()) {
+                return;
+            }
 
+            // 모달관련 글로벌 이벤트 제거
             $doc.off('focusin.modal');
             me.off('click.modal keyup.modal');
 
             me.isShown = false;
-            if(!core.browser.isTouch){
+            if (!core.browser.isTouch) {
+                // esc 키이벤트 제거
                 me._escape();
             }
-            me.hideModal();
+            // dom에 추가된 것들 제거
+            me.$el.hide().removeData(me.moduleName).removeClass('d-modal-container');
+            me.off(me.getEventNamespace());
+            // body밑으로 뺀 el를 다시 원래 위치로 되돌린다.
+            me._replaceHolder();
 
-            $('body').attr('aria-hidden', 'false');
+            if (me.options.removeOnClose) {
+                // 닫힐 때 dom에서 삭제하도록 옵션이 지정돼있으면, dom에서 삭제한다.
+                me.$el.remove();
+            }
+            if (me.options.opener) {
+                // 레이어팝업을 띄운 버튼에 포커스를 준다.
+                $(me.options.opener).removeAttr('aria-controls').focus();
+            }
+
+            if (me.$overlay) {
+                // 오버레이를 제거
+                me.$overlay.hide().remove(), me.$overlay = null;
+            }
+            // 비활성화를 푼다.
+            $('body').removeAttr('aria-hidden');
+
             me.trigger(Modal.ON_HIDDEN);
             Modal.active = null;
         },
 
-        /**
-         * 뒷처리 담당
-         */
-        hideModal: function() {
-            var me = this;
-            me.$el.hide().removeData(me.moduleName).removeClass('d-modal-container');
-            me.off(me.getEventNamespace());
-            me._replaceHolder();
-
-            if(me.options.removeOnClose) {
-                me.$el.remove();
-            }
-            if(me.options.opener){
-                me.options.opener.focus();
-            }
-
-            if(me.$overlay) {
-                me.$overlay.hide().remove(), me.$overlay = null;
-            }
-        },
 
         /**
          * 도큐먼트의 가운데에 위치하도록 지정
          */
-        layout: function(){
-			var me = this,
-				width = 0,
-				height = 0;
+        layout: function() {
+            var me = this,
+                width = 0,
+                height = 0,
+                winHeight = core.util.getWinHeight();
 
-			me.$el.css({'display': 'inline', 'position': 'absolute' });
-			width = me.$el.width();
-			height = me.$el.height();
-			me.$el.css({'display': ''});
-
-			me.$el.css({
-				'width': width,
-				'marginTop': Math.ceil(height / 2) * -1,
-				'marginLeft': Math.ceil(width / 2) * -1
-			});
-			/*
-            var me = this;
-            var containHei  = core.util.getDocHeight();
-            var containWid = core.util.getDocWidth();
-            var layerOuterHei = me.$el.outerHeight();
-            var bodyTop = core.getBody().scrollTop();
-
-            //dim이 레이어팝업보다 작을때 10px 더 크게 셋팅
-            if( containHei <  layerOuterHei ){
-                me.$overlay.height( layerOuterHei+10 );
+            if (!me.isShown) {
+                me.$el.css({
+                    'display': 'inline'
+                });
             }
-
-            //console.log("containHei", containHei, "layerOuterHei", layerOuterHei, "bodyTop", bodyTop )
-            if( containHei > (layerOuterHei + bodyTop) ){
-                var targetTop = bodyTop+(($win.height() - layerOuterHei)*0.5);
-            }else{
-                var targetTop = me.$overlay.height()-me.$el.outerHeight();
-            }
-
-            if( targetTop < 0 ){
-                targetTop = 0;
-            }
-
+            width = me.$el.outerWidth();
+            height = me.$el.outerHeight();
             me.$el.css({
-                'position': 'absolute',
-                'top' : targetTop,
-                'left': (containWid-me.$el.outerWidth())*0.5
+                'display': ''
             });
-			*/
+
+            if (height > winHeight) {
+                // 레이어가 창보다 클 경우 top을 0으로 지정
+                me.$el.css({
+                    'top': 0,
+                    'left': '50%',
+                    'marginLeft': Math.ceil(width / 2) * -1,
+                    'marginTop': ''
+                });
+            } else {
+                me.$el.css({
+                    'top': '50%',
+                    'left': '50%',
+                    'marginTop': Math.ceil(height / 2) * -1,
+                    'marginLeft': Math.ceil(width / 2) * -1
+                });
+            }
         },
 
         /**
          * 타이틀 영역을 드래그기능 빌드
          * @private
          */
-        _draggabled: function(){
+        _draggabled: function() {
             var me = this,
                 options = me.options;
 
-            if(!options.draggable || me.bindedDraggable) { return; }
+            if (!options.draggable || me.bindedDraggable) {
+                return;
+            }
             me.bindedDraggable = true;
 
             if (options.dragHandle) {
@@ -4921,13 +5155,18 @@
                             width: core.util.getDocWidth(),
                             height: core.util.getDocHeight()
                         },
-                        oriPos = {left: e.pageX - pos.left, top: e.pageY - pos.top};
+                        oriPos = {
+                            left: e.pageX - pos.left,
+                            top: e.pageY - pos.top
+                        };
 
                     $doc.on('mousemove.modaldrag mouseup.modaldrag touchmove.modaldrag touchend.modaldrag touchcancel.modaldrag', function(e) {
-                        switch(e.type) {
+                        switch (e.type) {
                             case 'mousemove':
                             case 'touchmove':
-                                if(!isMouseDown){ return; }
+                                if (!isMouseDown) {
+                                    return;
+                                }
                                 /*if(e.pageX + size.width > docSize.width
                                  || e.pageY + size.height > docSize.height
                                  || e.pageX - oriPos.left < 0
@@ -4959,14 +5198,13 @@
         _enforceFocus: function() {
             var me = this;
 
-            $doc
-                .off('focusin.modal')
+            $doc.off('focusin.modal')
                 .on('focusin.modal', me.proxy(function(e) {
-                    if(me.$el[0] !== e.target && !$.contains(me.$el[0], e.target)) {
-                        me.$el.find(':focusable').first().focus();
-                        e.stopPropagation();
-                    }
-                }));
+                if (me.$el[0] !== e.target && !$.contains(me.$el[0], e.target)) {
+                    me.$el.find(':focusable').first().focus();
+                    e.stopPropagation();
+                }
+            }));
         },
 
         /**
@@ -4976,7 +5214,7 @@
         _escape: function() {
             var me = this;
 
-            if(me.isShown && me.options.closeByEscape) {
+            if (me.isShown && me.options.closeByEscape) {
                 me.off('keyup.modal').on('keyup.modal', me.proxy(function(e) {
                     e.which === 27 && me.hide();
                 }));
@@ -4991,7 +5229,9 @@
          */
         _overlay: function() {
             var me = this;
-            if($('.d-modal-overlay').length > 0){ return false;} //140123_추가
+            if ($('.d-modal-overlay').length > 0) {
+                return false;
+            } //140123_추가
 
             me.$overlay = $('<div class="d-modal-overlay" />');
             me.$overlay.css({
@@ -5006,7 +5246,9 @@
             }).appendTo('body');
 
             me.$overlay.off('click.modal').on('click.modal', function(e) {
-                if(e.target != e.currentTarget) { return; }
+                if (e.target != e.currentTarget) {
+                    return;
+                }
                 me.$overlay.off('click.modal');
                 me.hide();
             });
@@ -5019,14 +5261,14 @@
          * $('...').find('.content').html( '...');  // 모달내부의 컨텐츠를 변경
          * $('...').modal('center');    // 컨텐츠의 변경으로 인해 사이즈가 변경되었으로, 사이즈에 따라 화면가운데로 강제 이동
          */
-        center: function(){
+        center: function() {
             this.layout();
         },
 
         /**
          * 열기
          */
-        open: function(){
+        open: function() {
             this.show();
         },
 
@@ -5037,6 +5279,9 @@
             this.hide();
         },
 
+        /**
+         *
+         */
         release: function() {
             var me = this;
 
@@ -5047,45 +5292,71 @@
         }
     });
 
-    Modal.close = function (e) {
+    /**
+     * 열려 있는 레이어팝업을 닫는 static 함수
+     * @name emart.ui.Modal.close
+     */
+    Modal.close = function(e) {
         if (!Modal.active) return;
         if (e) e.preventDefault();
         Modal.active.hide();
         Modal.active = null;
     };
 
-    core.PubSub.on('hide:modal', function (e, force) {
+    /**
+     * 열려 있는 레이어팝업을 닫는 글로벌이벤트
+     * @example 
+     * emart.PubSub.trigger('hide:modal')
+     */
+    core.PubSub.on('hide:modal', function(e, force) {
         if (force === false) {
-            if(Modal.active){
+            if (Modal.active) {
                 Modal.close();
             }
         }
     });
 
+    /**
+     * 열려 있는 레이어팝업을 가운데에 위치시키는 글로벌이벤트
+     * @example 
+     * emart.PubSub.trigger('resize:modal')
+     */
     core.PubSub.on('resize:modal', function() {
-        if(Modal.active){
+        if (Modal.active) {
             Modal.active.center();
         }
     });
 
-    core.modal = function(el, options){
+    //윈도우가 리사이징 될때 가운데에 자동으로 위치시킴
+    $(window).on('resize.modal', function() {
+        if (Modal.active) {
+            Modal.active.center();
+        }
+    });
+
+    core.modal = function(el, options) {
         $(el).modal(options);
     };
 
     /**
-     * @class ui.AjaxModal
-     * @description 페이징모듈
-     * @extends ui.View
+     * @class
+     * @name emart.ui.AjaxModal
+     * @description ajax로 불러들인 컨텐츠를 모달로 띄워주는 모듈
+     * @extends emart.ui.View
      */
-    core.ui.ajaxModal = function () {
+    core.ui.ajaxModal = function() {
         return function(url, options) {
             return $.ajax($.extend({
-                url: url
+                url: url,
+                cache: false
             }, options && options.ajax)).done(function(html) {
                 var el = $(html.replace(/\n|\r/g, "")).appendTo('body');
-                var modal = new Modal(el, core.extend({removeOnClose: true, show: true}, options));
+                var modal = new Modal(el, core.extend({
+                    removeOnClose: true,
+                    show: true
+                }, options));
                 modal.getElement().buildUIControls();
-                modal.on('modalhidden', function(){
+                modal.on('modalhidden', function() {
                     el = null;
                     modal = null;
                 });
@@ -5093,97 +5364,80 @@
         };
     }();
 
-    /**
-     * @class ui.Alert
-     * @description 페이징모듈
-     * @extends ui.View
-     */
-    core.ui.alert = function () {
+    core.ui.alert = function() {
         /**
          * 얼럿레이어
-         * @memberOf core.ui
+         * @memberOf emart.ui
          * @name alert
          * @function
          * @param {String} msg 얼럿 메세지
          * @param {JSON} options 모달 옵션
          * @example
-         * core.ui.alert('안녕하세요');
+         * emart.ui.alert('안녕하세요');
          */
-        return function (msg, options) {
-            if(typeof msg !== 'string' && arguments.length === 0) {
+        return function(msg, options) {
+            if (typeof msg !== 'string' && arguments.length === 0) {
                 options = msg;
                 msg = '';
             };
             var el = $(core.ui.alert.tmpl).appendTo('body').find('div.d-content').html(msg).end();
-            var modal = new Modal(el, core.extend({removeOnClose: true, show: true}, options));
+            var modal = new Modal(el, core.extend({
+                removeOnClose: true,
+                show: true
+            }, options));
             modal.getElement().buildUIControls();
-            modal.on('modalhidden', function(){
+            modal.on('modalhidden', function() {
                 el = null;
                 modal = null;
             });
             return modal;
         };
     }();
-    core.ui.alert.tmpl = ['<div class="layer_popup small d-alert" role="alert" style="display:none">',
-        '<h1 class="title d-title">알림창</h1>',
-        '<div class="cntt">',
-        '<div class="d-content">&nbsp;</div>',
-        '<div class="wrap_btn_c">',
-        '<button type="button" class="btn_emphs_small" data-role="ok"><span><span>확인</span></span></button>',
-        '</div>',
-        '</div>',
-        '<button type="button" class="d-close"><span>닫기</span></button>',
-        '<span class="shadow"></span>',
-        '</div>'].join('');
+    core.ui.alert.tmpl = ['<div class="layer_popup small d-alert" role="alert" style="display:none">', '<h1 class="title d-title">알림창</h1>', '<div class="cntt">', '<div class="d-content"> </div>', '<div class="wrap_btn_c">', '<button type="button" class="btn_emphs_small" data-role="ok"><span><span>확인</span></span></button>', '</div>', '</div>', '<button type="button" class="d-close"><span>닫기</span></button>', '<span class="shadow"></span>', '</div>'].join('');
     ///////////////////////////////////////////////////////////////////////////////////////
 
     //Calendar ////////////////////////////////////////////////////////////////////////////
     /**
      * @class
-     * @description 달력
-     * @name core.ui.Calendar
-     * @extends core.ui.View
+     * @description 달력 모듈
+     * @name emart.ui.Calendar
+     * @extends emart.ui.View
      */
     var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    var Calendar = ui('Calendar', /** @lends core.ui.Calendar# */{
+    var Calendar = ui('Calendar', /** @lends emart.ui.Calendar# */ {
         bindjQuery: 'calendar',
         defaults: {
-            weekNames: ['일', '월','화','수','목','금', '토'],
+            weekNames: ['일', '월', '화', '수', '목', '금', '토'],
             monthNames: '1월,2월,3월,4월,5월,6월,7월,8월,9월,10월,11월,12월'.split(','),
 
             titleFormat: 'yyyy년 MM월 dd일',
 
-            weekendDisabled: false,     // 주말을 disabled시킬 것인가
-            type: 'button',           // 날짜가 선택되게 할 것인가
-            inputTarget: '',            // 날짜를 선택했을 때, 날짜가 들어갈 인풋박스의 셀렉터
+            weekendDisabled: false, // 주말을 disabled시킬 것인가
+            type: 'button', // 날짜가 선택되게 할 것인가
+            inputTarget: '', // 날짜를 선택했을 때, 날짜가 들어갈 인풋박스의 셀렉터
             marginTop: 4,
-            showOtherMonths: false,     // 이전, 다음달의 날짜를 표시할 것인가
-			isBubble: false,
-            date: new Date(),       // 처음에 표시할 기본 날짜
+            showOtherMonths: false, // 이전, 다음달의 날짜를 표시할 것인가
+            isBubble: false,
+            date: new Date(), // 처음에 표시할 기본 날짜
             today: new Date(),
             useSelectbox: true,
-			isClickActive: true,
+            isClickActive: true,
             startSelectYear: '2004',
             endSelectYear: '+1',
             template: {
-                header: '<button class="m-calendar-prev">이전달</button>' +
-                    '<span class="m-calendar-text"></span>' +
-                    '<button class="m-calendar-next">다음달</button>',
+                header: '<button class="m-calendar-prev">이전달</button>' + '<span class="m-calendar-text"></span>' + '<button class="m-calendar-next">다음달</button>',
 
-                selectHeader: '<a href="#" class="m-calendar-prev"><span class="hide">이전달</span></a>' +
-                    '<select class="m-calendar-years y_selct" title="해당년 선택란"></select>' +
-                    '<select class="m-calendar-months m_selct" title="해당월 선택란"><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>' +
-                    '<a href="#" class="m-calendar-next"><span class="hide">다음달</span></a>',
+                selectHeader: '<a href="#" class="m-calendar-prev"><span class="hide">이전달</span></a>' + '<select class="m-calendar-years y_selct" title="해당년 선택란"></select>' + '<select class="m-calendar-months m_selct" title="해당월 선택란"><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>' + '<a href="#" class="m-calendar-next"><span class="hide">다음달</span></a>',
 
                 label: '<span class="m-calendar-day" title="<$-title$>"><$=day$></span>',
                 button: '<button class="m-calendar-day" title="<$-title$>" <$-disabled$>><$=day$></button>'
             },
-            holidays: [],               // 휴일 날짜 -> ['2014-04-05', '2014-05-12'],
+            holidays: [], // 휴일 날짜 -> ['2014-04-05', '2014-05-12'],
             summary: '캘린더입니다. 글은 일요일, 월요일, 화요일, 수요일, 목요일, 금요일, 토요일 순으로 나옵니다.',
             colWidth: '32px', // 셀 너비
             caption: '달력',
-            canSelectHoliday: false,		// 휴일을 선택하게 할 것인가,
-            customDaysTarget: null		// 휴일, 오늘, 토요일, 일요일 이외의 날짜를 표현할 경우, json를 담고 있는 script id를 지정
+            canSelectHoliday: false, // 휴일을 선택하게 할 것인가,
+            customDaysTarget: null // 휴일, 오늘, 토요일, 일요일 이외의 날짜를 표현할 경우, json를 담고 있는 script id를 지정
         },
         events: {
 
@@ -5195,7 +5449,7 @@
          * @param options
          * @returns {boolean}
          */
-        initialize: function (el, options) {
+        initialize: function(el, options) {
             var me = this;
             if (me.callParent(el, options) === false) {
                 return me.release();
@@ -5205,25 +5459,27 @@
             me.currDate = dateUtil.parse(me.options.date);
             me._normalizeOptions();
 
-            if(me.options.customDaysTarget) {
+            if (me.options.customDaysTarget) {
                 try {
                     var $data = $(me.options.customDaysTarget);
                     me.customDays = $.parseJSON($.trim($data.html()));
-                } catch(e) { console.error('[calendar] custom day의 값이 잘못 되었습니다.'); }
+                } catch (e) {
+                    console.error('[calendar] custom day의 값이 잘못 되었습니다.');
+                }
                 $data.remove();
             }
 
-            if(me.isInline){
+            if (me.isInline) {
                 me._render();
             } else {
                 me.options.header = true;
-                if(me.options.inputTarget){
+                if (me.options.inputTarget) {
                     me.$input = $(me.options.inputTarget);
                 }
-                me.off('.calendar').on('click.calendar', function(e){
+                me.off('.calendar').on('click.calendar', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    if(me.$calendar && me.$calendar.is(':visible')){
+                    if (me.$calendar && me.$calendar.is(':visible')) {
                         me.close();
                         return;
                     }
@@ -5236,29 +5492,31 @@
             var me = this,
                 opts = me.options;
 
-            if(!core.isDate(opts.today)) {
-                opts.today = dateUtil.parse(opts.today+'');
+            if (!core.isDate(opts.today)) {
+                opts.today = dateUtil.parse(opts.today + '');
             }
 
             //data-holidays속성을 이용한 경우 문자열로 넘어오기 때문에 배열로 변환해주어야 한다.
-            if(core.is(opts.holidays, 'string')) {
+            if (core.is(opts.holidays, 'string')) {
                 try {
                     opts.holidays = eval(opts.holidays);
-                } catch (e){ opts.holidays = []; }
+                } catch (e) {
+                    opts.holidays = [];
+                }
             }
 
-            if(opts.useSelectbox) {
+            if (opts.useSelectbox) {
                 var date = new Date;
-                if(/^[+-]/.test(opts.startSelectYear.toString())) {
-                    me.startSelectYear = date.getFullYear() + (opts.startSelectYear|0)
+                if (/^[+-]/.test(opts.startSelectYear.toString())) {
+                    me.startSelectYear = date.getFullYear() + (opts.startSelectYear | 0)
                 } else {
-                    me.startSelectYear = opts.startSelectYear|0;
+                    me.startSelectYear = opts.startSelectYear | 0;
                 }
 
-                if(/^[+-]/.test(opts.endSelectYear.toString())) {
-                    me.endSelectYear = date.getFullYear() + (opts.endSelectYear|0)
+                if (/^[+-]/.test(opts.endSelectYear.toString())) {
+                    me.endSelectYear = date.getFullYear() + (opts.endSelectYear | 0)
                 } else {
-                    me.endSelectYear = opts.endSelectYear|0;
+                    me.endSelectYear = opts.endSelectYear | 0;
                 }
             }
         },
@@ -5283,21 +5541,21 @@
          * 모달 띄우기
          * @returns {Calendar}
          */
-        open: function(){
+        open: function() {
             var me = this;
 
             Calendar.active && Calendar.active.close();
             Calendar.active = this;
 
-            if(me.options.inputTarget) {
+            if (me.options.inputTarget) {
                 var val = me.$input.val(),
                     currDate = dateUtil.parse(me.$input.val());
 
-                if((val && val.length < 8) || isNaN(currDate.getTime())) {
+                if ((val && val.length < 8) || isNaN(currDate.getTime())) {
                     currDate = new Date;
                 }
 
-                if(me.options.header && me.options.useSelectbox) {
+                if (me.options.header && me.options.useSelectbox) {
                     currDate = me._checkValid(currDate);
                 }
                 me.currDate = currDate;
@@ -5313,8 +5571,8 @@
          * 모달 닫기
          * @returns {Calendar}
          */
-        close: function(){
-            if(this.isInline){
+        close: function() {
+            if (this.isInline) {
                 return;
             }
 
@@ -5329,13 +5587,15 @@
          * 모달 표시
          * @returns {Calendar}
          */
-        show: function(){
+        show: function() {
             var me = this;
 
-            if(!me.isInline) {
-                if(me.$el.prop('disabled') || me.$el.hasClass('disabled')) { return; }
+            if (!me.isInline) {
+                if (me.$el.prop('disabled') || me.$el.hasClass('disabled')) {
+                    return;
+                }
 
-                $doc.on('click.calendar', function (e) {
+                $doc.on('click.calendar', function(e) {
                     if (me.$calendar[0].contains(e.target)) {
                         e.stopPropagation();
                         return;
@@ -5344,14 +5604,14 @@
                     me.close();
                 });
 
-                if(!core.isTouch) {
+                if (!core.isTouch) {
                     me._escape();
 
                     me.$calendar.on('focusin focusout', (function() {
                         var timer = null;
                         return function(e) {
                             clearTimeout(timer);
-                            switch(e.type) {
+                            switch (e.type) {
                                 case 'focusout':
                                     timer = setTimeout(function() {
                                         me.close();
@@ -5361,7 +5621,9 @@
                         };
                     })());
                 }
-                me.$calendar.showLayer({opener: me.$el});
+                me.$calendar.showLayer({
+                    opener: me.$el
+                });
             }
 
             return me;
@@ -5372,11 +5634,11 @@
 
             me.$calendar.add(me.$el).add(me.$input)
                 .off('keyup.calendar').on('keyup.calendar', function(e) {
-                    if(e.keyCode === core.keyCode.ESCAPE) {
-                        me.close();
-                        me.options.inputTarget && me.$input.focus();
-                    }
-                });
+                if (e.keyCode === core.keyCode.ESCAPE) {
+                    me.close();
+                    me.options.inputTarget && me.$input.focus();
+                }
+            });
 
         },
 
@@ -5387,7 +5649,7 @@
         _remove: function() {
             var me = this;
 
-            if(me.$calendar){
+            if (me.$calendar) {
                 me.$calendar.off();
                 me.$calendar.remove();
                 me.$calendar = null;
@@ -5404,17 +5666,11 @@
                 opts = me.options,
                 timer, tmpl;
 
-            tmpl = '<div class="m-calendar-container">' +
-                (opts.header !== false ?
-                    '<div class="m-calendar-header">' +
-                    (opts.header && opts.useSelectbox ? opts.template.selectHeader : opts.template.header) +
-                    '</div>' : '') +
-                '<div class="m-calendar-date"></div>' +
-                '</div>'
+            tmpl = '<div class="m-calendar-container">' + (opts.header !== false ? '<div class="m-calendar-header">' + (opts.header && opts.useSelectbox ? opts.template.selectHeader : opts.template.header) + '</div>' : '') + '<div class="m-calendar-date"></div>' + '</div>'
 
             me._remove();
             me.$calendar = $(tmpl);
-            if(me.isInline) {
+            if (me.isInline) {
                 // 인라인
                 me.$el.empty().append(me.$calendar);
             } else {
@@ -5427,77 +5683,81 @@
                 me.$el.after(me.$calendar);
             }
             me.$calendar.off('.calendar')
-                .on('click.calendar mousedown.calendar', '.m-calendar-prev, .m-calendar-next', function(e){
-                    // 이전 / 다음
-                    e.preventDefault();
-                    if(me.$el.hasClass('disabled')){ return; }
+                .on('click.calendar mousedown.calendar', '.m-calendar-prev, .m-calendar-next', function(e) {
+                // 이전 / 다음
+                e.preventDefault();
+                if (me.$el.hasClass('disabled')) {
+                    return;
+                }
 
-                    var $el = $(e.currentTarget),
-                        isPrev = $el.hasClass('m-calendar-prev');
+                var $el = $(e.currentTarget),
+                    isPrev = $el.hasClass('m-calendar-prev');
 
-                    switch (e.type) {
-                        case 'click':
+                switch (e.type) {
+                    case 'click':
+                        me[isPrev ? 'prev' : 'next']();
+                        break;
+                    case 'mousedown':
+                        clearInterval(timer);
+                        timer = null;
+                        timer = setInterval(function() {
                             me[isPrev ? 'prev' : 'next']();
-                            break;
-                        case 'mousedown':
+                        }, 300);
+                        $doc.on('mouseup.calendar', function() {
                             clearInterval(timer);
                             timer = null;
-                            timer = setInterval(function(){
-                                me[isPrev ? 'prev' : 'next']();
-                            }, 300);
-                            $doc.on('mouseup.calendar', function() {
-                                clearInterval(timer);
-                                timer = null;
-                                $doc.off('mouseup.calendar');
-                            });
-                            break;
-                    }
-                })
+                            $doc.off('mouseup.calendar');
+                        });
+                        break;
+                }
+            })
                 .on('click.calendar', '.m-calendar-day a, .m-calendar-day button', function(e) {
-                    // 날짜 클릭
-                    e.preventDefault();
-                    if(me.$el.hasClass('disabled')){ return; }
+                // 날짜 클릭
+                e.preventDefault();
+                if (me.$el.hasClass('disabled')) {
+                    return;
+                }
 
-                    var $this = $(this).closest('td'),
-                        data = $this.data(),
-                        date = new Date(data.year, data.month - 1, data.day),
-                        format = dateUtil.format(date, opts.format || ''),
-                        e;
+                var $this = $(this).closest('td'),
+                    data = $this.data(),
+                    date = new Date(data.year, data.month - 1, data.day),
+                    format = dateUtil.format(date, opts.format || ''),
+                    e;
 
-                    if(opts.inputTarget) {
-                        me.$input.val(format)
-                    }
+                if (opts.inputTarget) {
+                    me.$input.val(format)
+                }
 
-                    e = $.Event('calendarselected');
-                    e.target = e.currentTarget = this;
-                    me.$el[opts.isBubble ? 'trigger' : 'triggerHandler'](e, {
-						target: this,
-                        year: $this.data('year'),
-                        month: $this.data('month'),
-                        day: $this.data('day'),
-                        value: format,
-                        date: date,
-                        calendar: me.$calendar[0]
-                    });
-
-                    if(me.isInline && opts.isClickActive !== false){
-                        me.$calendar.find('.m-calendar-active').removeClass('m-calendar-active');
-                        $this.addClass('m-calendar-active');
-                    }
-
-                    if(!e.isDefaultPrevented() && !me.isInline) {
-                        me.close();
-                        me.$el.focus();
-                    }
-
+                e = $.Event('calendarselected');
+                e.target = e.currentTarget = this;
+                me.$el[opts.isBubble ? 'trigger' : 'triggerHandler'](e, {
+                    target: this,
+                    year: $this.data('year'),
+                    month: $this.data('month'),
+                    day: $this.data('day'),
+                    value: format,
+                    date: date,
+                    calendar: me.$calendar[0]
                 });
 
-            if(opts.header && opts.useSelectbox) {
+                if (me.isInline && opts.isClickActive !== false) {
+                    me.$calendar.find('.m-calendar-active').removeClass('m-calendar-active');
+                    $this.addClass('m-calendar-active');
+                }
+
+                if (!e.isDefaultPrevented() && !me.isInline) {
+                    me.close();
+                    me.$el.focus();
+                }
+
+            });
+
+            if (opts.header && opts.useSelectbox) {
                 me.$yearSelectbox = me.$calendar.find('.m-calendar-years');
                 me.$monthSelectbox = me.$calendar.find('.m-calendar-months');
 
                 me.$yearSelectbox[0].options.length = 0;
-                for(var i = me.startSelectYear; i <= me.endSelectYear; i++) {
+                for (var i = me.startSelectYear; i <= me.endSelectYear; i++) {
                     me.$yearSelectbox[0].options.add(new Option(i, i));
                 }
 
@@ -5505,8 +5765,8 @@
                     var year = me.$yearSelectbox.val(),
                         month = me.$monthSelectbox.val();
 
-                    me.currDate.setYear(year|0);
-                    me.currDate.setMonth((month|0) - 1);
+                    me.currDate.setYear(year | 0);
+                    me.currDate.setMonth((month | 0) - 1);
 
                     me._renderDate();
                 });
@@ -5517,11 +5777,13 @@
             return me;
         },
 
-        _selectCurrentDate: function(){
+        _selectCurrentDate: function() {
             var me = this,
                 opts = me.options;
 
-            if(!opts.header || !opts.useSelectbox) { return; }
+            if (!opts.header || !opts.useSelectbox) {
+                return;
+            }
 
             me.$yearSelectbox.val(me.currDate.getFullYear());
             me.$monthSelectbox.val(me.currDate.getMonth() + 1);
@@ -5548,9 +5810,9 @@
                 holidays = me.options.holidays,
                 i, date, item;
 
-            for (var i = -1; item = holidays[++i]; ) {
+            for (var i = -1; item = holidays[++i];) {
                 date = dateUtil.parse(item);
-                if(date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d) {
+                if (date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d) {
                     return true;
                 }
             }
@@ -5562,8 +5824,12 @@
             var me = this,
                 opts = me.options;
 
-            if(me.startSelectYear > date.getFullYear()) { return new Date(me.startSelectYear, 0, 1); }
-            if(me.endSelectYear < date.getFullYear()) { return new Date(me.endSelectYear, 11, 1); }
+            if (me.startSelectYear > date.getFullYear()) {
+                return new Date(me.startSelectYear, 0, 1);
+            }
+            if (me.endSelectYear < date.getFullYear()) {
+                return new Date(me.endSelectYear, 11, 1);
+            }
             return date;
         },
 
@@ -5584,71 +5850,79 @@
                 isOtherMonth = false,
                 i, j, y, m, d, week, len, cell, customClass;
 
-            html += '<table class="m-calendar-table" border="1" summary="'+opts.summary+'"><caption>'+opts.caption+'</caption>';
+            html += '<table class="m-calendar-table" border="1" summary="' + opts.summary + '"><caption>' + opts.caption + '</caption>';
             html += '<colgroup>';
-            for(i = 0; i < 7; i++) {
-                html += '<col width="'+opts.colWidth+'" />';
+            for (i = 0; i < 7; i++) {
+                html += '<col width="' + opts.colWidth + '" />';
             }
             html += '</colgroup><thead>';
-            for(i = 0; i < 7; i++) {
+            for (i = 0; i < 7; i++) {
                 html += '<th class="m-calendar-dayname ' + (i === 0 ? ' m-calendar-sunday' : i === 6 ? ' m-calendar-saturday' : '') + '" scope="col">';
                 html += opts.weekNames[i];
                 html += '</th>';
             }
             html += '</thead><tbody>';
 
-            for(i = 0, len = date.length; i < len; i++) {
+            for (i = 0, len = date.length; i < len; i++) {
                 week = date[i];
 
                 html += '<tr>';
-                for(j = 0; j < 7; j++) {
+                for (j = 0; j < 7; j++) {
                     y = week[j].year, m = week[j].month, d = week[j].day;
-                    isHoliday = /*((j === 0 || j === 6) && opts.weekendDisabled) || */me._isHoliday(y, m, d);
+                    isHoliday = /*((j === 0 || j === 6) && opts.weekendDisabled) || */
+                    me._isHoliday(y, m, d);
                     isToday = opts.today.getFullYear() === y && opts.today.getMonth() + 1 === m && opts.today.getDate() === d;
                     isOtherMonth = (me.currDate.getMonth() + 1) != m;
+                    var nowd = new Date(y, m - 1, d);
 
-                    if(beforeRenderDay){
+                    if (beforeRenderDay) {
                         cell = beforeRenderDay.call(me, y, m, d, {
                             isSaturday: j === 6,
                             isSunday: j === 0,
                             isHoliday: isHoliday,
                             isToday: isToday,
-                            isOtherMonth: isOtherMonth}) || {cls:'', html:'', disabled:''};
+                            isOtherMonth: isOtherMonth
+                        }) || {
+                            cls: '',
+                            html: '',
+                            disabled: ''
+                        };
                     } else {
-                        cell = {cls:'', html:'', disabled:''};
+                        cell = {
+                            cls: '',
+                            html: '',
+                            disabled: ''
+                        };
                     }
 
-					customClass = me.customDays ? ' '+me._getClassCustomDay(y, m, d) : '';
+                    customClass = me.customDays ? ' ' + me._getClassCustomDay(y, m, d) : '';
                     cell.cls = customClass;
 
-                    html += '<td class="m-calendar-'+ y+m+d+' m-calendar-cell'
-                        + (isHoliday ? ' m-calendar-holiday' : '')
-                        + (j === 0 ? ' m-calendar-sunday' : j === 6 ? ' m-calendar-saturday' : '')
-                        + (isToday ? ' m-calendar-today' : '')
-                        + (isOtherMonth ? ' m-calendar-other' : '')
-                        + cell.cls
-                        + '" data-year="'+y+'" data-month="'+m+'" data-day="'+d+'">';
+                    html += '<td class="m-calendar-' + dateUtil.format(nowd, 'yyyyMMdd') + ' m-calendar-cell';
+                    if (opts.showOtherMonths && isOtherMonth || !isOtherMonth) {
+                        html += (isHoliday ? ' m-calendar-holiday' : '') + (j === 0 ? ' m-calendar-sunday' : j === 6 ? ' m-calendar-saturday' : '') + (isToday ? ' m-calendar-today' : '');
+                    }
+                    html += (isOtherMonth ? ' m-calendar-other' : '') + cell.cls + '" data-year="' + y + '" data-month="' + m + '" data-day="' + d + '">';
 
-                    if(!isOtherMonth || opts.showOtherMonths) {
+                    if (!isOtherMonth || opts.showOtherMonths) {
                         if (cell.html) {
                             html += cell.html;
                         } else {
-							var nowd = new Date(y, m - 1, d);
                             html += tmpl({
                                 title: dateUtil.format(nowd, opts.titleFormat),
                                 isHoliday: isHoliday,
                                 isToday: isToday,
                                 isOtherMonth: isOtherMonth,
-								customClass: customClass,
+                                customClass: customClass,
                                 isSunday: j === 0,
                                 isSaturday: j === 6,
                                 disabled: isHoliday || cell.disabled ? ' disabled="disabled" ' : '',
                                 day: d,
-								date: nowd
+                                date: nowd
                             });
                         }
                     } else {
-                        html += '&nbsp;';
+                        html += ' ';
                     }
                     html += '</td>';
                 } // for
@@ -5659,7 +5933,7 @@
             me.$calendar.find('.m-calendar-date').html(html);
             me.$calendar.find('.m-calendar-text').text(dateUtil.format(me.currDate, 'yyyy-MM'));
 
-            if(opts.header && opts.useSelectbox){
+            if (opts.header && opts.useSelectbox) {
                 me._selectCurrentDate();
             }
 
@@ -5673,9 +5947,9 @@
             m = m - 1;
             core.each(me.customDays, function(item, key) {
                 var date;
-                for(var i = 0; i < item.length; i++) {
+                for (var i = 0; i < item.length; i++) {
                     date = dateUtil.parse(item[i]);
-                    if(date.getFullYear() === y && date.getMonth() === m && date.getDate() === d) {
+                    if (date.getFullYear() === y && date.getMonth() === m && date.getDate() === d) {
                         cls = key;
                         return false;
                     }
@@ -5689,17 +5963,17 @@
             this.refresh();
         },
 
-        refresh: function(){
+        refresh: function() {
             this._renderDate();
         },
 
         findDateCell: function(day) {
-            return this.$calendar.find('.data-'+day.getFullYear()+''+(day.getMonth() + 1)+''+day.getDate());
+            return this.$calendar.find('.data-' + day.getFullYear() + '' + (day.getMonth() + 1) + '' + day.getDate());
         },
 
         enable: function() {
             var me = this;
-            if(me.options.inputTarget) {
+            if (me.options.inputTarget) {
                 me.$input.disabled(false);
             }
             me.$el.disabled(false);
@@ -5709,7 +5983,7 @@
             var me = this;
 
             me.close();
-            if(me.options.inputTarget) {
+            if (me.options.inputTarget) {
                 me.$input.disabled(true);
             }
             me.$el.disabled(true);
@@ -5720,22 +5994,24 @@
          * @param date
          */
         setDate: function(date, options) {
-            if(!date) { return; }
+            if (!date) {
+                return;
+            }
             var me = this;
 
-            if(options) {
+            if (options) {
                 me.options = $.extend(true, me.options, me.$el.data(), options);
                 me._normalizeOptions();
             }
 
             try {
                 var currDate = core.is(date, 'date') ? date : dateUtil.parse(date);
-                if(me.options.header && me.options.useSelectbox){
+                if (me.options.header && me.options.useSelectbox) {
                     currDate = me._checkValid(currDate);
                 }
                 this.currDate = currDate;
                 me._renderDate();
-            } catch(e) {
+            } catch (e) {
                 throw new Error('Calendar#setDate(): 날짜 형식이 잘못 되었습니다.');
             }
             return this;
@@ -5748,10 +6024,10 @@
         setHolidays: function(holidays) {
             var me = this;
 
-            if(core.isArray(holidays)) {
+            if (core.isArray(holidays)) {
                 me.options.holidays = holidays;
-            } else if(core.is(holidays, 'string')){
-                if(holidays.substr(0, 1) !== '[') {
+            } else if (core.is(holidays, 'string')) {
+                if (holidays.substr(0, 1) !== '[') {
                     holidays = '[' + holidays + ']';
                 }
                 me.options.holidays = eval(holidays);
@@ -5776,10 +6052,10 @@
         setToday: function(today) {
             var me = this;
 
-            if(!core.is(today, 'date')) {
+            if (!core.is(today, 'date')) {
                 try {
                     me.options.today = core.date.parse(today)
-                } catch(e) {
+                } catch (e) {
                     throw new Error('calendar#setToday: 날짜 형식이 잘못 되었습니다.')
                 }
             }
@@ -5813,10 +6089,10 @@
          * 이전달
          * @returns {Calendar}
          */
-        prev: function(){
+        prev: function() {
             var me = this,
-                currDate = core.date.add(me.currDate, 'M', -1);
-            if(me.options.header && me.options.useSelectbox){
+                currDate = core.date.add(me.currDate, 'M', - 1);
+            if (me.options.header && me.options.useSelectbox) {
                 currDate = me._checkValid(currDate);
             }
             me.currDate = currDate;
@@ -5832,7 +6108,7 @@
         next: function() {
             var me = this,
                 currDate = core.date.add(me.currDate, 'M', 1);
-            if(me.options.header && me.options.useSelectbox){
+            if (me.options.header && me.options.useSelectbox) {
                 currDate = me._checkValid(currDate);
             }
             me.currDate = currDate;
@@ -5846,17 +6122,18 @@
          * @param {Date} date 렌더링할 날짜 데이타 생성
          * @return {Array}
          */
-        _getDateList: function (date) {
+        _getDateList: function(date) {
             date.setDate(1);
 
             var me = this,
                 month = date.getMonth() + 1,
                 year = date.getFullYear(),
                 startOnWeek = date.getDay() + 1,
-                last = daysInMonth[date.getMonth()],    // 마지막날
+                last = daysInMonth[date.getMonth()], // 마지막날
                 prevLast = daysInMonth[date.getMonth() === 0 ? 11 : date.getMonth() - 1], // 이전달의 마지막날
-                startPrevMonth = prevLast - startOnWeek,// 이전달의 시작일
-                y = year, m = month;
+                startPrevMonth = prevLast - startOnWeek, // 이전달의 시작일
+                y = year,
+                m = month;
 
             if (month > 12) {
                 month -= 12, year += 1;
@@ -5877,7 +6154,11 @@
                     m = 12, y = year - 1;
                 }
                 for (var i = 1; i < startOnWeek; i++) {
-                    week.push({year: y, month: m, day: startPrevMonth + i + 1});        // ***** +1
+                    week.push({
+                        year: y,
+                        month: m,
+                        day: startPrevMonth + i + 1
+                    }); // ***** +1
                 }
                 if (week.length > 6) {
                     data.push(week), week = [];
@@ -5885,7 +6166,11 @@
             }
 
             for (var i = 1; i <= last; i++) {
-                week.push({year: year, month: month, day: i});
+                week.push({
+                    year: year,
+                    month: month,
+                    day: i
+                });
                 if (week.length > 6) {
                     data.push(week), week = [];
                 }
@@ -5896,7 +6181,11 @@
                     m -= 12, y = year + 1;
                 }
                 for (var i = week.length, d = 1; i < 7; i++, d++) {
-                    week.push({year: y, month: m, day: d});
+                    week.push({
+                        year: y,
+                        month: m,
+                        day: d
+                    });
                 }
             }
             week.length && data.push(week);
@@ -5908,30 +6197,31 @@
          * @param {Date} date 렌더링할 날짜 데이타 생성
          * @return {Boolean} 윤년 여부
          */
-        _isLeapYear: function (year) {
+        _isLeapYear: function(year) {
             return (((year % 4 === 0) && (year % 100 !== 0)) || (year % 400 === 0))
         }
-        });
+    });
     ///////////////////////////////////////////////////////////////////////////////////////
 
 
     //Paginate ////////////////////////////////////////////////////////////////////////////
     /**
      * @class
-     * @name core.ui.Paginate
+     * @name emart.ui.Paginate
      * @description 페이징모듈
-     * @extends core.ui.View
+     * @extends emart.ui.View
      */
-    var Paginate = ui('Paginate', /** @lends core.ui.Paginate# */{
+    var Paginate = ui('Paginate', /** @lends emart.ui.Paginate# */ {
         bindjQuery: 'paginate',
-        $statics: /** @lends core.ui.Paginate */{
+        $statics: /** @lends emart.ui.Paginate */
+        {
             ON_PAGECLICK: 'paginatepageclick',
             ON_BEFORESEND: 'paginatebeforesend'
         },
         defaults: {
-            pageSize: 10,       // 페이지 수
-            page: 1,            // 기본 페이지
-            totalCount: 0,      // 전체 리스트 수
+            pageSize: 10, // 페이지 수
+            page: 1, // 기본 페이지
+            totalCount: 0, // 전체 리스트 수
             paramName: 'page',
             isRender: true,
 
@@ -5952,8 +6242,7 @@
             // 페이지링크 클릭
             'click a, button': '_onPageClick'
         },
-        selectors: {
-        },
+        selectors: {},
         /**
          *
          * @param el
@@ -5962,14 +6251,16 @@
         initialize: function(el, options) {
             var me = this;
 
-            if(me.callParent(el, options) === false) { return me.release(); }
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
 
             /*if(!me.options.ajax){
              throw new Error('ajax 옵션을 지정해 주세요.');
              }*/
             //me.totalCount = 0;
-            me.rowTmpl = me.$('.'+me.options.pageListClass).first().html();
-            me.$('.'+me.options.pageListClass).empty();
+            me.rowTmpl = me.$('.' + me.options.pageListClass).first().html();
+            me.$('.' + me.options.pageListClass).empty();
 
             me._configure();
             me._render();
@@ -5996,7 +6287,9 @@
          * @private
          */
         _render: function() {
-            if(!this.options.isRender) { return; }
+            if (!this.options.isRender) {
+                return;
+            }
 
             var me = this,
                 listNode = null,
@@ -6007,19 +6300,19 @@
                 nowGroupPage, start, end;
 
 
-            me.$('.'+opts.firstClass).prop('disabled', total === 0 || me.page === 1);
-            me.$('.'+opts.prevClass).prop('disabled', total === 0 || me.page <= 1);
-            me.$('.'+opts.nextClass).prop('disabled', total === 0 || me.page >= totalPage);
-            me.$('.'+opts.lastClass).prop('disabled', total === 0 || me.page === totalPage);
+            me.$('.' + opts.firstClass).prop('disabled', total === 0 || me.page === 1);
+            me.$('.' + opts.prevClass).prop('disabled', total === 0 || me.page <= 1);
+            me.$('.' + opts.nextClass).prop('disabled', total === 0 || me.page >= totalPage);
+            me.$('.' + opts.lastClass).prop('disabled', total === 0 || me.page === totalPage);
 
-            if(total <= 0) {
-                me.$el.find('.'+opts.pageListClass).empty();
+            if (total <= 0) {
+                me.$el.find('.' + opts.pageListClass).empty();
                 me.$items = null;
                 return;
             }
 
             nowGroupPage = Math.floor((me.page - 1) / opts.pageSize);
-            if(me.groupPage !== nowGroupPage || me.totalPage !== totalPage) {
+            if (me.groupPage !== nowGroupPage || me.totalPage !== totalPage) {
                 me.groupPage = nowGroupPage;
                 me.totalPage = totalPage;
 
@@ -6029,11 +6322,11 @@
                 listNode = $('<ul>');
                 for (var i = start + 1; i <= end; i++) {
                     item = $($.trim(me.rowTmpl.replace(/\{0\}/g, i)));
-                    item.find('.'+opts.pageClass).attr('data-page', i);
+                    item.find('.' + opts.pageClass).attr('data-page', i);
                     listNode.append(item);
                 }
-                me.$('.'+opts.pageListClass).empty().append(listNode.children());
-                me.$items = me.$('.'+opts.pageClass);
+                me.$('.' + opts.pageListClass).empty().append(listNode.children());
+                me.$items = me.$('.' + opts.pageClass);
                 listNode = null;
             }
 
@@ -6048,20 +6341,20 @@
                 opts = me.options,
                 page;
 
-            if($btn.hasClass('disable')) {
+            if ($btn.hasClass('disable')) {
                 return;
             }
 
-            if($btn.hasClass(opts.firstClass)) {
+            if ($btn.hasClass(opts.firstClass)) {
                 // 첫 페이지
                 page = 1;
-            } else if($btn.hasClass(opts.prevClass)) {
+            } else if ($btn.hasClass(opts.prevClass)) {
                 // 이전 페이지
                 page = Math.max(1, me.page - 1);
-            } else if($btn.hasClass(opts.nextClass)) {
+            } else if ($btn.hasClass(opts.nextClass)) {
                 // 다음 페이지
                 page = Math.min(me.totalPage, me.page + 1);
-            } else if($btn.hasClass(opts.lastClass)) {
+            } else if ($btn.hasClass(opts.lastClass)) {
                 // 마지막 페이지
                 page = me.totalPage;
             } else {
@@ -6069,7 +6362,9 @@
                 page = $btn.data('page');
             }
 
-            me.triggerHandler(Paginate.ON_PAGECLICK, {page: page});
+            me.triggerHandler(Paginate.ON_PAGECLICK, {
+                page: page
+            });
         },
 
         setPage: function(options) {
@@ -6124,31 +6419,34 @@
      });
      /////////////////////////////////////////////////////////
      */
-    var AjaxList = ui('AjaxList', /** @lends core.ui.AjaxList# */ {
-        defaults: {
-        },
+    var AjaxList = ui('AjaxList', /** @lends emart.ui.AjaxList# */ {
+        defaults: {},
         initialize: function(el, options) {
             var me = this,
                 opts;
 
-            if(me.callParent(el, options) === false) { return me.release(); }
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
 
             opts = me.options;
-            if(opts.paginate) {
+            if (opts.paginate) {
                 me.paginate = new Paginate(opts.paginate.target, opts.pginate);
                 me.paginate.on('paginatepageclick', function(e, data) {
                     me.load(data.page || 1);
                 });
                 me.on('pageloaded', function(e, data) {
                     var info = $.trim(me.$('.d-data').html());
-                    if(info) {
+                    if (info) {
                         try {
                             me.paginate.setPage($.parseJSON(info));
-                        } catch(e) {
-                            throw new Error('ajax결과값에 들어있는 json형식이 잘못 되었습니다.\n('+opts.url+')');
+                        } catch (e) {
+                            throw new Error('ajax결과값에 들어있는 json형식이 잘못 되었습니다.\n(' + opts.url + ')');
                         }
                     } else {
-                        me.paginate.update({page: data.page})
+                        me.paginate.update({
+                            page: data.page
+                        })
                     }
                 });
             }
@@ -6170,9 +6468,13 @@
             var me = this,
                 opts = me.options;
 
-            if(me._isLoading) {return;}
+            if (me._isLoading) {
+                return;
+            }
             me._isLoading = true;
-            me.triggerHandler('preload', {page: p});
+            me.triggerHandler('preload', {
+                page: p
+            });
 
             data || (data = {});
             data['page'] = p;
@@ -6185,7 +6487,9 @@
                 me.$el.html(html);
                 me.page = p;
 
-                me.triggerHandler('pageloaded', {page: p});
+                me.triggerHandler('pageloaded', {
+                    page: p
+                });
             }).always(function() {
                 me._isLoading = false;
                 me.triggerHandler('loadcomplete');
@@ -6199,14 +6503,14 @@
     /**
      * placeholder를 지원하지 않는 IE7~8상에서 placeholder효과를 처리하는 클래스
      * @class
-     * @name core.ui.Placeholder
-     * @extends core.ui.View
+     * @name emart.ui.Placeholder
+     * @extends emart.ui.View
      * @example
-     * new core.ui.Placeholder( $('input[placeholder]'), {});
+     * new emart.ui.Placeholder( $('input[placeholder]'), {});
      * // 혹은 jquery 플러그인 방식으로도 호출 가능
      * $('input[placeholder]').placeholder({});
      */
-    var Placeholder = ui('Placeholder', /** @lends core.ui.Placeholder# */{
+    var Placeholder = ui('Placeholder', /** @lends emart.ui.Placeholder# */ {
         bindjQuery: 'placeholder',
         defaults: {
             foreColor: '',
@@ -6217,13 +6521,17 @@
          * @param {String|Element|jQuery} el 해당 엘리먼트(노드, id, jQuery 어떤 형식이든 상관없다)
          * @param {Object} options 옵션값
          */
-        initialize: function (el, options) {
+        initialize: function(el, options) {
             var me = this,
                 is = ('placeholder' in core.tmpInput);
 
-            if ( (options && options.force !== true) && is ) { return; }
+            if ((options && options.force !== true) && is) {
+                return;
+            }
 
-            if(me.callParent(el, options) === false) { return; }
+            if (me.callParent(el, options) === false) {
+                return;
+            }
 
             me.placeholder = me.$el.attr('placeholder');
 
@@ -6232,37 +6540,37 @@
             me._foreColor = me.options.foreColor;
 
             var isPassword = me.$el.attr('type') === 'password';
-			if(!me.$el[0].value){
-				if(isPassword) {
-					// 암호인풋인 경우 백그라운으로 처리
-					me.$el.addClass(me.options.placeholderClass);
-				} else {
-					me.$el[0].value = me.placeholder;
-				}
-				me.$el.addClass('placeholder');
-			}
+            if (!me.$el[0].value) {
+                if (isPassword) {
+                    // 암호인풋인 경우 백그라운으로 처리
+                    me.$el.addClass(me.options.placeholderClass);
+                } else {
+                    me.$el[0].value = me.placeholder;
+                }
+                me.$el.addClass('placeholder');
+            }
 
-            me.on('focusin click', function () {
+            me.on('focusin click', function() {
                 var val = me.options.force === true ? this.value.replace(/\r/g, '') : this.value;
                 if (val === me.placeholder || !$.trim(val)) {
                     me.$el.removeClass(me._foreColor);
                     // 암호요소인 경우 백그라운드로 처리
-                    if(isPassword) {
+                    if (isPassword) {
                         me.$el.removeClass(me.options.placeholderClass);
                     }
                     this.value = '';
-					me.$el.removeClass('placeholder');
+                    me.$el.removeClass('placeholder');
                 }
             });
-            me.on('focusout', function () {
+            me.on('focusout', function() {
                 var val = me.options.force === true ? this.value.replace(/\r/g, '') : this.value;
                 if (val === '' || val === me.placeholder) {
-                    if(isPassword) {
+                    if (isPassword) {
                         me.$el.val('').addClass(me.options.placeholderClass);
                     } else {
                         me.$el.val(me.placeholder).addClass(me._foreColor);
                     }
-					me.$el.addClass('placeholder');
+                    me.$el.addClass('placeholder');
                 }
             }).triggerHandler('focusout');
         },
@@ -6270,7 +6578,7 @@
         /**
          * placeholder 갱신(only ie9 이하)
          */
-        update: function(){
+        update: function() {
             var me = this;
             me.$el.val(me.placeholder);
         },
@@ -6278,7 +6586,7 @@
         /**
          * 파괴자 : 자동으로 호출되지 않으므로, 필요할 때는 직접 호출해주어야 한다.
          */
-        release: function () {
+        release: function() {
             var me = this;
 
             me.$el.removeData();
@@ -6286,7 +6594,7 @@
         }
     });
 
-    if(!('placeholder' in core.tmpInput)) {
+    if (!('placeholder' in core.tmpInput)) {
         $doc.on('submit.placeholder', 'form', function(e) {
             $('input[placeholder], input[ori-placeholder], textarea[placeholder], textarea[ori-placeholder]').each(function() {
                 var $el = $(this),
@@ -6308,10 +6616,10 @@
      * disabledClass: 'disabled'<br />
      *
      * @class
-     * @name core.ui.Selectbox
-     * @extends core.ui.View
+     * @name emart.ui.Selectbox
+     * @extends emart.ui.View
      */
-    var Selectbox = ui('Selectbox', /** @lends core.ui.Selectbox# */{
+    var Selectbox = ui('Selectbox', /** @lends emart.ui.Selectbox# */ {
         bindjQuery: 'selectbox',
         $statics: {
             ON_CHANGED: 'selectboxchanged'
@@ -6331,7 +6639,9 @@
          */
         initialize: function(el, options) {
             var me = this;
-            if(me.callParent(el, options) === false){ return me.release(); }
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
             me._create();
         },
 
@@ -6346,31 +6656,31 @@
 
             me.width = parseInt(me.$el.css('width'), 10);
             // 셀렉트박스
-            me.$selectbox = $('<div class="'+cls+'"></div>').addClass(me.options.wrapClasses);
+            me.$selectbox = $('<div class="' + cls + '"></div>').addClass(me.options.wrapClasses);
             me.$selectbox.insertAfter(me.$el.hide());
 
             me._createLabel();
             me._createList();
 
-            me.$selectbox.on('selectboxopen selectboxclose', function(e){
+            me.$selectbox.on('selectboxopen selectboxclose', function(e) {
                 e.stopPropagation();
 
                 // 리스트가 열리거나 닫힐 때 zindex 처리
                 var zindexSelector = me.$el.attr('data-zindex-target'),
                     $zIndexTargets = zindexSelector ? me.$el.parents(zindexSelector) : false;
 
-                if(e.type === 'selectboxopen') {
+                if (e.type === 'selectboxopen') {
                     me.$label.addClass('open');
                     me.$el.closest('div.select_wrap').addClass('on');
-                    $zIndexTargets&&$zIndexTargets.addClass('on');
+                    $zIndexTargets && $zIndexTargets.addClass('on');
 
-                    isTouch && $('body').on('touchend.selectbox', function(){
+                    isTouch && $('body').on('touchend.selectbox', function() {
                         me.close();
                     });
                 } else {
                     me.$label.removeClass('open');
                     me.$el.closest('div.select_wrap').removeClass('on');
-                    $zIndexTargets&&$zIndexTargets.removeClass('on');
+                    $zIndexTargets && $zIndexTargets.removeClass('on');
                     clearTimeout(timer), timer = null;
 
                     isTouch && $('body').off('touchend.selectbox');
@@ -6378,23 +6688,25 @@
             });
 
             // 비터치 기반일 때에 대한 이벤트 처리
-            if( !isTouch ) {
+            if (!isTouch) {
                 // 셀렉트박스에서 포커스가 벗어날 경우 자동으로 닫히게
                 me.$selectbox.on('focusin focusout', function(e) {
                     clearTimeout(timer), timer = null;
-                    if(e.type === 'focusout' && me.$label.hasClass('open')) {
-                        timer = setTimeout(function(){
+                    if (e.type === 'focusout' && me.$label.hasClass('open')) {
+                        timer = setTimeout(function() {
                             me.close();
                         }, 100);
                     }
                 }).on('keydown', function(e) {
-                    if(e.keyCode === core.keyCode.ESCAPE) {
+                    if (e.keyCode === core.keyCode.ESCAPE) {
                         me.close();
                         me.$label.focus();
                     }
                 });
             } else {
-                me.$selectbox.on('touchend', function(e){ e.stopPropagation(); });
+                me.$selectbox.on('touchend', function(e) {
+                    e.stopPropagation();
+                });
             }
 
             me.$el.on('change.selectbox', function(e) {
@@ -6415,11 +6727,11 @@
         _createLabel: function() {
             var me = this;
 
-            me.$label = $('<span class="select_box" tabindex="0" title="'+(me.$el.attr('title') || '셀렉트박스')+'"><span class="sel_r" style="width:190px;">&nbsp;</span></span>');
+            me.$label = $('<span class="select_box" tabindex="0" title="' + (me.$el.attr('title') || '셀렉트박스') + '"><span class="sel_r" style="width:190px;"> </span></span>');
             me.$label.attr({
-                'id': me.cid+'_button',
+                'id': me.cid + '_button',
                 'role': 'combobox',
-                'aria-owns': me.cid+'_menu',
+                'aria-owns': me.cid + '_menu',
                 'aria-expanded': 'false',
                 'aria-haspopup': 'true',
                 'aria-disabled': 'false'
@@ -6427,14 +6739,14 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                if(me === Selectbox.active) {
+                if (me === Selectbox.active) {
                     me.close();
                     return;
                 }
 
                 if (!me.$label.hasClass(me.options.disabledClass)) {
                     // 현재 셀렉트박스가 열려있으면 닫고, 닫혀있으면 열어준다.
-                    if(me.$label.hasClass('open')) {
+                    if (me.$label.hasClass('open')) {
                         me.close();
                     } else {
                         me.open();
@@ -6443,10 +6755,10 @@
             });
 
             // 키보드에 의해서도 작동되도록 바인딩
-            !isTouch && me.$label.on('keydown', function(e){
-                if(e.keyCode === 13){
+            !isTouch && me.$label.on('keydown', function(e) {
+                if (e.keyCode === 13) {
                     $(this).find('.sel_r').trigger('click');
-                } else if(e.keyCode === core.keyCode.DOWN){
+                } else if (e.keyCode === core.keyCode.DOWN) {
                     me.open();
                     me.$list.find(':focusable:first').focus();
                 }
@@ -6463,7 +6775,7 @@
             var me = this;
 
             me.$list = $('<div class="select_open" style="position:absolute;" tabindex="0"></div>');
-            me.$list.hide().on('click', function(e){
+            me.$list.hide().on('click', function(e) {
                 me.$list.focus();
             }).on('click', 'li>a', function(e) {
                 // 아이템을 클릭했을 때
@@ -6477,10 +6789,10 @@
                 this.focus();
             });
             me.$list.attr({
-                'id': me.cid+'_menu',
+                'id': me.cid + '_menu',
                 'role': 'listbox',
                 'aria-hidden': 'true',
-                'aria-labelledby': me.cid+'_button',
+                'aria-labelledby': me.cid + '_button',
                 'aria-disabled': 'false'
             });
 
@@ -6490,7 +6802,7 @@
                     items = me.$list.find('li'),
                     count = items.length;
 
-                switch(e.keyCode){
+                switch (e.keyCode) {
                     case core.keyCode.UP:
                         e.stopPropagation();
                         e.preventDefault();
@@ -6519,7 +6831,7 @@
             Selectbox.active && Selectbox.active.close();
 
             me.$list.css('visibility', 'hidden').show();
-            if(offset.top + listHeight > scrollTop + winHeight){
+            if (offset.top + listHeight > scrollTop + winHeight) {
                 me.$list.css('marginTop', (listHeight + me.$selectbox.height()) * -1);
             } else {
                 me.$list.css('marginTop', '');
@@ -6574,7 +6886,9 @@
                     .eq(index).prop('selected', true).attr('selected', 'selected');
 
             if (trigger !== false) {
-                me.trigger('change', {selectedIndex: index});
+                me.trigger('change', {
+                    selectedIndex: index
+                });
             }
 
             me.$list.find('li').removeClass('on').eq(index).addClass('on');
@@ -6591,7 +6905,7 @@
          * @param {Boolean} trigger change이벤트를 발생시킬 것인지 여부
          * @return {String}
          * @example
-         * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
+         * <select id="sel"><option value="1">1</option><option value="2">2</option></select>
          *
          * $('#sel').selectbox('value', 2);
          * value = $('#sel').selectbox('value'); // = $('#sel')[0].value 와 동일
@@ -6614,7 +6928,7 @@
          * 동적으로 select의 항목들이 변경되었을 때, UI에 반영
          *
          * @example
-         * &lt;select id="sel">&lt;option value="1">1&lt;/option>&lt;option value="2">2&lt;/option>&lt;/select>
+         * <select id="sel"><option value="1">1</option><option value="2">2</option></select>
          *
          * $('#sel')[0].options[2] = new Option(3, 3);
          * $('#sel')[0].options[3] = new Option(4, 4);
@@ -6627,7 +6941,7 @@
                 index = -1,
                 text = '';
 
-            if(core.isArray(list)){
+            if (core.isArray(list)) {
                 // list 값이 있으면 select를 갱신시킨다.
                 me.el.options.length = 1;
                 core.each(list, function(item, i) {
@@ -6641,15 +6955,15 @@
                     index = i;
                     text = item.text;
                 }
-                html += '<li role="option" id="'+me.cid+'_item"><a href="#" data-value="' + item.value + '" data-text="' + item.text + '">' + item.text + '</a></li>';
+                html += '<li role="option" id="' + me.cid + '_item"><a href="#" data-value="' + item.value + '" data-text="' + item.text + '">' + item.text + '</a></li>';
             });
-            me.$list.empty().html('<ul>'+html+'</ul>').find('li:eq(' + index + ')').addClass('on');
+            me.$list.empty().html('<ul>' + html + '</ul>').find('li:eq(' + index + ')').addClass('on');
             me.$label.children().text(text);
 
             if (me.$el.prop('disabled')) {
                 me.$label.addClass(opts.disabledClass).removeAttr('tabIndex');
             } else {
-                me.$label.removeClass(opts.disabledClass).attr('tabIndex',0);
+                me.$label.removeClass(opts.disabledClass).attr('tabIndex', 0);
             }
         },
 
@@ -6671,13 +6985,14 @@
     //Tab ////////////////////////////////////////////////////////////////////////////////
     /**
      * @class
-     * @name core.ui.Tab
+     * @name emart.ui.Tab
      * @description 페이징모듈
-     * @extends core.ui.View
+     * @extends emart.ui.View
      */
-    ui('Tab', /** @lends core.ui.Tab# */{
+    ui('Tab', /** @lends emart.ui.Tab# */ {
         bindjQuery: 'tab',
-        $statics: /** @lends core.ui.Tab */{
+        $statics: /** @lends emart.ui.Tab */
+        {
             ON_TAB_CHANGED: 'tabchanged'
         },
         defaults: {
@@ -6686,20 +7001,21 @@
             tabType: 'inner'
         },
 
-        events: {
-        },
+        events: {},
         selectors: {
             //tabs: '>ul>li'
         },
         /**
-         *
+         * 생성자
          * @param el
          * @param options
          */
         initialize: function(el, options) {
             var me = this;
 
-            if(me.callParent(el, options) === false) { return me.release(); }
+            if (me.callParent(el, options) === false) {
+                return me.release();
+            }
 
             me.$tabs = me.$el.is('ul') ? me.$('>li') : me.$('>ul>li');
             me.$tabs.on('click', '>a, >button', function(e) {
@@ -6709,14 +7025,14 @@
             });
 
             // 컨텐츠가 li바깥에 위치한 탭인 경우
-            if(me.options.tabType === 'outer') {
+            if (me.options.tabType === 'outer') {
                 var selectors = [];
                 // 탭버튼의 href에 있는 #아이디 를 가져와서 컨텐츠를 조회
                 me.$tabs.each(function() {
                     selectors.push($(this).find('a').attr('href'));
                 });
 
-                if(selectors.length) {
+                if (selectors.length) {
                     me.$contents = $(selectors.join(', '));
                 }
                 me._buildARIA();
@@ -6725,6 +7041,9 @@
             me.selectTab(me.options.selectedIndex);
         },
 
+        /**
+         * aria 속성 빌드
+         */
         _buildARIA: function() {
             var me = this,
                 tablistid = 'tab_' + me.cid,
@@ -6732,7 +7051,7 @@
 
             me.$el.attr('role', 'tablist');
             me.$tabs.each(function(i) {
-                if(!me.$contents.eq(i).attr('id')) {
+                if (!me.$contents.eq(i).attr('id')) {
                     me.$contents.eq(i).attr('id', tabid = (tablistid + '_' + i));
                 }
                 var panelid = me.$contents.eq(i).attr('id');
@@ -6758,9 +7077,12 @@
         },
 
         activeTab: function(index) {
-            var me = this, e;
-            if(index < 0){ index = 0; }
-            if(me.$tabs.length && index >= me.$tabs.length) {
+            var me = this,
+                e;
+            if (index < 0) {
+                index = 0;
+            }
+            if (me.$tabs.length && index >= me.$tabs.length) {
                 index = me.$tabs.length - 1;
             }
 
@@ -6768,27 +7090,38 @@
             me.$tabs.eq(index).activeItem(me.options.onClassName);
 
             // 컨텐츠가 li바깥에 위치한 탭인 경우
-            if(me.options.tabType === 'outer' && me.$contents) {
+            if (me.options.tabType === 'outer' && me.$contents) {
                 me.$contents.hide().eq(index).show();
             }
         },
 
+        /**
+         * index에 해당하는 탭을 활성화
+         * @param {Number} index 탭버튼 인덱스
+         */
         selectTab: function(index) {
-            var me = this, e;
-            if(index < 0 || (me.$tabs.length && index >= me.$tabs.length)) {
+            var me = this,
+                e;
+            if (index < 0 || (me.$tabs.length && index >= me.$tabs.length)) {
                 throw new Error('index 가 범위를 벗어났습니다.');
             }
 
-            me.triggerHandler(e = $.Event('tabchange'), {selectedIndex: index});
-            if(e.isDefaultPrevented()) { return; }
+            me.triggerHandler(e = $.Event('tabchange'), {
+                selectedIndex: index
+            });
+            if (e.isDefaultPrevented()) {
+                return;
+            }
 
             me.$tabs.eq(index).activeItem(me.options.onClassName);
 
             // 컨텐츠가 li바깥에 위치한 탭인 경우
-            if(me.options.tabType === 'outer' && me.$contents) {
+            if (me.options.tabType === 'outer' && me.$contents) {
                 me.$contents.hide().eq(index).show();
             }
-            me.triggerHandler('tabchanged', {selectedIndex: index});
+            me.triggerHandler('tabchanged', {
+                selectedIndex: index
+            });
 
         }
     });
@@ -6804,22 +7137,20 @@
 
     /**
      * 아코디언  이벤트
-     * @name ui.AccordionListEvent
-     * @class AccordionListEvent Class
+     * @name emart.ui.AccordionListEvent
      */
     core.define("ui.AccordionListEvent",
-        {
-            /** @lends ui.AccordionListEvent */
-            /** @property { String } EXPAND 리스트 열기  */
-            EXPAND: "expand",
-            /** @property { String } FOLD 리스트 닫기  */
-            FOLD: "fold",
-            /** @property { String } EXPAND 리스트 열림*/
-            EXPANDED: "expanded",
-            /** @property { String } EXPAND 리스트 닫힘*/
-            FOLDED: "folded"
-        }
-    );
+    /** @lends emart.ui.AccordionListEvent */
+    {
+        /** @property { String } EXPAND 리스트 열기  */
+        EXPAND: "expand",
+        /** @property { String } FOLD 리스트 닫기  */
+        FOLD: "fold",
+        /** @property { String } EXPAND 리스트 열림*/
+        EXPANDED: "expanded",
+        /** @property { String } EXPAND 리스트 닫힘*/
+        FOLDED: "folded"
+    });
 
 
     /**********************************************************************************************
@@ -6829,55 +7160,60 @@
      **********************************************************************************************/
 
     /**
-     * ...
+     * 아코디언 모듈
      * @class
-     * @name ui.AccordionList
+     * @name emart.ui.AccordionList
+     * @author 김부윤
      */
-    ui('AccordionList', /**@lends ui.AccordionList# */{
+    ui('AccordionList', /**@lends emart.ui.AccordionList# */ {
         bindjQuery: 'accordion',
-        $statics: /**@lends ui.AccordionList */{
+        $statics: /**@lends emart.ui.AccordionList */
+        {
 
         },
 
         $mixins: [ui.Listener],
 
-        defaults:{
-            selectedClass : "on",
-            disabledTitleClass : "disable",
-            noneClass : "none",
+        defaults: {
+            selectedClass: "on",
+            disabledTitleClass: "disable",
+            noneClass: "none",
             isSlideType: false,
             slideTime: 300,
             foldOthers: true,
-            defaultOpenIndex:-1,
+            defaultOpenIndex: -1,
             isMoveTop: false
         },
 
         selectors: {
-            list : ".d-accord-content",
+            list: ".d-accord-content",
             toggleClassTarget: ".d-accord-content",
-            toggleButton : ".d-toggle-button",
-            content : ".cont",
-            closeButton: ".d-close"
+            toggleButton: ".d-toggle-button", // 토글버튼
+            content: ".cont", // 컨텐츠 요소
+            closeButton: ".d-close" // 닫기 버튼
         },
 
-        events: {
-        },
+        events: {},
 
         /**
-         *
+         * 생성자
          * @param el
          * @param options
          */
         initialize: function(el, options) {
-            if( this.callParent(el, options) === false ) { return; }
+            if (this.callParent(el, options) === false) {
+                return;
+            }
             this.isAniComplete = true;
             this.currentIndex;
             this.$contentList;
 
-            if( this.options.isSlideType == "false" ){ this.options.isSlideType = false }
+            if (this.options.isSlideType == "false") {
+                this.options.isSlideType = false
+            }
 
-            if( this.options.defaultOpenIndex != -1 ){
-                this._visibleExpand( this.options.defaultOpenIndex );
+            if (this.options.defaultOpenIndex != -1) {
+                this._visibleExpand(this.options.defaultOpenIndex);
             }
 
             this._setHandlerOption();
@@ -6888,10 +7224,10 @@
          * _option.isSlideType에 따라 핸들러 함수 설정
          * @private
          */
-        _setHandlerOption: function(){
+        _setHandlerOption: function() {
             this.fold = this._visibleFold;
             this.expand = this._visibleExpand;
-            if( this.options.isSlideType ){
+            if (this.options.isSlideType) {
                 this.fold = this._slideFold;
                 this.expand = this._slideExpand;
             }
@@ -6899,63 +7235,66 @@
 
         /**
          * 이벤트 바인딩
-         * @private
          */
-        _bindEvent : function() {
+        _bindEvent: function() {
             var me = this;
             var gnbTimer = undefined;
             var clicked = false;
-            var isTouch = core.browser.isTouch;
+            var isTouch = emart.browser.isTouch;
 
-            function setClickedTimer(){
+            function setClickedTimer() {
                 clicked = true;
-                clearTimeout( gnbTimer );
-                gnbTimer = setTimeout(function(){
+                clearTimeout(gnbTimer);
+                gnbTimer = setTimeout(function() {
                     clicked = false;
-                }, 500 );
+                }, 500);
             }
 
             var count = 0;
-            this.$el.on("click dblclick", this.selectors.toggleButton, function(e){
-                if( isTouch && clicked ){
-                    e.preventDefault();
+            this.$el.on("click dblclick", this.selectors.toggleButton, function(e) {
+                e.preventDefault();
+
+                if (isTouch && clicked) {
                     return
                 };
 
-                if( isTouch ){setClickedTimer();}
+
+                if (isTouch) {
+                    setClickedTimer();
+                }
 
                 var $t = $(this);
-                if ( $t.hasClass( me.options.disabledTitleClass ) ){
+                if ($t.hasClass(me.options.disabledTitleClass)) {
                     return;
                 }
 
                 var $currentTarget = $t.closest(me.selectors.list);
                 var $classTarget;
-                if( me.selectors.toggleClassTarget == me.selectors.list ){
+                if (me.selectors.toggleClassTarget == me.selectors.list) {
                     $classTarget = $currentTarget;
-                }else{
+                } else {
                     $classTarget = $currentTarget.find(me.selectors.toggleClassTarget);
                 }
 
-                me.$contentList = me.$el.find( me.selectors.list );
-                var index = me.$contentList.index( $currentTarget );
+                me.$contentList = me.$el.find(me.selectors.list);
+                var index = me.$contentList.index($currentTarget);
 
-                if( $currentTarget.find(me.selectors.content).length ){
+                if ($currentTarget.find(me.selectors.content).length) {
                     e.preventDefault();
                 }
 
-                if ( $classTarget.hasClass( me.options.selectedClass ) ) {
-                    me.fold( index );
+                if ($classTarget.hasClass(me.options.selectedClass)) {
+                    me.fold(index);
                 } else {
-                    me.expand( index );
+                    me.expand(index);
                 }
             });
 
-            this.$el.on("click", this.selectors.closeButton, function(e){
+            this.$el.on("click", this.selectors.closeButton, function(e) {
                 e.preventDefault();
                 var $targetList = $(this).closest(me.selectors.list);
                 var index = me.$list.index($targetList);
-                me.fold( index, me.options.duration );
+                me.fold(index, me.options.duration);
             });
         },
 
@@ -6963,80 +7302,94 @@
          * 거리에 따른 duration 계산
          * @return { Integer }
          */
-        _getDuration:function( dist, value ){
-            var time = (dist/value)*this.options.slideTime;
-            if( time < 200 ){  time = 200 };
-            if( time > 700 ){  time = 700 };
+        _getDuration: function(dist, value) {
+            var time = (dist / value) * this.options.slideTime;
+            if (time < 200) {
+                time = 200
+            };
+            if (time > 700) {
+                time = 700
+            };
             return Math.round(time);
         },
 
         /**
          * slide effect expand handler
-         * @private
          * @param { Integer } target index
          */
-        _slideExpand: function( index ){
+        _slideExpand: function(index) {
             var targetData = this._getTargetData(index);
-            if( !targetData.isExe ){
+            if (!targetData.isExe) {
                 return;
             }
 
-            this.trigger( ui.AccordionListEvent.EXPAND );
+            var ev;
+            this.trigger(ev = $.Event(ui.AccordionListEvent.EXPAND), {
+                index: index
+            });
+            if (ev.isDefaultPrevented()) {
+                return;
+            }
+
             var $targetCont = targetData.$targetCont,
                 $scaleTarget = targetData.$scaleTarget,
                 $classTarget = targetData.$classTarget;
 
             this.isAniComplete = false;
-            $scaleTarget.removeClass( this.options.noneClass );
-            $classTarget.addClass( this.options.selectedClass );
+            $scaleTarget.removeClass(this.options.noneClass);
+            $classTarget.addClass(this.options.selectedClass);
 
             $scaleTarget.height("");
             var targetHeight = $scaleTarget.outerHeight();
-            var duration = this._getDuration(targetHeight,700);//this.options.slideTime;
+            var duration = this._getDuration(targetHeight, 700); //this.options.slideTime;
 
-            if( this.options.foldOthers && index != this.currentIndex ){
+            if (this.options.foldOthers && index != this.currentIndex) {
                 this.isAniComplete = true;
-                this._slideFold( this.currentIndex, duration );
+                this._slideFold(this.currentIndex, duration);
             }
 
-            $scaleTarget.stop().height(0).animate({"height": targetHeight }, duration, $.proxy(function(){
+            $scaleTarget.stop().height(0).animate({
+                "height": targetHeight
+            }, duration, $.proxy(function() {
                 this.isAniComplete = true;
-                this.trigger( ui.AccordionListEvent.EXPANDED );
+                this.trigger(ui.AccordionListEvent.EXPANDED);
                 $scaleTarget.height("");
-                if(this.options.isMoveTop) {
-                    $('html, body').stop().animate({'scrollTop': $classTarget.offset().top},  300 );
+                if (this.options.isMoveTop) {
+                    $('html, body').stop().animate({
+                        'scrollTop': $classTarget.offset().top
+                    }, 300);
                 }
             }, this));
 
             this.currentIndex = index;
         },
 
-        _getTargetData: function( index ){
+        _getTargetData: function(index) {
             var $targetCont;
-            if( this.$contentList ){
+            if (this.$contentList) {
                 $targetCont = this.$contentList.eq(index);
-            }else{
-                $targetCont = this.$el.find( this.selectors.list ).eq(index);
+            } else {
+                $targetCont = this.$el.find(this.selectors.list).eq(index);
             }
 
-            var $scaleTarget = $targetCont.find( this.selectors.content );
+            var $scaleTarget = $targetCont.find(this.selectors.content);
 
             var isExe = true;
-            if( !this.isAniComplete || $scaleTarget.length == 0 ){
+            if (!this.isAniComplete || $scaleTarget.length == 0) {
                 isExe = false
             }
 
             var $classTarget;
-            if( this.selectors.toggleClassTarget == this.selectors.list ){
+            if (this.selectors.toggleClassTarget == this.selectors.list) {
                 $classTarget = $targetCont;
-            }else{
-                $classTarget = $targetCont.find(me.selectors.toggleClassTarget);
+            } else {
+                $classTarget = $targetCont.find(this.selectors.toggleClassTarget);
             }
 
             return {
-                $targetCont : $targetCont,
-                $scaleTarget : $scaleTarget,
-                $classTarget : $classTarget,
+                $targetCont: $targetCont,
+                $scaleTarget: $scaleTarget,
+                $classTarget: $classTarget,
                 isExe: isExe
             }
         },
@@ -7047,14 +7400,21 @@
          * @private
          * @param { Integer } target index
          */
-        _slideFold: function( index, duration ){
+        _slideFold: function(index, duration) {
 
             var targetData = this._getTargetData(index);
-            if( !targetData.isExe ){
+            if (!targetData.isExe) {
                 return;
             }
 
-            this.trigger( ui.AccordionListEvent.FOLD );
+            var ev;
+            this.trigger(ev = $.Event(ui.AccordionListEvent.FOLD), {
+                index: index
+            });
+            if (ev.isDefaultPrevented()) {
+                return;
+            }
+
             var $targetCont = targetData.$targetCont,
                 $scaleTarget = targetData.$scaleTarget,
                 $classTarget = targetData.$classTarget;
@@ -7062,16 +7422,20 @@
             this.isAniComplete = false;
 
 
-            if( duration == undefined ){
+            if (duration == undefined) {
                 duration = this.options.slideTime;
             }
 
-            $scaleTarget.stop().animate({"height":0 }, duration, $.proxy(function(){
-                $scaleTarget.addClass( this.options.noneClass );
-                $classTarget.removeClass( this.options.selectedClass );
-                this.trigger( ui.AccordionListEvent.FOLDED );
+            $scaleTarget.stop().animate({
+                "height": 0
+            }, duration, $.proxy(function() {
+                $scaleTarget.addClass(this.options.noneClass);
+                $classTarget.removeClass(this.options.selectedClass);
+                this.trigger(ui.AccordionListEvent.FOLDED, {
+                    index: index
+                });
                 this.isAniComplete = true;
-            },this));
+            }, this));
         },
 
         /**
@@ -7079,32 +7443,41 @@
          * @private
          * @param { Integer } target index
          */
-        _visibleExpand : function( index ) {
+        _visibleExpand: function(index) {
             var targetData = this._getTargetData(index);
-            if( !targetData.isExe ){
+            if (!targetData.isExe) {
                 return;
             }
 
-            this.trigger( ui.AccordionListEvent.EXPAND );
+            var ev;
+            this.trigger(ev = $.Event(ui.AccordionListEvent.EXPAND), {
+                index: index
+            });
+            if (ev.isDefaultPrevented()) {
+                return;
+            }
+
             var $targetCont = targetData.$targetCont,
                 $scaleTarget = targetData.$scaleTarget,
                 $classTarget = targetData.$classTarget;
 
-            $scaleTarget.removeClass( this.options.noneClass );
-            $classTarget.addClass( this.options.selectedClass );
+            $scaleTarget.removeClass(this.options.noneClass);
+            $classTarget.addClass(this.options.selectedClass);
 
-            if( this.options.foldOthers && index != this.currentIndex ){
-                this._visibleFold( this.currentIndex );
+            if (this.options.foldOthers && index != this.currentIndex) {
+                this._visibleFold(this.currentIndex);
             }
-            $scaleTarget.removeClass( this.options.noneClass );
+            $scaleTarget.removeClass(this.options.noneClass);
 
-            if(this.options.isMoveTop) {
+            if (this.options.isMoveTop) {
                 $('html, body').scrollTop($classTarget.offset().top);
             }
 
 
             this.currentIndex = index;
-            this.trigger( ui.AccordionListEvent.EXPANDED );
+            this.trigger(ui.AccordionListEvent.EXPANDED, {
+                index: index
+            });
         },
 
         /**
@@ -7112,24 +7485,32 @@
          * @private
          * @param { Integer } target index
          */
-        _visibleFold : function( index ) {
+        _visibleFold: function(index) {
             var targetData = this._getTargetData(index);
-            if( !targetData.isExe ){
+            if (!targetData.isExe) {
                 return;
             }
 
-            this.trigger( ui.AccordionListEvent.FOLD );
+            var ev;
+            this.trigger(ev = $.Event(ui.AccordionListEvent.FOLD), {
+                index: index
+            });
+            if (ev.isDefaultPrevented()) {
+                return;
+            }
 
             var $targetCont = targetData.$targetCont,
                 $scaleTarget = targetData.$scaleTarget,
                 $classTarget = targetData.$classTarget;
 
-            $classTarget.removeClass( this.options.selectedClass );
-            $scaleTarget.addClass( this.options.noneClass );
-            this.trigger( ui.AccordionListEvent.FOLDED );
+            $classTarget.removeClass(this.options.selectedClass);
+            $scaleTarget.addClass(this.options.noneClass);
+            this.trigger(ui.AccordionListEvent.FOLDED, {
+                index: index
+            });
         },
 
-        release: function(){
+        release: function() {
 
         }
     });
@@ -7147,58 +7528,68 @@
         APP: 4
     };
 
-    core.sns = {
-        types: { //['facebook', 'twitter', 'kakaotalk', 'kakaostory'/* , 'googleplus'*/],
-            'facebook': {
+    core.sns = /** @lends emart.sns */
+    {
+        types: /** @lends emart.sns.types */
+        { //['facebook', 'twitter', 'kakaotalk', 'kakaostory'/* , 'googleplus'*/],
+            'facebook': /** @lends emart.sns.types.facebook */
+            {
                 name: '페이스북',
                 support: s.PC | s.MOBILE,
                 baseUrl: 'https://www.facebook.com/sharer.php?',
                 makeParam: function(data) {
+                    data.url = core.uri.addParam(data.url, {
+                        '_t': +new Date
+                    });
                     return 'u=' + encodeURIComponent(data.url) + (data.title && '&t=' + encodeURIComponent(data.title));
                 }
             },
-            'twitter': {
+            'twitter': /** @lends emart.sns.types.twitter */
+            {
                 name: '트위터',
                 support: s.PC | s.MOBILE,
                 baseUrl: 'https://twitter.com/intent/tweet?',
                 makeParam: function(data) {
-                    return 'text=' + encodeURIComponent(data.title + ' ' + data.url);
+                    data.desc = data.desc || '';
+
+                    var length = 140 - data.url.length - 6, // ... 갯수
+                        txt = data.title + ' - ' + data.desc;
+
+                    txt = txt.length > length ? txt.substr(0, length) + '...' : txt;
+                    return 'text=' + encodeURIComponent(txt + ' ' + data.url);
                 }
             },
-            'kakaotalk': {
+            'kakaotalk': /** @lends emart.sns.types.kakaotalk */
+            {
                 name: '카카오톡',
                 support: s.APP | s.MOBILE,
                 makeParam: function(data) {
                     return {
-                        msg: data.title+' '+(data.desc||''),
+                        msg: data.title + "\n" + (data.desc || ''),
                         url: data.url,
-                        appid: "core store",
+                        appid: "emart store",
                         appver: "0.1",
                         type: "link",
                         appname: "이마트스토어"
                     };
                 }
             },
-            'kakaostory': {
+            'kakaostory': /** @lends emart.sns.types.kakaostory */
+            {
                 name: '카카오스토리',
                 support: s.APP | s.MOBILE,
                 makeParam: function(data) {
                     return {
-                        post: data.url,
-                        appid: "core store",
-                        appver: "0.1",
+                        post: data.title + "\n" + (data.desc || '') + "\n" + data.url,
+                        appid: "emart.com",
+                        appver: "1.0",
                         apiver: "1.0",
-                        appname: "이마트 스토어",
-                        urlinfo: core.json.stringify({
-                            title: data.title,
-                            desc: data.desc,
-                            imageurl: [data.image],
-                            type: "website"
-                        })
+                        appname: "이마트 스토어"
                     };
                 }
             },
-            'line': {
+            'line': /** @lends emart.sns.types.line */
+            {
                 name: '라인',
                 support: s.APP | s.MOBILE,
                 baseUrl: 'line://msg/text/',
@@ -7213,7 +7604,8 @@
                     return '';
                 }
             },
-            'googleplus': {
+            'googleplus': /** @lends emart.sns.types.googleplus */
+            {
                 name: '구글플러스',
                 support: s.PC | s.MOBILE,
                 baseUrl: 'https://plus.google.com/share?',
@@ -7225,49 +7617,51 @@
 
         share: function(type, params) {
             var service = this.types[type];
-            if(!service){ return; }
+            if (!service) {
+                return;
+            }
 
-            params.url = (params.url+'').replace(/#$/g, '');
+            params.url = (params.url + '').replace(/#$/g, '');
             params.url = params.url || location.href.replace(/#$/g, '');
-            params.title = params.title||document.title;
+            params.title = params.title || document.title;
 
-            if(!core.browser.isMobile && service.support&s.MOBILE === 0) {
-                alert("‘"+service.name+"’으로의 공유 기능은\n모바일 기기에서만 사용하실 수 있습니다");
+            if (!core.browser.isMobile && service.support & s.MOBILE === 0) {
+                alert("‘" + service.name + "’으로의 공유 기능은\n모바일 기기에서만 사용하실 수 있습니다");
                 return;
             }
 
             this._send(type, params);
         },
 
-        _send: function (type, params) {
+        _send: function(type, params) {
             var service = this.types[type];
-            if(!service){ return; }
+            if (!service) {
+                return;
+            }
 
-			switch(type) {
+            switch (type) {
                 case 'facebook':
                 case 'twitter':
-                    if(window.isApp){
-						core.app&&core.app.cmd('open_out_webpage', 'link='+service.baseUrl + service.makeParam(params));
-					} else {
-						window.open(
-							 service.baseUrl + service.makeParam(params),
-							type,
-							'menubar=no,height=300, width=550'
-						);
-					}
+                    if (window.isApp) {
+                        core.app && core.app.cmd('open_out_webpage', 'link=' + service.baseUrl + service.makeParam(params));
+                    } else {
+                        window.open(
+                        service.baseUrl + service.makeParam(params),
+                        type, 'menubar=no,height=300, width=550');
+                    }
                     break;
                 case 'kakaotalk':
-					if(!window.kakao){
-						alert('카카오톡 공유기능은 모바일기기에서만 가능합니다.');
-						return;
-					}
+                    if (!window.kakao) {
+                        alert('카카오톡 공유기능은 모바일기기에서만 가능합니다.');
+                        return;
+                    }
                     kakao.link('talk').send(service.makeParam(params));
                     break;
                 case 'kakaostory':
-					if(!window.kakao){
-						alert('카카오스토리 공유기능은 모바일기기에서만 가능합니다.');
-						return;
-					}
+                    if (!window.kakao) {
+                        alert('카카오스토리 공유기능은 모바일기기에서만 가능합니다.');
+                        return;
+                    }
                     kakao.link('story').send(service.makeParam(params));
                     break;
             }
@@ -7291,22 +7685,33 @@
      * @function
      * @name $#buildUIControls
      * @param {String} types (Optional) "tab,selectbox,calendar,placeholder"
+     * @example
+     * $.ajax(...).done(function(html) {
+     *    $('#box').html(html).buildUIControls();  
+     *    // 동적으로 새로 추가된 컨텐츠에 탭이나 아코디온이 존재할 경우 이 메소드를 호출해주어야 각 기능들이 작동한다.
+     * });
      */
     $.fn.buildUIControls = function() {
         //this.find('.d-selectbox').selectbox();   // 셀렉트박스 스킨모드로 변경
-        this.find('.d-tab').tab();               // 탭
-        this.find('.d-calendar').calendar();     // 달력
-        this.find('.d-accordion').accordion();    // 아코디온
-        if(!('placeholder' in core.tmpInput)) {   // placeholder
+        this.find('.d-tab').tab(); // 탭
+        this.find('.d-calendar').calendar(); // 달력
+        this.find('.d-accordion').accordion(); // 아코디온
+        if (!('placeholder' in core.tmpInput)) { // placeholder
             this.find('input[placeholder], textarea[placeholder]').placeholder();
         }
     };
 
 
     // 공통 UI와 관련하여 이벤트 정의
-    core.GlobalUI = {
+    /**
+     * @name emart.GlobalUI
+     */
+    core.GlobalUI = /** @lends emart.GlobalUI */
+    {
         init: function() {
-            if(_isInit) { return; }
+            if (_isInit) {
+                return;
+            }
 
             this.base();
             // TODO : 체크박스, 라디오박스가 스킨형을 사용하지 않음
@@ -7332,18 +7737,20 @@
          * 1. 버튼에 링크기능 바인딩(_self:현재창, _blank: 팝업, _modal: 모달레이어)
          * 2. [data-control=toggle], .d-toggle에 해당하는 요소를 클릭했을 때 next에 있는 요소를 토글링해준다.(드롭다운 레이어)
          */
-        link: function(){
+        link: function() {
             // 버튼에 링크기능 추가
-            $doc.on("click.globalui", "button[data-href], a[data-target]", function(e){
+            $doc.on("click.globalui", "button[data-href], a[data-target]", function(e) {
                 e.preventDefault();
 
                 var $el = $(this),
-                    href = $el.attr("data-href") ||  $el.attr("href"),
+                    href = $el.attr("data-href") || $el.attr("href"),
                     target = $el.attr("data-target");
 
-				if(!href){ return; }
+                if (!href) {
+                    return;
+                }
 
-                switch( target ){
+                switch (target) {
                     case "_self":
                         window.location.assign(href);
                         break;
@@ -7351,19 +7758,22 @@
                         window.open(href, target, $el.attr('data-options') || '');
                         break;
                     case "_modal":
-                        core.ui.ajaxModal(href, {opener: $el});
+                        core.ui.ajaxModal(href, {
+                            opener: $el
+                        });
                         break;
-                    default :
+                    default:
                         window.location.assign(href);
                 }
             });
 
-			$doc.on('click.globalui', 'a.disabled', function(e) {
-				e.preventDefault();
-				e.stopPropagation();
-			});
+            $doc.on('click.globalui', 'a.disabled', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
 
             // 드롭다운 레이어 바인딩
+            // ex) <button class="d-toggle" data-target="#box">보기</button><div class="none" id="box">...</div>
             $doc.on('click.globalui', '[data-control=toggle], .d-toggle', (function() {
                 var $layer = $(),
                     $btn = $();
@@ -7380,17 +7790,21 @@
 
                     var $el = $(this),
                         target = $el.attr('data-target') || core.uri.removeHash($el.attr('href')),
-                        $target = target ? $( target ) : $el.next('div');
+                        $target = target ? $(target) : $el.next('div');
 
-                    if($target.length === 0){ return; }
-                    if($target[0] != $layer[0]) { hideLayer(); }
+                    if ($target.length === 0) {
+                        return;
+                    }
+                    if ($target[0] != $layer[0]) {
+                        hideLayer();
+                    }
 
                     var isShow = !$target.hasClass('none');
-                    if(!isShow) {
+                    if (!isShow) {
                         // 레이어영역 밖을 클릭했을 때 레이어가 닫히도록
                         $doc.off('click.togglelayer').on('click.togglelayer', function(e) {
-                            if(($layer[0] !== e.target && !$.contains($layer[0], e.target)) || $(e.target).hasClass('d-close')) {
-                                e.preventDefault();
+                            if (($layer[0] !== e.target && !$.contains($layer[0], e.target)) || $(e.target).hasClass('d-close')) {
+                                //e.preventDefault();
                                 hideLayer();
                                 $btn.focus();
                             }
@@ -7419,11 +7833,11 @@
             $doc.on('mousedown.globalui mouseup.globalui mouseleave.globalui click.globalui', '.d-active', function(e) {
                 var $el = $(this);
 
-                if($el.hasClass('disabled')) {
+                if ($el.hasClass('disabled')) {
                     return;
                 }
 
-                switch(e.type) {
+                switch (e.type) {
                     case 'mousedown':
                         $el.addClass('active');
                         break;
@@ -7439,7 +7853,7 @@
          */
         hover: function() {
             // 터치디바이스에서는 무시함
-            if(core.browser.isTouch){
+            if (core.browser.isTouch) {
                 return;
             }
 
@@ -7462,58 +7876,60 @@
             var me = this;
 
             // 전체 선택
-            $doc.on('click.globalui', 'thead input:checkbox, tbody input:checkbox', function (e) {
+            $doc.on('click.globalui', 'thead input:checkbox, tbody input:checkbox', function(e) {
                 var $check = $(this),
                     $table = $check.closest('table'),
                     $thead = $table.find('>thead'),
                     $tbody = $table.find('>tbody'),
                     isInHead = $thead.length > 0;
 
-                if($check.closest('thead').length) {
+                if ($check.closest('thead').length) {
                     $tbody.find('input:checkbox:enabled:not(.d-notcheck)').prop('checked', this.checked);
                 } else {
-                    if($tbody.find('input:checkbox:not(:checked)').length) {
+                    if ($tbody.find('input:checkbox:not(:checked)').length) {
                         $thead.find('input:checkbox').prop('checked', false);
                     } else {
                         $thead.find('input:checkbox').prop('checked', true);
                     }
                 }
-                
+
                 $thead.find('input:checkbox').triggerHandler('checkallchanged');
-			});
+            });
         },
 
         /**
          * 1. 윈도우 창 닫기 기능 바인딩
          * 2. 레이어 닫기
          */
-        close: function(){
+        close: function() {
             //윈도우 창 닫기 기능
-            $doc.on("click.globalui", ".d-win-close", function(e){
+            $doc.on("click.globalui", ".d-win-close", function(e) {
                 e.preventDefault();
 
-                win.open('','_self').close();
+                self.close();
             });
 
             // 레이어 닫기
-            $doc.on("click.globalui", ".d-layer .d-close", function(e){
+            $doc.on("click.globalui", ".d-layer .d-close", function(e) {
                 e.preventDefault();
 
-                $(this).closest('.d-layer').toggle( !$(this).closest('.d-layer').is(':visible') );
+                $(this).closest('.d-layer').toggle(!$(this).closest('.d-layer').is(':visible'));
             });
         },
 
         /**
          * 버튼에 d-print를 추가해주면 인쇄 기능이 바인딩
          */
-        print: function(){
+        print: function() {
             //인쇄 기능
             $doc.on("click.globalui", ".d-print", function(e) {
                 e.preventDefault();
-                if(this.getAttribute('data-frame')){
+                if (this.getAttribute('data-frame')) {
                     try {
                         win.frames[this.getAttribute('data-frame')].print();
-                    } catch(e){alert(e)}
+                    } catch (e) {
+                        alert(e)
+                    }
                 } else {
                     win.print();
                 }
@@ -7530,14 +7946,17 @@
                 var $el = $(this),
                     target = $el.attr('href') || $el.attr('data-target'),
                     $modal;
-                if(target){
+                if (target) {
                     // ajax형 모달인 경우
-                    if(!/^#/.test(target)) {
+                    if (!/^#/.test(target)) {
                         $.ajax({
                             url: target
                         }).done(function(html) {
-                            $modal = $('<div class="d-modal-ajax d-modal-new" style="display:none"></div>').html(html).insertAfter($el);
-                            $modal.modal({opener: $el, removeOnClose:true});
+                            $modal = $('<div class="d-modal-ajax d-modal-new" style="display:none"></div>').html(html).appendTo('body');
+                            $modal.modal({
+                                opener: $el,
+                                removeOnClose: true
+                            });
                         });
                         return;
                     } else {
@@ -7547,8 +7966,10 @@
                     $modal = $(this).next('div.d-layerpop');
                 }
 
-                if($modal && $modal.length > 0) {
-                    $modal.modal({opener: $el});
+                if ($modal && $modal.length > 0) {
+                    $modal.modal({
+                        opener: $el
+                    });
                 }
             });
 
@@ -7561,7 +7982,9 @@
         sns: function() {
             var types = core.object.keys(core.sns.types);
 
-            $doc.on('click.globalui', core.array.map(types, function(val) { return '.d-'+val; }).join(', '), function(e) {
+            $doc.on('click.globalui', core.array.map(types, function(val) {
+                return '.d-' + val;
+            }).join(', '), function(e) {
                 e.preventDefault();
 
                 var $el = $(this),
@@ -7571,31 +7994,38 @@
                     image = $el.attr('data-image') || $('head meta[property$=image]').attr('content') || '',
                     service = $el.attr('data-service');
 
-                if(!service){
+                if (!service) {
                     core.each(types, function(name) {
-                        if($el.hasClass('d-'+name)) {
+                        if ($el.hasClass('d-' + name)) {
                             service = name;
                             return false;
                         }
                     });
-                    if(!service) {
+                    if (!service) {
                         alert('공유할 SNS타입을 지정해주세요.');
                         return;
                     }
                 }
 
-                core.sns.share(service, {url: url, title:title, desc: desc, image: image});
+                core.sns.share(service, {
+                    url: url,
+                    title: title,
+                    desc: desc,
+                    image: image
+                });
             });
         }
     };
 
-	// 결제가능한 브라우저인가.
-	core.browser.isCanPayment = (function(){
-		var b = core.browser;
+    // 결제가능한 브라우저인가.
+    core.browser.isCanPayment = (function() {
+        var b = core.browser;
 
-		if(b.isWin && (b.isIE || b.isChrome)){ return true; }
-		return false;
-	})();
+        if (b.isWin && (b.isIE || b.isChrome)) {
+            return true;
+        }
+        return false;
+    })();
 
 })(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
 
@@ -7627,8 +8057,8 @@
         events: {
             'modalshow': function() {
                 $('html, body').stop().animate({
-					scrollTop: 0
-				}, 50);
+                    scrollTop: 0
+                }, 50);
             }
         }
     });
@@ -7638,58 +8068,105 @@
     });
 
     ui.setDefaults('Calendar', {
-        weekNames: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+        weekNames: ['일', '월', '화', '수', '목', '금', '토'],
         header: false,
         template: {
-            button: [
-                '<span class="m-calendar-day" title="<$-title$>">',
-                '<$if(isHoliday){$>',
-                '<span class="hide">휴점일</span>',
-                '<$} if(isToday){$>',
-                '<span class="hide">오늘</span>',
-                '<$}$>',
-                '<a href="#" aria-describedby="d-<$-core.date.format(date, \'yyyyMMdd\')$>"><$=day$></a>',
-                '</span>'].join(''),
-            label: [
-                '<span class="m-calendar-day" title="<$-title$>">',
-                '<$if(isHoliday){$>',
-                '<span class="hide">휴점일</span>',
-                '<$} if(isToday){$>',
-                '<span class="hide">오늘</span>',
-                '<$}$>',
-                '<em><$=day$></em>',
-                '</span>'].join('')
+            button: ['<span class="m-calendar-day" title="<$-title$>">', '<$if(isHoliday){$>', '<span class="hide">휴점일</span>', '<$} if(isToday){$>', '<span class="hide">오늘</span>', '<$}$>', '<a href="#" aria-describedby="d-<$-emart.date.format(date, \'yyyyMMdd\')$>"><$=day$></a>', '</span>'].join(''),
+            label: ['<span class="m-calendar-day" title="<$-title$>">', '<$if(isHoliday){$>', '<span class="hide">휴점일</span>', '<$} if(isToday){$>', '<span class="hide">오늘</span>', '<$}$>', '<em><$=day$></em>', '</span>'].join('')
         }
     });
 
-	// 문화센터에서만 사용
-	$.ajaxSetup({
-		error: function(xhr, textStatus, error) {
-			if(xhr.status === 401){
-				if(confirm("로그인이 필요합니다.\n로그인 팝업을 띄우시겠습니까?")){
-					culture.login.open_login_pop();
-				}
-			} else {
-				//alert('');
-			}
-		}
-	});
+    // 문화센터에서만 사용
+    // ajax 대상 페이지가 로그인 필요페이지일 경우 서버에서 status code를 401로 반환해주는데, 
+    // 이를 체크하여 로그인팝업을 띄워주도록 설정
+    $.ajaxSetup({
+        error: function(xhr, textStatus, error) {
+            if (xhr.status === 401) {
+                culture.login.open_login_pop();
+            } else {
+                //alert('');
+            }
+        }
+    });
 
     $(function() {
         core.GlobalUI.init();
 
-		// 퓨터 패밀리사이트 가기
-		!core.browser.isMobile && $('#footer .family_link .link_go').click(function(){
-			var href =$(this).parent().find('select option:selected').val();
-			if(href) {
-				window.open(href, '_blank');
-			} else {
-				alert('이동할 사이트를 선택해 주세요.');
-				$(this).focus();
-			}
-		});
-		///////////////////////////////
+        // 퓨터 패밀리사이트 가기
+        !core.browser.isMobile && $('#footer .family_link .link_go').click(function() {
+            var href = $(this).parent().find('select option:selected').val();
+            if (href) {
+                window.open(href, '_blank');
+            } else {
+                alert('이동할 사이트를 선택해 주세요.');
+                $(this).focus();
+            }
+        });
+        ///////////////////////////////
 
-});
+    });
 
 })(jQuery, window[LIB_NAME], window[LIB_NAME].ui);
+
+/* 개발팀 요청으로 추가한 글로벌함수 */
+/*
+ * gateUrl : 필수
+ * retUrl : (옵션)이동할 경로
+ * popup : (옵션)새창으로 표시할 경우 true
+ * confirmMsg : (옵션)이동 전 알림문구. 필요시 설정
+ */
+function ssoLink(gateUrl, retUrl, popup, confirmMsg) {
+    if (gateUrl == undefined || gateUrl == '') {
+        alert('이동할 곳이 지정되지 않았습니다.');
+        return;
+    }
+
+    var isPop = false;
+    if (popup != undefined && popup) {
+        isPop = true;
+    }
+
+    var hasConfirmMsg = false;
+    if (confirmMsg != undefined && confirmMsg != '') {
+        hasConfirmMsg = true;
+    }
+
+    var isRun = true;
+    if (hasConfirmMsg) {
+        isRun = confirm(confirmMsg);
+    }
+
+    if (isRun) {
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: emart.Env.get("emartTokenUrl"), //'/myemart/getToken.do',
+            success: function(data) {
+                var destUrl = gateUrl;
+                if (data.token) {
+                    destUrl = gateUrl + '?token=' + data.token;
+                    if (retUrl != undefined && retUrl != '') {
+                        destUrl = destUrl + '&retUrl=' + retUrl;
+                    }
+                }
+
+                if (window.isApp) {
+                    emart.app.cmd("open_out_webpage", "link=" + destUrl);
+                } else {
+                    if (isPop) {
+                        window.open(destUrl, "gate", "toolbar=yes,menubar=yes,location=yes,scrollbars=yes,resizable=yes");
+                    } else {
+                        document.location.href = destUrl;
+                    }
+                }
+            },
+            error: function(data, status) {
+                if (isPop) {
+                    window.open(gateUrl, "gate", "toolbar=yes,menubar=yes,location=yes,scrollbars=yes,resizable=yes");
+                } else {
+                    document.location.href = gateUrl;
+                }
+            }
+        });
+    }
+}
