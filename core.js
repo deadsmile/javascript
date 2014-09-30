@@ -23,14 +23,14 @@
  *
  *
  * @Core : 코어 함수
- * emart
+ * core
  *          .$win : $(window)
  *          .$doc : $(document)
  *          .$body : $(document.body)
  *          .each() : 반복자
  *          .extend() :  속성 복사
  *          .namespace() : 네임스페이스 생성
- *          .define() : emart를 루트로 한 네임스페이스 생성
+ *          .define() : core를 루트로 한 네임스페이스 생성
  *          .hasOwn() : Object.prototype.hasOwnProperty 단축명
  *          .is() : 타입 체크
  *          .require() : 동적 js 로더
@@ -53,7 +53,7 @@
  *
  *
  * @Browser : 브라우저 정보
- * emart.browser
+ * core.browser
  *          .isMobile   : 모바일여부
  *          .isRetina   : 레티나 여부
  *          .isAndroid  : 안드로이드 여부
@@ -79,7 +79,7 @@
  *          .isNotSupport3DTransform
  *
  * @date
- * emart.date
+ * core.date
  *			.diffTime(...)
  *			.compare(...)
  *			.between(...)
@@ -100,7 +100,7 @@
  *
  *
  * @string
- * emart.string
+ * core.string
  *			.trim(...)
  *			.replaceAll(...)
  *			.byteLength(...)
@@ -120,14 +120,14 @@
  *			.stripSctipts(...)
  *
  * @uri
- * emart.uri
+ * core.uri
  *			.urlAppend(...)
  *			.parseQuery(...)
  *			.parseUrl(...)
  *			.removeHash(...)
  *			
  * @number
- * emart.number
+ * core.number
  *			.zeroPad(...)
  *			.pad(...)
  *			.addComma(...)
@@ -135,7 +135,7 @@
  *			.limit(...)
  *
  * @array
- * emart.array
+ * core.array
  *			.append(...)
  *			.map(...)
  *			.every(...)
@@ -150,7 +150,7 @@
  *			.min(...)
  *
  * @json
- * emart.json
+ * core.json
  *			.keys(...)
  *			.values(...)
  *			.map(...)
@@ -162,7 +162,7 @@
  *
  *
  * @Util : Util함수 모음
- * emart.util
+ * core.util
  *          .png24(...)              : png 투명 처리
  *          .openPopup(...)          : 팝업 띄우기
  *          .resizePopup(...)        : 팝업 리사이즈
@@ -177,7 +177,7 @@
  *
  *
  * @UI : UI 모듈
- * emart.ui
+ * core.ui
  * 		 .AccordionList             : 아코디언 리스트
  * 		 .Calendar                  : 달력
  * 	     .Modal                     : 모달
@@ -195,13 +195,13 @@
 (function (context, $, undefined) {
     "use strict";
     /* jshint expr: true, validthis: true */
-    /* global emart, alert, escape, unescape */
+    /* global core, alert, escape, unescape */
 
     if(!$) {
         throw new Error("This library requires jQuery");
     }
 
-    var LIB_NAME = window.LIB_NAME = 'emart';
+    var LIB_NAME = window.LIB_NAME = 'core';
 
     var $root = $(document.documentElement).addClass('js');
     ('ontouchstart' in context) && $root.addClass('touch');
@@ -209,7 +209,7 @@
 
     /**
      * @namespace
-     * @name emart
+     * @name core
      * @description root namespace of hib site
      */
     var core = context[ LIB_NAME ] || (context[ LIB_NAME ] = {});
@@ -247,7 +247,7 @@
         /**
          * 반복 함수
          * @function
-         * @name emart.each
+         * @name core.each
          * @param {Array|JSON} obj 배열 및 json객체
          * @param {function(this:Array|Object, value, index)} cb
          * @param {Object} ctx
@@ -287,7 +287,7 @@
         /**
          * 확장 함수
          * @function
-         * @name emart.extend
+         * @name core.extend
          * @param {JSON} obj...
          * @returns {*}
          */
@@ -318,7 +318,7 @@
         /**
          * 복제 함수
          * @function
-         * @name emart.clone
+         * @name core.clone
          * @param {JSON} obj 배열 및 json객체
          * @returns {*}
          */
@@ -376,7 +376,7 @@
          * 빈 함수
          * @function
          * @example
-         * var func = emart.emptyFn
+         * var func = core.emptyFn
          */
         emptyFn: emptyFn,
 
@@ -393,7 +393,7 @@
         /**
          * html5 속성의 지원여부를 체크할 때 사용
          * @example
-         * is = 'placeholder' in emart.tmpInput;  // placeholder를 지원하는가
+         * is = 'placeholder' in core.tmpInput;  // placeholder를 지원하는가
          */
         tmpInput: tmpInput,
 
@@ -776,7 +776,7 @@
         return this;
     };
 
-    extend(core, /** @lends emart */{
+    extend(core, /** @lends core */{
         /**
          * timeStart("name")로 name값을 키로하는 타이머가 시작되며, timeEnd("name")로 해당 name값의 지난 시간을 로그에 출력해준다.
          *
@@ -784,9 +784,9 @@
          * @param {Boolean} reset 리셋(초기화) 여부
          *
          * @example
-         * emart.timeStart('animate');
+         * core.timeStart('animate');
          * ...
-         * emart.timeEnd('animate'); -> animate: 10203ms
+         * core.timeEnd('animate'); -> animate: 10203ms
          */
         timeStart: function (name, reset) {
             if (!name) {
@@ -809,9 +809,9 @@
          * @return {Number} 걸린 시간
          *
          * @example
-         * emart.timeStart('animate');
+         * core.timeStart('animate');
          * ...
-         * emart.timeEnd('animate'); -> animate: 10203ms
+         * core.timeEnd('animate'); -> animate: 10203ms
          */
         timeEnd: function (name) {
             if (!this.timeCounters) {
@@ -839,20 +839,20 @@
      * 객체리터럴을 이용하여 여타 컴파일 언어의 네임스페이스처럼 쓸 수 있다.
      *
      * @function
-     * @name emart.namespace
+     * @name core.namespace
      *
      * @param {String} name 네임스페이스명
      * @param {Object} obj {Optional) 지정된 네임스페이스에 등록할 객체, 함수 등
      * @return {Object} 생성된 네임스페이스
      *
      * @example
-     * emart.namesapce('emart.widget.Tabcontrol', TabControl)
+     * core.namesapce('core.widget.Tabcontrol', TabControl)
      *
-     * ex) emart.namespace('emart.widget.Control', function() {}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
+     * ex) core.namespace('core.widget.Control', function() {}) 를 네이티브로 풀어서 작성한다면 다음과 같다.
      *
-     * var emart = emart || {};
-     * emart.ui = emart.ui || {};
-     * emart.widget.Control = emart.widget.Control || function() {};
+     * var core = core || {};
+     * core.ui = core.ui || {};
+     * core.widget.Control = core.widget.Control || function() {};
      */
     core.namespace = function (name, obj) {
         if (typeof name !== 'string') {
@@ -884,15 +884,15 @@
      * common를 루트로 하여 네임스페이스를 생성하여 새로운 속성을 추가하는 함수
      *
      * @function
-     * @name emart.define
+     * @name core.define
      *
      * @param {String} name .를 구분자로 해서 common를 시작으로 하위 네임스페이스를 생성. 없으면 common에 추가된다.
      * @param {Object|Function} object
      * @param {Boolean} isExecFn (Optional) object값이 함수형일 때 실행한 값을 설정할 것인가 여부
      *
      * @example
-     * emart.define('', [], {});
-     * emart.
+     * core.define('', [], {});
+     * core.
      */
     core.define = function (name, object, isExecFn) {
         if (typeof name !== 'string') {
@@ -917,7 +917,7 @@
 
     core._prefix = LIB_NAME + '.';
 
-    core.define(/** @lends emart */ {
+    core.define(/** @lends core */ {
 		getHost: function() {
 			return document.location.protocol+'//'+document.location.host;
 		},
@@ -944,23 +944,23 @@
          * 브라우저의 Detect 정보: 되도록이면 Modernizr 라이브러리를 사용할 것을 권함
          *
          * @example
-         * emart.browser.isOpera // 오페라
-         * emart.browser.isWebKit // 웹킷
-         * emart.browser.isIE // IE
-         * emart.browser.isIE6 // IE56
-         * emart.browser.isIE7 // IE567
-         * emart.browser.isOldIE // IE5678
-         * emart.browser.version // IE의 브라우저
-         * emart.browser.isChrome // 크롬
-         * emart.browser.isGecko // 파이어폭스
-         * emart.browser.isMac // 맥OS
-         * emart.browser.isAir // 어도비 에어
-         * emart.browser.isIDevice // 아이폰, 아이패드
-         * emart.browser.isSafari // 사파리
-         * emart.browser.isIETri4 // IE엔진
-         * emart.browser.isNotSupporte3DTransform // 안드로이드 3.0이하 3d transform지원X
-         * emart.browser.isGingerbread // 안드로이드 Gingerbread
-         * emart.browser.isIcecreamsandwith // 안드로이드 Icecreamsandwith
+         * core.browser.isOpera // 오페라
+         * core.browser.isWebKit // 웹킷
+         * core.browser.isIE // IE
+         * core.browser.isIE6 // IE56
+         * core.browser.isIE7 // IE567
+         * core.browser.isOldIE // IE5678
+         * core.browser.version // IE의 브라우저
+         * core.browser.isChrome // 크롬
+         * core.browser.isGecko // 파이어폭스
+         * core.browser.isMac // 맥OS
+         * core.browser.isAir // 어도비 에어
+         * core.browser.isIDevice // 아이폰, 아이패드
+         * core.browser.isSafari // 사파리
+         * core.browser.isIETri4 // IE엔진
+         * core.browser.isNotSupporte3DTransform // 안드로이드 3.0이하 3d transform지원X
+         * core.browser.isGingerbread // 안드로이드 Gingerbread
+         * core.browser.isIcecreamsandwith // 안드로이드 Icecreamsandwith
          */
         browser: (function () {
             var detect = {},
@@ -1092,7 +1092,7 @@
          * JSON 객체인지 체크
          *
          * @function
-         * @name emart.isPlainObject
+         * @name core.isPlainObject
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -1102,7 +1102,7 @@
          * 함수형인지 체크
          *
          * @function
-         * @name emart.isFunction
+         * @name core.isFunction
          * @param {Object} value 체크할 값
          * @return {Boolean}
          */
@@ -1171,8 +1171,8 @@
          * @return {Array}
          *
          * @example
-         * emart.toArray('abcd"); => ["a", "b", "c", "d"]
-         * emart.toArray(arguments);  => arguments를 객체를 array로 변환하여 Array에서 지원하는 유틸함수(slice, reverse ...)를 쓸수 있다.
+         * core.toArray('abcd"); => ["a", "b", "c", "d"]
+         * core.toArray(arguments);  => arguments를 객체를 array로 변환하여 Array에서 지원하는 유틸함수(slice, reverse ...)를 쓸수 있다.
          */
         toArray: function (value) {
             try {
@@ -1221,7 +1221,7 @@
          * @return {Function} tempalte 함수
          *
          * @example
-         * var tmpl = emart.template('&lt;span>&lt;$=name$>&lt;/span>');
+         * var tmpl = core.template('&lt;span>&lt;$=name$>&lt;/span>');
          * var html = tmpl({name: 'Axl rose'}); => &lt;span>Axl rose&lt;/span>
          * $('div').html(html);
          */
@@ -1349,7 +1349,7 @@
      * 문자열 관련 유틸 함수 모음
      *
      * @namespace
-     * @name emart.string
+     * @name core.string
      * @description
      */
     core.define('string', function () {
@@ -1372,7 +1372,7 @@
             tagRegexp = /<\/?[^>]+>/gi,
             scriptRegexp = /<script[^>]*>([\\S\\s]*?)<\/script>/img;
 
-        return /** @lends emart.string */{
+        return /** @lends core.string */{
             trim: function(value) {
                 return value ? value.replace(/^\s+|\s+$/g, "") : value;
             },
@@ -1385,7 +1385,7 @@
              * @return {String} 대체된 결과 문자열
              *
              * @example
-             * emart.replaceAll("a1b2c3d", /[0-9]/g, ''); => "abcd"
+             * core.replaceAll("a1b2c3d", /[0-9]/g, ''); => "abcd"
              */
             replaceAll: function (value, find, rep) {
                 if (find.constructor === RegExp) {
@@ -1401,7 +1401,7 @@
              * @return {Number}
              *
              * @example
-             * emart.byteLength("동해물과"); => 8
+             * core.byteLength("동해물과"); => 8
              */
             byteLength: function (value) {
                 var l = 0;
@@ -1420,7 +1420,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.cutByByte("동해물과", 3, "..."); => "동..."
+             * core.string.cutByByte("동해물과", 3, "..."); => "동..."
              */
             cutByByte: function (value, length, truncation) {
                 var str = value,
@@ -1457,7 +1457,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.capitalize("abCdEfg"); => "Abcdefg"
+             * core.string.capitalize("abCdEfg"); => "Abcdefg"
              */
             capitalize: function (value) {
                 return value ? value.charAt(0).toUpperCase() + value.substring(1) : value;
@@ -1470,7 +1470,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.capitalize("ab-cd-efg"); => "abCdEfg"
+             * core.string.capitalize("ab-cd-efg"); => "abCdEfg"
              */
             camelize: function (value) {
                 return value ? value.replace(/(\-|_|\s)+(.)?/g, function(a, b, c) {
@@ -1485,7 +1485,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.dasherize("abCdEfg"); => "ab-cd-efg"
+             * core.string.dasherize("abCdEfg"); => "ab-cd-efg"
              */
             dasherize: function (value) {
                 return value ? value.replace(/[_\s]+/g, '-').replace(/([A-Z])/g, '-$1').replace(/-+/g, '-').toLowerCase() : value;
@@ -1508,7 +1508,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.repeat("ab", 4); => "abababab"
+             * core.string.repeat("ab", 4); => "abababab"
              */
             repeat: function (value, cnt, sep) {
                 sep || (sep = '');
@@ -1527,7 +1527,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.escapeHTML('<div><a href="#">링크</a></div>'); => "&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;"
+             * core.string.escapeHTML('<div><a href="#">링크</a></div>'); => "&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;"
              */
             escapeHTML: function (value) {
                 return value ? (value+"").replace(escapeRegexp, function (m) {
@@ -1542,7 +1542,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.unescapeHTML('&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;');  => '<div><a href="#">링크</a></div>'
+             * core.string.unescapeHTML('&lt;div&gt;&lt;a href=&quot;#&quot;&gt;링크&lt;/a&gt;&lt;/div&gt;');  => '<div><a href="#">링크</a></div>'
              */
             unescapeHTML: function (value) {
                 return value ? (value+"").replace(unescapeRegexp, function (m) {
@@ -1559,8 +1559,8 @@
              * @return {String}
              *
              * @example
-             * emart.string.toggle('ASC", "ASC", "DESC"); => "DESC"
-             * emart.string.toggle('DESC", "ASC", "DESC"); => "ASC"
+             * core.string.toggle('ASC", "ASC", "DESC"); => "DESC"
+             * core.string.toggle('DESC", "ASC", "DESC"); => "ASC"
              */
             toggle: function (value, these, other) {
                 return these === value ? other : value;
@@ -1574,7 +1574,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.string.format("{0}:{1}:{2} {0}", "a", "b", "c");  => "a:b:c a"
+             * core.string.format("{0}:{1}:{2} {0}", "a", "b", "c");  => "a:b:c a"
              */
             format: function (format, val) {
                 var args = core.toArray(arguments).slice(1),
@@ -1667,10 +1667,10 @@
 
     /**
      * @namespace
-     * @name emart.uri
+     * @name core.uri
      * @description
      */
-    core.define('uri', /** @lends emart.uri */{
+    core.define('uri', /** @lends core.uri */{
 
         /**
          * 주어진 url에 쿼리스츠링을 조합
@@ -1680,8 +1680,8 @@
          * @return {String}
          *
          * @example
-         * emart.uri.urlAppend("board.do", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?a=1&b=2&c[d]=4"
-         * emart.uri.urlAppend("board.do?id=123", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?id=123&a=1&b=2&c[d]=4"
+         * core.uri.urlAppend("board.do", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?a=1&b=2&c[d]=4"
+         * core.uri.urlAppend("board.do?id=123", {"a":1, "b": 2, "c": {"d": 4}}); => "board.do?id=123&a=1&b=2&c[d]=4"
          */
         urlAppend: function (url, string) {
             if (core.is(string, 'object')) {
@@ -1701,7 +1701,7 @@
          * @return {Object}
          *
          * @example
-         * emart.uri.parseQuery("a=1&b=2"); => {"a": 1, "b": 2}
+         * core.uri.parseQuery("a=1&b=2"); => {"a": 1, "b": 2}
          */
         parseQuery: function (query) {
             if (!query) {
@@ -1730,8 +1730,8 @@
          * @return {Object}
          *
          * @example
-         * emart.uri.parseUrl("http://www.emart.com:8080/list.do?a=1&b=2#comment");
-         * => {scheme: "http", host: "www.emart.com", port: "8080", path: "/list.do", query: "a=1&b=2"…}
+         * core.uri.parseUrl("http://www.core.com:8080/list.do?a=1&b=2#comment");
+         * => {scheme: "http", host: "www.core.com", port: "8080", path: "/list.do", query: "a=1&b=2"…}
          */
         parseUrl: (function() {
             var o = {
@@ -1765,7 +1765,7 @@
          * @return {String} 결과 문자열
          *
          * @example
-         * emart.uri.removeHash("list.do#comment"); => "list.do"
+         * core.uri.removeHash("list.do#comment"); => "list.do"
          */
         removeHash: function (url) {
             return url ? url.replace(/#.*$/, '') : url;
@@ -1776,10 +1776,10 @@
      * 숫자관련 유틸함수 모음
      *
      * @namespace
-     * @name emart.number
+     * @name core.number
      * @description
      */
-    core.define('number', /** @lends emart.number */{
+    core.define('number', /** @lends core.number */{
         /**
          * 주어진 수를 자릿수만큼 앞자리에 0을 채워서 반환
          *
@@ -1789,7 +1789,7 @@
          * @return {String}
          *
          * @example
-         * emart.number.zeroPad(2, 3); => "002"
+         * core.number.zeroPad(2, 3); => "002"
          */
         zeroPad: function (value, size, ch) {
             var sign = value < 0 ? '-' : '',
@@ -1815,7 +1815,7 @@
          * @return {String}
          *
          * @example
-         * emart.number.addComma(21342); => "21,342"
+         * core.number.addComma(21342); => "21,342"
          */
         addComma: function (value) {
             value += '';
@@ -1869,9 +1869,9 @@
     /**
      * 배열관련 유틸함수
      * @namespace
-     * @name emart.array
+     * @name core.array
      */
-    core.define('array', /** @lends emart.array */{
+    core.define('array', /** @lends core.array */{
         /**
          * 배열 병합
          * @param {Array, Array, ...} arr
@@ -1886,14 +1886,14 @@
          * 콜백함수로 하여금 요소를 가공하는 함수
          *
          * @function
-         * @name emart.array.map
+         * @name core.array.map
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @param {Object} (optional) 컨텍스트
          * @return {Array}
          *
          * @example
-         * emart.array.map([1, 2, 3], function(item, index) {
+         * core.array.map([1, 2, 3], function(item, index) {
 		 *		return item * 10;
 		 * });
          * => [10, 20, 30]
@@ -1911,7 +1911,7 @@
         /**
          * 반복자함수의 반환값이 true가 아닐 때까지 반복
          * @function
-         * @name emart.array.every
+         * @name core.array.every
          * @return {Boolean} 최종 결과
          */
         every: nativeCall(arrayProto.every) || function(arr, cb, ctx) {
@@ -1928,7 +1928,7 @@
         /**
          * 반복자함수의 반환값이 true일 때까지 반복
          * @function
-         * @name emart.array.any
+         * @name core.array.any
          */
         any: nativeCall(arrayProto.any) || function(arr, cb, ctx) {
             var isTrue = false;
@@ -1963,14 +1963,14 @@
         /**
          * 콜백함수로 하여금 요소를 걸려내는 함수
          * @function
-         * @name emart.array.filter
+         * @name core.array.filter
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @param {Object} (optional) 컨텍스트
          * @returns {Array}
          *
          * @example
-         * emart.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index) {
+         * core.array.filter([1, '일', 2, '이', 3, '삼'], function(item, index) {
 		 *		return typeof item === 'string';
 		 * });
          * => ['일','이','삼']
@@ -1992,7 +1992,7 @@
          * @return {Array}
          *
          * @example
-         * emart.array.include([1, '일', 2, '이', 3, '삼'], '삼');  => true
+         * core.array.include([1, '일', 2, '이', 3, '삼'], '삼');  => true
          */
         include: function (arr, value, b) {
             if (!core.is(arr, 'array')) { return value; }
@@ -2010,13 +2010,13 @@
         /**
          * 주어진 인덱스의 요소를 반환
          * @function
-         * @name emart.array.indexOf
+         * @name core.array.indexOf
          * @param {Array} obj 배열
          * @param {Function} cb 콜백함수
          * @return {Array}
          *
          * @example
-         * emart.array.indexOf([1, '일', 2, '이', 3, '삼'], '일');  => 1
+         * core.array.indexOf([1, '일', 2, '이', 3, '삼'], '일');  => 1
          */
         indexOf: nativeCall(arrayProto.indexOf) || function (arr, value, b) {
             for (var i = 0, len = arr.length; i < len; i++) {
@@ -2101,19 +2101,19 @@
     /**
      * JSON객체 관련 유틸함수
      * @namespace
-     * @name emart.object
+     * @name core.object
      */
-    core.define('object', /** @lends emart.object */{
+    core.define('object', /** @lends core.object */{
 
         /**
          * 개체의 열거가능한 속성 및 메서드 이름을 배열로 반환
          * @function
-         * @name emart.object.keys
+         * @name core.object.keys
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 이름이 포함된 배열
          *
          * @example
-         * emart.object.keys({"name": "Axl rose", "age": 50}); => ["name", "age"]
+         * core.object.keys({"name": "Axl rose", "age": 50}); => ["name", "age"]
          */
         keys: Object.keys || function (obj) {
             var results = [];
@@ -2126,12 +2126,12 @@
         /**
          * 개체의 열거가능한 속성의 값을 배열로 반환
          * @function
-         * @name emart.object.values
+         * @name core.object.values
          * @param {Object} obj 리터럴 객체
          * @return {Array} 객체의 열거가능한 속성의 값들이 포함된 배열
          *
          * @example
-         * emart.object.values({"name": "Axl rose", "age": 50}); => ["Axl rose", 50]
+         * core.object.values({"name": "Axl rose", "age": 50}); => ["Axl rose", 50]
          */
         values: Object.values || function (obj) {
             var results = [];
@@ -2149,7 +2149,7 @@
          * @return {JSON}
          *
          * @example
-         * emart.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key) {
+         * core.object.map({1; 'one', 2: 'two', 3: 'three'}, function(item, key) {
 		 *		return item + '__';
 		 * });
          * => {1: 'one__', 2: 'two__', 3: 'three__'}
@@ -2191,7 +2191,7 @@
          * @return {String} 결과 문자열
          *
          * @example
-         * emart.object.toQueryString({"a":1, "b": 2, "c": {"d": 4}}); => "a=1&b=2&c[d]=4"
+         * core.object.toQueryString({"a":1, "b": 2, "c": {"d": 4}}); => "a=1&b=2&c[d]=4"
          */
         toQueryString: function (params, isEncode) {
             if (typeof params === 'string') {
@@ -2227,7 +2227,7 @@
          * @return {Object}
          *
          * @example
-         * emart.object.travere({1:a, 2:b, 3:c, 4:d]);
+         * core.object.travere({1:a, 2:b, 3:c, 4:d]);
 		 * => {a:1, b:2, c:3, d:4}
 		 */
         traverse: function (obj) {
@@ -2325,7 +2325,7 @@
     /**
      * 날짜관련 유틸함수
      * @namespace
-     * @name emart.date
+     * @name core.date
      */
     core.define('date', function () {
         var months = "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec".split(","),
@@ -2339,7 +2339,7 @@
             return d1.getTime() > d2.getTime() ? -1 : (d1.getTime() === d2.getTime() ? 0 : 1);
         }
 
-        return /** @lends emart.date */{
+        return /** @lends core.date */{
             MONTHS_NAME: months,
             MONTHS_FULLNAME: fullMonths,
 
@@ -2351,7 +2351,7 @@
              * @return {String} 결과 문자열
              *
              * @example
-             * emart.date.format(new Date(), "yy:MM:dd");
+             * core.date.format(new Date(), "yy:MM:dd");
              * =>
              */
             format: function (formatDate, formatString) {
@@ -2407,7 +2407,7 @@
              * 날짜 비교
              *
              * @function
-             * @name emart.date.compare
+             * @name core.date.compare
              * @param {Date} date1 날짜1
              * @param {Date} date2 날짜2
              * @return {Number} -1: date1가 이후, 0: 동일, 1:date2가 이후
@@ -2490,7 +2490,7 @@
              * 주어진 날짜 형식의 문자열을 Date객체로 변환
              *
              * @function
-             * @name emart.date.parse
+             * @name core.date.parse
              * @param {String} dateStringInRange 날짜 형식의 문자열
              * @return {Date}
              */
@@ -2554,13 +2554,13 @@
              * 주어진 시간이 현재부터 몇시간 이전인지 표현(예: -54000 -> 54초 이전)
              *
              * @function
-             * @name emart.date.prettyDuration
+             * @name core.date.prettyDuration
              * @param {Date|Interval} time 시간
              * @param {Date|Interval} time (Optional) 기준시간
              * @return {JSON}
              *
              * @example
-             * emart.date.prettyDuration(new Date() - 51811); -> "52초 이전"
+             * core.date.prettyDuration(new Date() - 51811); -> "52초 이전"
              */
             prettyDuration: (function() {
                 var ints = {
@@ -2631,7 +2631,7 @@
              * @return {String}
              *
              * @example
-             * emart.date.timeDiff(new Date, new Date(new Date() - 51811));
+             * core.date.timeDiff(new Date, new Date(new Date() - 51811));
              */
             diffTime: function(t1, t2) {
                 if(!core.is(t1, 'date')) { t1 = new Date(t1); };
@@ -2788,7 +2788,7 @@
     /**
      * prototype 을 이용한 클래스 생성
      * @namespace
-     * @name emart.Base
+     * @name core.Base
      * @example
      * var Person = Base.extend({
 	*	$singleton: true, // 싱글톤 여부
@@ -2809,7 +2809,7 @@
      *
      * var Man = Person.extend({
 	*	initialize: function(name, age) {
-	*		this.supr(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.suprMethod('initialize', name);
+	*		this.callParent(name);  // Person(부모클래스)의 initialize메소드를 호출 or this.suprMethod('initialize', name);
 	*		this.age = age;
 	*	},
 	*	// say를 오버라이딩함
@@ -2831,7 +2831,7 @@
             ignoreNames = ['superclass', 'members', 'statics'];
 
 
-        // 부모클래스의 함수에 접근할 수 있도록 .supr 속성에 부모함수를 래핑하여 설정
+        // 부모클래스의 함수에 접근할 수 있도록 .callParent 속성에 부모함수를 래핑하여 설정
         function wrap(k, fn, supr) {
             return function () {
                 var tmp = this.callParent, ret;
@@ -2962,7 +2962,7 @@
         return core.Base = Base;
     })();
 
-    core.define('Env', /** @lends emart */{
+    core.define('Env', /** @lends core */{
         /**
          * 설정 값들이 들어갈 리터럴
          *
@@ -3015,7 +3015,7 @@
 
     /**
      * @namespace
-     * @name emart.valid
+     * @name core.valid
      * @description 밸리데이션 함수 모음
      */
     core.define('valid', function () {
@@ -3031,7 +3031,7 @@
                 return false;
             };
 
-        return /** @lends emart.valid */{
+        return /** @lends core.valid */{
             empty: core.isEmpty,
             /**
              * 필수입력 체크
@@ -3247,7 +3247,7 @@
 
     /**
      * @namespace
-     * @name emart.css3
+     * @name core.css3
      * @description
      */
     core.define('css3', function() {
@@ -3280,7 +3280,7 @@
             return _vendor + string.capitalize(name);
         }
 
-        return /** @lends emart.css3 */{
+        return /** @lends core.css3 */{
             support: _vendor !== false,
             support3D: (function() {
                 var body = document.body,
@@ -3348,7 +3348,7 @@
              * @param {String} cssName css명
              * @return {String}
              * @example
-             * emart.css3.prefix('transition'); // => webkitTransition
+             * core.css3.prefix('transition'); // => webkitTransition
              */
             prefix: prefixStyle,
             get: function(el, style) {
@@ -3393,11 +3393,11 @@
 
     /**
      * @namespace
-     * @name emart.util
+     * @name core.util
      */
     core.define('util', function() {
 
-        return /** @lends emart.util */{
+        return /** @lends core.util */{
 
 
             /**
@@ -3473,7 +3473,7 @@
             },
 
             /**
-             * 팝업. (emart.openPopup으로도 사용가능)
+             * 팝업. (core.openPopup으로도 사용가능)
              * @param {string} url 주소
              * @param {number=} width 너비.
              * @param {number=} height 높이.
@@ -3485,7 +3485,7 @@
                 }, opts);
                 width = width || 600;
                 height = height || 400;
-                //var winCoords = emart.util.popupCoords(width, height),
+                //var winCoords = core.util.popupCoords(width, height),
                 var target = opts.target || '',
                     feature = 'app_, ',
                     tmp = [];
@@ -3929,8 +3929,8 @@
          * @param {String} val 값
          * @param {String} sep 구분자
          * @example
-         * emart.cookie.addToArray('arr', 'a');
-         * emart.cookie.addToArray('arr', 'b');  // arr:a|b
+         * core.cookie.addToArray('arr', 'a');
+         * core.cookie.addToArray('arr', 'b');  // arr:a|b
          */
         addToArray: function(name, val, sep) {
             sep = sep || '|';
@@ -3952,8 +3952,8 @@
          * @param {String} val 값
          * @param {String} sep
          * @example
-         * emart.cookie.addToArray('arr', 'a');
-         * emart.cookie.addToArray('arr', 'b');  // arr:a|b
+         * core.cookie.addToArray('arr', 'a');
+         * core.cookie.addToArray('arr', 'b');  // arr:a|b
          */
         removeToArray: function(name, val, sep) {
             sep = sep || '|';
@@ -3971,9 +3971,9 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     var $win = core.$win,
         $doc = core.$doc,
-        View;		// emart.ui.View
+        View;		// core.ui.View
 
-    core.define( /** @lends emart */{
+    core.define( /** @lends core */{
         /*cleanUIModules: function(el) {
          $('[data-ui-modules]', el).each(function(){
          var $el = $(this),
@@ -3998,14 +3998,14 @@
          *
          * @example
          * // 클래스 정의
-         * var Slider = emart.ui.View({
+         * var Slider = core.ui.View({
 		 *   initialize: function(el, options) { // 생성자의 형식을 반드시 지킬 것..(첫번째 인수: 대상 엘리먼트, 두번째
 		 *   인수: 옵션값들)
 		 *   ...
 		 *   },
 		 *   ...
 		 * });
-         * emart.bindjQuery(Slider, 'hibSlider');
+         * core.bindjQuery(Slider, 'hibSlider');
          * // 실제 사용시
          * $('#slider').hibSlider({count: 10});
          */
@@ -4072,9 +4072,9 @@
         /**
          * 이벤트 리스너
          * @class
-         * @name emart.Listener
+         * @name core.Listener
          */
-        var Listener = /** @lends emart.Listener# */ {
+        var Listener = /** @lends core.Listener# */ {
             /**
              * 생성자
              */
@@ -4131,17 +4131,17 @@
 
     /**
      * @namespace
-     * @name emart.PubSub
+     * @name core.PubSub
      * @description 발행/구독 객체: 상태변화를 관찰하는 옵저버(핸들러)를 등록하여, 상태변화가 있을 때마다 옵저버를 발행(실행)
      * 하도록 하는 객체이다.
      * @example
      * // 옵저버 등록
-     * emart.PubSub.on('customevent', function() {
+     * core.PubSub.on('customevent', function() {
 	 *	 alert('안녕하세요');
 	 * });
      *
      * // 등록된 옵저버 실행
-     * emart.PubSub.trigger('customevent');
+     * core.PubSub.trigger('customevent');
      */
     core.define('PubSub', function () {
 
@@ -4153,7 +4153,7 @@
     });
 
     /**
-     * @name emart.ui
+     * @name core.ui
      * @param name
      * @param attr
      * @returns {*}
@@ -4221,12 +4221,12 @@
         /**
          * 모든 UI요소 클래스의 최상위 클래스로써, UI클래스를 작성함에 있어서 편리한 기능을 제공해준다.
          * @class
-         * @name emart.ui.View
+         * @name core.ui.View
          *
          * @example
          *
          * var Slider = Class({
-		 *		$extend: emart.ui.View,
+		 *		$extend: core.ui.View,
 		 *		// 기능1) events 속성을 통해 이벤트핸들러를 일괄 등록할 수 있다. ('이벤트명 selector': '핸들러함수명')
 		 *	events: {
 		 *		click ul>li.item': 'onItemClick',		// this.$el.on('click', 'ul>li.item', this.onItemClick.bind(this)); 를 자동 수행
@@ -4250,9 +4250,9 @@
 		 *	}
 		 * });
          *
-         * new emart.ui.Slider('#slider', {count: 10});
+         * new core.ui.Slider('#slider', {count: 10});
          */
-        var View = core.Base.extend(/** @lends emart.ui.View# */{
+        var View = core.Base.extend(/** @lends core.ui.View# */{
             $statics: {
                 _instances: [] // 모든 인스턴스를 갖고 있는다..
             },
@@ -4342,7 +4342,7 @@
 
             /**
              * this.selectors를 기반으로 엘리먼트를 조회해서 멤버변수에 셋팅
-             * @returns {emart.ui.View}
+             * @returns {core.ui.View}
              */
             updateSelectors: function () {
                 var me = this;
@@ -4585,13 +4585,13 @@
      * options.show: true                   // 호출할 때 바로 표시할 것인가...
      *
      * @class
-     * @name emart.ui.Modal
-     * @extends emart.ui.View
+     * @name core.ui.Modal
+     * @extends core.ui.View
      * @example
      */
-    var Modal = ui('Modal', /** @lends emart.ui.Modal# */{
+    var Modal = ui('Modal', /** @lends core.ui.Modal# */{
         bindjQuery: 'modal',
-        $statics: /** @lends emart.ui.Modal */{
+        $statics: /** @lends core.ui.Modal */{
             /**
              * 모달 생성시 발생되는 이벤트
              * @static
@@ -4865,8 +4865,8 @@
 			});
 			/*
             var me = this;
-            var containHei  = emart.util.getDocHeight();
-            var containWid = emart.util.getDocWidth();
+            var containHei  = core.util.getDocHeight();
+            var containWid = core.util.getDocWidth();
             var layerOuterHei = me.$el.outerHeight();
             var bodyTop = core.getBody().scrollTop();
 
@@ -5101,13 +5101,13 @@
     core.ui.alert = function () {
         /**
          * 얼럿레이어
-         * @memberOf emart.ui
+         * @memberOf core.ui
          * @name alert
          * @function
          * @param {String} msg 얼럿 메세지
          * @param {JSON} options 모달 옵션
          * @example
-         * emart.ui.alert('안녕하세요');
+         * core.ui.alert('안녕하세요');
          */
         return function (msg, options) {
             if(typeof msg !== 'string' && arguments.length === 0) {
@@ -5141,11 +5141,11 @@
     /**
      * @class
      * @description 달력
-     * @name emart.ui.Calendar
-     * @extends emart.ui.View
+     * @name core.ui.Calendar
+     * @extends core.ui.View
      */
     var daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    var Calendar = ui('Calendar', /** @lends emart.ui.Calendar# */{
+    var Calendar = ui('Calendar', /** @lends core.ui.Calendar# */{
         bindjQuery: 'calendar',
         defaults: {
             weekNames: ['일', '월','화','수','목','금', '토'],
@@ -5918,13 +5918,13 @@
     //Paginate ////////////////////////////////////////////////////////////////////////////
     /**
      * @class
-     * @name emart.ui.Paginate
+     * @name core.ui.Paginate
      * @description 페이징모듈
-     * @extends emart.ui.View
+     * @extends core.ui.View
      */
-    var Paginate = ui('Paginate', /** @lends emart.ui.Paginate# */{
+    var Paginate = ui('Paginate', /** @lends core.ui.Paginate# */{
         bindjQuery: 'paginate',
-        $statics: /** @lends emart.ui.Paginate */{
+        $statics: /** @lends core.ui.Paginate */{
             ON_PAGECLICK: 'paginatepageclick',
             ON_BEFORESEND: 'paginatebeforesend'
         },
@@ -6124,7 +6124,7 @@
      });
      /////////////////////////////////////////////////////////
      */
-    var AjaxList = ui('AjaxList', /** @lends emart.ui.AjaxList# */ {
+    var AjaxList = ui('AjaxList', /** @lends core.ui.AjaxList# */ {
         defaults: {
         },
         initialize: function(el, options) {
@@ -6199,14 +6199,14 @@
     /**
      * placeholder를 지원하지 않는 IE7~8상에서 placeholder효과를 처리하는 클래스
      * @class
-     * @name emart.ui.Placeholder
-     * @extends emart.ui.View
+     * @name core.ui.Placeholder
+     * @extends core.ui.View
      * @example
-     * new emart.ui.Placeholder( $('input[placeholder]'), {});
+     * new core.ui.Placeholder( $('input[placeholder]'), {});
      * // 혹은 jquery 플러그인 방식으로도 호출 가능
      * $('input[placeholder]').placeholder({});
      */
-    var Placeholder = ui('Placeholder', /** @lends emart.ui.Placeholder# */{
+    var Placeholder = ui('Placeholder', /** @lends core.ui.Placeholder# */{
         bindjQuery: 'placeholder',
         defaults: {
             foreColor: '',
@@ -6308,10 +6308,10 @@
      * disabledClass: 'disabled'<br />
      *
      * @class
-     * @name emart.ui.Selectbox
-     * @extends emart.ui.View
+     * @name core.ui.Selectbox
+     * @extends core.ui.View
      */
-    var Selectbox = ui('Selectbox', /** @lends emart.ui.Selectbox# */{
+    var Selectbox = ui('Selectbox', /** @lends core.ui.Selectbox# */{
         bindjQuery: 'selectbox',
         $statics: {
             ON_CHANGED: 'selectboxchanged'
@@ -6671,13 +6671,13 @@
     //Tab ////////////////////////////////////////////////////////////////////////////////
     /**
      * @class
-     * @name emart.ui.Tab
+     * @name core.ui.Tab
      * @description 페이징모듈
-     * @extends emart.ui.View
+     * @extends core.ui.View
      */
-    ui('Tab', /** @lends emart.ui.Tab# */{
+    ui('Tab', /** @lends core.ui.Tab# */{
         bindjQuery: 'tab',
-        $statics: /** @lends emart.ui.Tab */{
+        $statics: /** @lends core.ui.Tab */{
             ON_TAB_CHANGED: 'tabchanged'
         },
         defaults: {
@@ -6905,7 +6905,7 @@
             var me = this;
             var gnbTimer = undefined;
             var clicked = false;
-            var isTouch = emart.browser.isTouch;
+            var isTouch = core.browser.isTouch;
 
             function setClickedTimer(){
                 clicked = true;
@@ -7172,7 +7172,7 @@
                     return {
                         msg: data.title+' '+(data.desc||''),
                         url: data.url,
-                        appid: "emart store",
+                        appid: "core store",
                         appver: "0.1",
                         type: "link",
                         appname: "이마트스토어"
@@ -7185,7 +7185,7 @@
                 makeParam: function(data) {
                     return {
                         post: data.url,
-                        appid: "emart store",
+                        appid: "core store",
                         appver: "0.1",
                         apiver: "1.0",
                         appname: "이마트 스토어",
@@ -7648,7 +7648,7 @@
                 '<$} if(isToday){$>',
                 '<span class="hide">오늘</span>',
                 '<$}$>',
-                '<a href="#" aria-describedby="d-<$-emart.date.format(date, \'yyyyMMdd\')$>"><$=day$></a>',
+                '<a href="#" aria-describedby="d-<$-core.date.format(date, \'yyyyMMdd\')$>"><$=day$></a>',
                 '</span>'].join(''),
             label: [
                 '<span class="m-calendar-day" title="<$-title$>">',
